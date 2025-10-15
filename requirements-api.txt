@@ -1,0 +1,20 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-dotenv==1.0.0
+
+# Authentication & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.6
+
+# Database client lighter deps (avoid installing full supabase client to prevent httpx conflict)
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
+
+# Utilities
+requests==2.31.0
+pydantic==2.5.0
+Jinja2==3.1.2
+
+# Scheduler
+apscheduler==3.10.4

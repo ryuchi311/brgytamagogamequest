@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ Command Center - Admin Dashboard</title>
+    <!-- Use Tailwind CDN for rapid styling and Flowbite for components -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/flowbite@1.7.0/dist/flowbite.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'gaming-dark': '#0a0e27',
+                        'neon-blue': '#00d4ff',
+                        'neon-purple': '#b537f2',
+                        'neon-pink': '#ff006e',
+                        'neon-green': '#39ff14',
+                        'neon-yellow': '#fff01f',
+                    },
+                    fontFamily: {
+                        'gaming': ['Orbitron', 'sans-serif'],
+                        'body': ['Rajdhani', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(181, 55, 242, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 0 0 40px rgba(181, 55, 242, 0.5); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .gaming-title { font-family: 'Orbitron', sans-serif; }
+        .gaming-body { font-family: 'Rajdhani', sans-serif; }
+        .gradient-text { background: linear-gradient(135deg, #00d4ff, #b537f2, #ff006e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .card-glow { animation: glow 3s infinite; }
+        .admin-bg {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+            position: relative;
+        }
+        .admin-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: pulse-glow 4s infinite;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="gaming-body">
+    <!-- Login Screen (Gaming Theme) -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center admin-bg">
+        <div class="bg-gradient-to-br from-gaming-dark/95 to-purple-900/40 backdrop-blur-lg rounded-2xl border-2 border-neon-blue/30 p-8 w-full max-w-md card-glow">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">⚔️</div>
+                <h2 class="text-3xl font-black gaming-title gradient-text">COMMAND CENTER</h2>
+                <p class="text-gray-400 mt-2 gaming-body">Admin Access Required</p>
+            </div>
+            <div class="mb-4">
+            <div class="mb-4">
+                <label class="block text-sm font-bold text-neon-blue mb-2 gaming-title">USERNAME</label>
+                <input id="loginUsername" class="w-full bg-black/50 border-2 border-neon-blue/30 focus:border-neon-purple rounded-xl px-4 py-3 text-white placeholder-gray-500 gaming-body focus:outline-none transition-all" type="text" placeholder="Enter admin username">
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-neon-pink mb-2 gaming-title">PASSWORD</label>
+                <input id="loginPassword" class="w-full bg-black/50 border-2 border-neon-pink/30 focus:border-neon-purple rounded-xl px-4 py-3 text-white placeholder-gray-500 gaming-body focus:outline-none transition-all" type="password" placeholder="Enter admin password">
+            </div>
+            <button class="w-full py-4 bg-gradient-to-r from-neon-blue to-neon-purple hover:from-neon-purple hover:to-neon-pink rounded-xl font-bold gaming-title text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-neon-purple/50" onclick="login()">
+                🚀 ACCESS COMMAND CENTER
+            </button>
+                <!-- Rewards Section -->
+                <section id="rewards" class="hidden">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold">Rewards Management</h2>
+                            <button class="py-2 px-4 bg-indigo-600 text-white rounded-md" onclick="showAddRewardModal()">➕ Add Reward</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table id="rewardsTable" class="min-w-full">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-3 text-left">Title</th>
+                                        <th class="p-3 text-left">Cost</th>
+                                        <th class="p-3 text-left">Quantity</th>
+                                        <th class="p-3 text-left">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Verification Section -->
+                <section id="verification" class="hidden">
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h2 class="text-lg font-semibold mb-4">Verification Queue</h2>
+                        <div class="overflow-x-auto">
+                            <table id="verificationTable" class="min-w-full">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="p-3 text-left">User</th>
+                                        <th class="p-3 text-left">Task</th>
+                                        <th class="p-3 text-left">Proof</th>
+                                        <th class="p-3 text-left">Submitted</th>
+                                        <th class="p-3 text-left">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+                            <div class="bg-white p-4 rounded-lg shadow">
+                                <h3 class="text-sm text-gray-500">Total Tasks</h3>
+                                <div id="totalTasks" class="text-2xl font-bold text-indigo-600">0</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg shadow">
+                                <h3 class="text-sm text-gray-500">Completed Tasks</h3>
+                                <div id="completedTasks" class="text-2xl font-bold text-indigo-600">0</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg shadow">
+                                <h3 class="text-sm text-gray-500">Points Distributed</h3>
+                                <div id="pointsDistributed" class="text-2xl font-bold text-indigo-600">0</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg shadow">
+                                <h3 class="text-sm text-gray-500">Rewards Redeemed</h3>
+                                <div id="rewardsRedeemed" class="text-2xl font-bold text-indigo-600">0</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Users Section -->
+                    <section id="users" class="hidden">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h2 class="text-lg font-semibold mb-4">User Management</h2>
+                            <div class="overflow-x-auto">
+                                <table id="usersTable" class="min-w-full">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="p-3 text-left">Username</th>
+                                            <th class="p-3 text-left">Name</th>
+                                            <th class="p-3 text-left">Points</th>
+                                            <th class="p-3 text-left">Total Earned</th>
+                                            <th class="p-3 text-left">Status</th>
+                                            <th class="p-3 text-left">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Tasks Section -->
+                    <section id="tasks" class="hidden">
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-lg font-semibold">Task Management</h2>
+                                <button class="py-2 px-4 bg-indigo-600 text-white rounded-md" onclick="showAddTaskModal()">➕ Add Task</button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table id="tasksTable" class="min-w-full">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            <th class="p-3 text-left">Title</th>
+                                            <th class="p-3 text-left">Type</th>
+                                            <th class="p-3 text-left">Platform</th>
+                                            <th class="p-3 text-left">Points</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Rewards Section -->
+            <div id="rewards" class="content-section">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Reward Management</h2>
+                        <button class="btn" onclick="showAddRewardModal()">➕ Add Reward</button>
+                    </div>
+                    <table id="rewardsTable">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Cost</th>
+                                <th>Available</th>
+                                <th>Claimed</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Verification Section -->
+            <div id="verification" class="content-section">
+                <div class="card">
+                    <h2>Task Verification Queue</h2>
+                    <table id="verificationTable">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Task</th>
+                                <th>Submitted</th>
+                                <th>Proof</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('taskModal')">&times;</span>
+            <h2>Add New Task</h2>
+            <form id="taskForm" onsubmit="submitTask(event)">
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="taskTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="taskDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Task Type *</label>
+                    <select id="taskType" required>
+                        <option value="social_follow">Social Follow</option>
+                        <option value="like_post">Like Post</option>
+                        <option value="share_post">Share Post</option>
+                        <option value="watch_video">Watch Video</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Platform</label>
+                    <select id="taskPlatform">
+                        <option value="">Select Platform</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="tiktok">TikTok</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>URL</label>
+                    <input type="url" id="taskUrl">
+                </div>
+                <div class="form-group">
+                    <label>Points Reward *</label>
+                    <input type="number" id="taskPoints" required min="1">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="taskBonus"> Bonus Task
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="taskVerification"> Requires Verification
+                    </label>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Create Task</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Reward Modal -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('rewardModal')">&times;</span>
+            <h2>Add New Reward</h2>
+            <form id="rewardForm" onsubmit="submitReward(event)">
+                <div class="form-group">
+                    <label>Title *</label>
+                    <input type="text" id="rewardTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="rewardDescription"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Reward Type *</label>
+                    <select id="rewardType" required>
+                        <option value="discount">Discount Code</option>
+                        <option value="gift_card">Gift Card</option>
+                        <option value="exclusive_content">Exclusive Content</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Points Cost *</label>
+                    <input type="number" id="rewardCost" required min="1">
+                </div>
+                <div class="form-group">
+                    <label>Quantity Available</label>
+                    <input type="number" id="rewardQuantity" min="1">
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Create Reward</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        let authToken = '';
+
+        // Login
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('adminDashboard').classList.remove('hidden');
+                    
+                    loadDashboard();
+                } else {
+                    document.getElementById('loginError').textContent = 'Invalid credentials';
+                }
+            } catch (error) {
+                document.getElementById('loginError').textContent = 'Login failed';
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('authToken');
+            authToken = '';
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+        }
+
+        // Show section
+        function showSection(section) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+            
+            document.getElementById(section).classList.add('active');
+            event.target.classList.add('active');
+
+            const titles = {
+                'dashboard': 'Dashboard',
+                'users': 'User Management',
+                'tasks': 'Task Management',
+                'rewards': 'Reward Management',
+                'verification': 'Task Verification'
+            };
+            document.getElementById('sectionTitle').textContent = titles[section];
+
+            if (section === 'dashboard') loadDashboard();
+            else if (section === 'users') loadUsers();
+            else if (section === 'tasks') loadTasks();
+            else if (section === 'rewards') loadRewards();
+            else if (section === 'verification') loadVerification();
+        }
+
+        // Load dashboard stats
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_URL}/admin/stats`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const stats = await response.json();
+
+                document.getElementById('totalUsers').textContent = stats.total_users;
+                document.getElementById('activeUsers').textContent = stats.active_users;
+                document.getElementById('totalTasks').textContent = stats.total_tasks;
+                document.getElementById('completedTasks').textContent = stats.completed_tasks;
+                document.getElementById('pointsDistributed').textContent = stats.total_points_distributed;
+                document.getElementById('rewardsRedeemed').textContent = stats.rewards_redeemed;
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_URL}/users`);
+                const users = await response.json();
+
+                const tbody = document.querySelector('#usersTable tbody');
+                tbody.innerHTML = '';
+
+                users.forEach(user => {
+                    const row = `
+                        <tr>
+                            <td>@${user.username || 'N/A'}</td>
+                            <td>${user.first_name} ${user.last_name || ''}</td>
+                            <td>${user.points}</td>
+                            <td>${user.total_earned_points}</td>
+                            <td><span class="badge ${user.is_banned ? 'badge-danger' : 'badge-success'}">
+                                ${user.is_banned ? 'Banned' : 'Active'}
+                            </span></td>
+                            <td>
+                                <button class="btn btn-${user.is_banned ? 'success' : 'danger'}" 
+                                        onclick="toggleUserBan('${user.id}')">
+                                    ${user.is_banned ? 'Unban' : 'Ban'}
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Load tasks
+        async function loadTasks() {
+            try {
+                const response = await fetch(`${API_URL}/tasks?active_only=false`);
+                const tasks = await response.json();
+
+                const tbody = document.querySelector('#tasksTable tbody');
+                tbody.innerHTML = '';
+
+                tasks.forEach(task => {
+                    const row = `
+                        <tr>
+                            <td>${task.title}</td>
+                            <td>${task.task_type}</td>
+                            <td>${task.platform || 'N/A'}</td>
+                            <td>${task.points_reward}</td>
+                            <td><span class="badge ${task.is_active ? 'badge-success' : 'badge-danger'}">
+                                ${task.is_active ? 'Active' : 'Inactive'}
+                            </span></td>
+                            <td>
+                                <button class="btn btn-danger" onclick="deleteTask('${task.id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        }
+
+        // Load rewards
+        async function loadRewards() {
+            try {
+                const response = await fetch(`${API_URL}/rewards?active_only=false`);
+                const rewards = await response.json();
+
+                const tbody = document.querySelector('#rewardsTable tbody');
+                tbody.innerHTML = '';
+
+                rewards.forEach(reward => {
+                    const row = `
+                        <tr>
+                            <td>${reward.title}</td>
+                            <td>${reward.reward_type}</td>
+                            <td>${reward.points_cost}</td>
+                            <td>${reward.quantity_available || 'Unlimited'}</td>
+                            <td>${reward.quantity_claimed}</td>
+                            <td><span class="badge ${reward.is_active ? 'badge-success' : 'badge-danger'}">
+                                ${reward.is_active ? 'Active' : 'Inactive'}
+                            </span></td>
+                            <td>
+                                <button class="btn btn-warning">Edit</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Error loading rewards:', error);
+            }
+        }
+
+        // Load verification queue
+        async function loadVerification() {
+            try {
+                const response = await fetch(`${API_URL}/admin/user-tasks?status=submitted`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const userTasks = await response.json();
+
+                const tbody = document.querySelector('#verificationTable tbody');
+                tbody.innerHTML = '';
+
+                userTasks.forEach(ut => {
+                    const row = `
+                        <tr>
+                            <td>${ut.users?.first_name || 'Unknown'}</td>
+                            <td>${ut.tasks?.title || 'Unknown'}</td>
+                            <td>${new Date(ut.created_at).toLocaleDateString()}</td>
+                            <td>${ut.proof_url ? `<a href="${ut.proof_url}" target="_blank">View</a>` : 'N/A'}</td>
+                            <td>
+                                <button class="btn btn-success" onclick="verifyTask('${ut.id}', true)">Approve</button>
+                                <button class="btn btn-danger" onclick="verifyTask('${ut.id}', false)">Reject</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error('Error loading verification queue:', error);
+            }
+        }
+
+        // Submit task
+        async function submitTask(event) {
+            event.preventDefault();
+
+            const taskData = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                task_type: document.getElementById('taskType').value,
+                platform: document.getElementById('taskPlatform').value || null,
+                url: document.getElementById('taskUrl').value || null,
+                points_reward: parseInt(document.getElementById('taskPoints').value),
+                is_bonus: document.getElementById('taskBonus').checked,
+                verification_required: document.getElementById('taskVerification').checked
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(taskData)
+                });
+
+                if (response.ok) {
+                    alert('Task created successfully!');
+                    closeModal('taskModal');
+                    loadTasks();
+                    document.getElementById('taskForm').reset();
+                }
+            } catch (error) {
+                console.error('Error creating task:', error);
+                alert('Failed to create task');
+            }
+        }
+
+        // Submit reward
+        async function submitReward(event) {
+            event.preventDefault();
+
+            const rewardData = {
+                title: document.getElementById('rewardTitle').value,
+                description: document.getElementById('rewardDescription').value,
+                reward_type: document.getElementById('rewardType').value,
+                points_cost: parseInt(document.getElementById('rewardCost').value),
+                quantity_available: document.getElementById('rewardQuantity').value ? 
+                                   parseInt(document.getElementById('rewardQuantity').value) : null
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/rewards`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(rewardData)
+                });
+
+                if (response.ok) {
+                    alert('Reward created successfully!');
+                    closeModal('rewardModal');
+                    loadRewards();
+                    document.getElementById('rewardForm').reset();
+                }
+            } catch (error) {
+                console.error('Error creating reward:', error);
+                alert('Failed to create reward');
+            }
+        }
+
+        // Verify task
+        async function verifyTask(userTaskId, approved) {
+            try {
+                const response = await fetch(`${API_URL}/admin/user-tasks/${userTaskId}/verify?approved=${approved}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert(`Task ${approved ? 'approved' : 'rejected'} successfully!`);
+                    loadVerification();
+                }
+            } catch (error) {
+                console.error('Error verifying task:', error);
+            }
+        }
+
+        // Toggle user ban
+        async function toggleUserBan(userId) {
+            try {
+                const response = await fetch(`${API_URL}/admin/users/${userId}/ban`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('User status updated!');
+                    loadUsers();
+                }
+            } catch (error) {
+                console.error('Error toggling user ban:', error);
+            }
+        }
+
+        // Delete task
+        async function deleteTask(taskId) {
+            if (!confirm('Are you sure you want to delete this task?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('Task deleted successfully!');
+                    loadTasks();
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+            }
+        }
+
+        // Modal functions
+        function showAddTaskModal() {
+            document.getElementById('taskModal').classList.remove('hidden');
+        }
+
+        function showAddRewardModal() {
+            document.getElementById('rewardModal').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Check if already logged in
+        window.onload = function() {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                authToken = token;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                loadDashboard();
+            }
+        };
+    </script>
+    <script src="https://unpkg.com/flowbite@1.7.0/dist/flowbite.js"></script>
+</body>
+</html>

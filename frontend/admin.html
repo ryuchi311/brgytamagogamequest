@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚔️ Command Center - Gaming Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.7.0/flowbite.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'gaming-dark': '#0a0e27',
+                        'neon-blue': '#00d4ff',
+                        'neon-purple': '#b537f2',
+                        'neon-pink': '#ff006e',
+                        'neon-green': '#39ff14',
+                        'neon-yellow': '#fff01f',
+                    },
+                    fontFamily: {
+                        'gaming': ['Orbitron', 'sans-serif'],
+                        'body': ['Rajdhani', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(181, 55, 242, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 0 0 40px rgba(181, 55, 242, 0.5); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .gaming-title { font-family: 'Orbitron', sans-serif; }
+        .gaming-body { font-family: 'Rajdhani', sans-serif; }
+        .gradient-text { 
+            background: linear-gradient(135deg, #00d4ff, #b537f2, #ff006e); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+        .card-glow { animation: glow 3s infinite; }
+        .slide-in { animation: slideIn 0.5s ease-out; }
+        .admin-bg {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+            position: relative;
+            min-height: 100vh;
+        }
+        .admin-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: pulse-glow 4s infinite;
+            pointer-events: none;
+        }
+        .table-row:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: scale(1.01);
+            transition: all 0.2s;
+        }
+    </style>
+</head>
+<body class="gaming-body admin-bg text-white">
+    
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-gaming-dark/95 to-purple-900/40 backdrop-blur-lg rounded-2xl border-2 border-neon-blue/30 p-8 w-full max-w-md card-glow slide-in">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4 animate-pulse">⚔️</div>
+                <h2 class="text-4xl font-black gaming-title gradient-text mb-2">COMMAND CENTER</h2>
+                <p class="text-gray-400 gaming-body text-lg">Admin Access Required</p>
+            </div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-bold text-neon-blue mb-2 gaming-title">USERNAME</label>
+                <input id="loginUsername" class="w-full bg-black/50 border-2 border-neon-blue/30 focus:border-neon-purple rounded-xl px-4 py-3 text-white placeholder-gray-500 gaming-body focus:outline-none transition-all focus:shadow-lg focus:shadow-neon-blue/30" type="text" placeholder="Enter admin username">
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-neon-pink mb-2 gaming-title">PASSWORD</label>
+                <input id="loginPassword" class="w-full bg-black/50 border-2 border-neon-pink/30 focus:border-neon-purple rounded-xl px-4 py-3 text-white placeholder-gray-500 gaming-body focus:outline-none transition-all focus:shadow-lg focus:shadow-neon-pink/30" type="password" placeholder="Enter admin password">
+            </div>
+            
+            <button class="w-full py-4 bg-gradient-to-r from-neon-blue to-neon-purple hover:from-neon-purple hover:to-neon-pink rounded-xl font-bold gaming-title text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-neon-purple/50" onclick="login()">
+                🚀 ACCESS COMMAND CENTER
+            </button>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="hidden">
+        <!-- Top Navigation -->
+        <nav class="bg-gaming-dark/80 backdrop-blur-lg border-b-2 border-neon-blue/20 sticky top-0 z-50">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <span class="text-3xl">⚔️</span>
+                        <div>
+                            <h1 class="text-2xl font-black gaming-title gradient-text">COMMAND CENTER</h1>
+                            <p class="text-xs text-gray-400">Gaming Community Admin</p>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="px-4 py-2 bg-red-900/50 hover:bg-red-800 border border-red-500/50 rounded-lg gaming-title text-sm transition-all hover:scale-105">
+                        🚪 LOGOUT
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="container mx-auto px-4 py-8">
+            
+            <!-- Navigation Tabs -->
+            <div class="mb-8 flex flex-wrap gap-2">
+                <button onclick="showSection('dashboard')" class="tab-btn px-6 py-3 bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 border-2 border-neon-blue/50 rounded-xl gaming-title font-bold hover:scale-105 transition-all" data-section="dashboard">
+                    📊 DASHBOARD
+                </button>
+                <button onclick="showSection('users')" class="tab-btn px-6 py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="users">
+                    👥 PLAYERS
+                </button>
+                <button onclick="showSection('tasks')" class="tab-btn px-6 py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="tasks">
+                    ⚔️ QUESTS
+                </button>
+                <button onclick="showSection('rewards')" class="tab-btn px-6 py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="rewards">
+                    💎 LOOT
+                </button>
+                <button onclick="showSection('verification')" class="tab-btn px-6 py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="verification">
+                    ✓ VERIFICATION
+                </button>
+            </div>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-gradient-to-br from-neon-blue/20 to-gaming-dark/90 border-2 border-neon-blue/30 rounded-2xl p-6 card-glow slide-in">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-4xl">👥</span>
+                            <span class="text-neon-blue text-sm gaming-title">TOTAL</span>
+                        </div>
+                        <div id="totalUsers" class="text-4xl font-black gaming-title text-neon-blue mb-2">0</div>
+                        <div class="text-gray-400 text-sm gaming-body">Active Players</div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-neon-purple/20 to-gaming-dark/90 border-2 border-neon-purple/30 rounded-2xl p-6 card-glow slide-in" style="animation-delay: 0.1s">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-4xl">⚔️</span>
+                            <span class="text-neon-purple text-sm gaming-title">QUESTS</span>
+                        </div>
+                        <div id="totalTasks" class="text-4xl font-black gaming-title text-neon-purple mb-2">0</div>
+                        <div class="text-gray-400 text-sm gaming-body">Active Quests</div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-neon-green/20 to-gaming-dark/90 border-2 border-neon-green/30 rounded-2xl p-6 card-glow slide-in" style="animation-delay: 0.2s">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-4xl">✨</span>
+                            <span class="text-neon-green text-sm gaming-title">XP</span>
+                        </div>
+                        <div id="pointsDistributed" class="text-4xl font-black gaming-title text-neon-green mb-2">0</div>
+                        <div class="text-gray-400 text-sm gaming-body">XP Distributed</div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-neon-pink/20 to-gaming-dark/90 border-2 border-neon-pink/30 rounded-2xl p-6 card-glow slide-in" style="animation-delay: 0.3s">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-4xl">🏆</span>
+                            <span class="text-neon-pink text-sm gaming-title">REWARDS</span>
+                        </div>
+                        <div id="rewardsRedeemed" class="text-4xl font-black gaming-title text-neon-pink mb-2">0</div>
+                        <div class="text-gray-400 text-sm gaming-body">Loot Claimed</div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-gaming-dark/60 border-2 border-neon-blue/20 rounded-2xl p-6">
+                    <h2 class="text-2xl font-black gaming-title gradient-text mb-6">📡 RECENT ACTIVITY</h2>
+                    <div id="recentActivity" class="space-y-3">
+                        <div class="text-center text-gray-500 py-8">Loading activity feed...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users" class="content-section hidden">
+                <div class="bg-gaming-dark/60 border-2 border-neon-blue/20 rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-black gaming-title gradient-text">👥 PLAYER MANAGEMENT</h2>
+                        <div class="text-sm text-gray-400 gaming-body">Total Players: <span id="userCount" class="text-neon-blue font-bold">0</span></div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b-2 border-neon-blue/20">
+                                    <th class="px-4 py-3 text-left text-neon-blue gaming-title text-sm">PLAYER</th>
+                                    <th class="px-4 py-3 text-left text-neon-blue gaming-title text-sm">USERNAME</th>
+                                    <th class="px-4 py-3 text-left text-neon-blue gaming-title text-sm">LEVEL</th>
+                                    <th class="px-4 py-3 text-left text-neon-blue gaming-title text-sm">XP</th>
+                                    <th class="px-4 py-3 text-left text-neon-blue gaming-title text-sm">EARNED</th>
+                                    <th class="px-4 py-3 text-left text-neon-blue gaming-title text-sm">STATUS</th>
+                                    <th class="px-4 py-3 text-left text-neon-blue gaming-title text-sm">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable" class="divide-y divide-gray-800">
+                                <tr><td colspan="7" class="text-center py-12 text-gray-500">Loading players...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tasks Section -->
+            <section id="tasks" class="content-section hidden">
+                <div class="bg-gaming-dark/60 border-2 border-neon-purple/20 rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-black gaming-title gradient-text">⚔️ QUEST MANAGEMENT</h2>
+                        <button onclick="showAddTaskModal()" class="px-6 py-3 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl gaming-title font-bold transition-all hover:scale-105 hover:shadow-lg hover:shadow-neon-purple/50">
+                            ➕ CREATE QUEST
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b-2 border-neon-purple/20">
+                                    <th class="px-4 py-3 text-left text-neon-purple gaming-title text-sm">QUEST</th>
+                                    <th class="px-4 py-3 text-left text-neon-purple gaming-title text-sm">TYPE</th>
+                                    <th class="px-4 py-3 text-left text-neon-purple gaming-title text-sm">PLATFORM</th>
+                                    <th class="px-4 py-3 text-left text-neon-purple gaming-title text-sm">XP REWARD</th>
+                                    <th class="px-4 py-3 text-left text-neon-purple gaming-title text-sm">RARITY</th>
+                                    <th class="px-4 py-3 text-left text-neon-purple gaming-title text-sm">STATUS</th>
+                                    <th class="px-4 py-3 text-left text-neon-purple gaming-title text-sm">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasksTable" class="divide-y divide-gray-800">
+                                <tr><td colspan="7" class="text-center py-12 text-gray-500">Loading quests...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rewards Section -->
+            <section id="rewards" class="content-section hidden">
+                <div class="bg-gaming-dark/60 border-2 border-neon-pink/20 rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-black gaming-title gradient-text">💎 LOOT MANAGEMENT</h2>
+                        <button onclick="showAddRewardModal()" class="px-6 py-3 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl gaming-title font-bold transition-all hover:scale-105 hover:shadow-lg hover:shadow-neon-pink/50">
+                            ➕ ADD LOOT
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b-2 border-neon-pink/20">
+                                    <th class="px-4 py-3 text-left text-neon-pink gaming-title text-sm">LOOT</th>
+                                    <th class="px-4 py-3 text-left text-neon-pink gaming-title text-sm">TYPE</th>
+                                    <th class="px-4 py-3 text-left text-neon-pink gaming-title text-sm">XP COST</th>
+                                    <th class="px-4 py-3 text-left text-neon-pink gaming-title text-sm">STOCK</th>
+                                    <th class="px-4 py-3 text-left text-neon-pink gaming-title text-sm">CLAIMED</th>
+                                    <th class="px-4 py-3 text-left text-neon-pink gaming-title text-sm">STATUS</th>
+                                    <th class="px-4 py-3 text-left text-neon-pink gaming-title text-sm">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rewardsTable" class="divide-y divide-gray-800">
+                                <tr><td colspan="7" class="text-center py-12 text-gray-500">Loading loot...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Verification Section -->
+            <section id="verification" class="content-section hidden">
+                <div class="bg-gaming-dark/60 border-2 border-neon-green/20 rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-black gaming-title gradient-text">✓ MISSION CONTROL - VERIFICATION QUEUE</h2>
+                        <div class="text-sm text-gray-400 gaming-body">Pending: <span id="verificationCount" class="text-neon-yellow font-bold">0</span></div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b-2 border-neon-green/20">
+                                    <th class="px-4 py-3 text-left text-neon-green gaming-title text-sm">PLAYER</th>
+                                    <th class="px-4 py-3 text-left text-neon-green gaming-title text-sm">QUEST</th>
+                                    <th class="px-4 py-3 text-left text-neon-green gaming-title text-sm">XP REWARD</th>
+                                    <th class="px-4 py-3 text-left text-neon-green gaming-title text-sm">PROOF</th>
+                                    <th class="px-4 py-3 text-left text-neon-green gaming-title text-sm">SUBMITTED</th>
+                                    <th class="px-4 py-3 text-left text-neon-green gaming-title text-sm">ACTIONS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="verificationTable" class="divide-y divide-gray-800">
+                                <tr><td colspan="6" class="text-center py-12 text-gray-500">No pending verifications</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="taskModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-br from-gaming-dark to-purple-900/40 border-2 border-neon-purple/50 rounded-2xl p-8 w-full max-w-2xl card-glow max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-black gaming-title gradient-text">⚔️ CREATE NEW QUEST</h2>
+                <button onclick="closeModal('taskModal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            
+            <form id="taskForm" onsubmit="submitTask(event)" class="space-y-4">
+                <div>
+                    <label class="block text-neon-blue gaming-title text-sm mb-2">QUEST TITLE</label>
+                    <input id="taskTitle" type="text" required class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                </div>
+                
+                <div>
+                    <label class="block text-neon-blue gaming-title text-sm mb-2">DESCRIPTION</label>
+                    <textarea id="taskDescription" rows="3" required class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">TYPE</label>
+                        <select id="taskType" required class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <option value="social">Social</option>
+                            <option value="content">Content</option>
+                            <option value="referral">Referral</option>
+                            <option value="engagement">Engagement</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">PLATFORM</label>
+                        <select id="taskPlatform" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <option value="">None</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="twitter">Twitter</option>
+                            <option value="discord">Discord</option>
+                            <option value="youtube">YouTube</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-neon-blue gaming-title text-sm mb-2">QUEST URL</label>
+                    <input id="taskUrl" type="url" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                </div>
+                
+                <div>
+                    <label class="block text-neon-blue gaming-title text-sm mb-2">XP REWARD</label>
+                    <input id="taskPoints" type="number" required min="1" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                </div>
+                
+                <div class="flex gap-6">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input id="taskBonus" type="checkbox" class="w-5 h-5 rounded border-2 border-neon-yellow/50 bg-black/50">
+                        <span class="text-neon-yellow gaming-title text-sm">⭐ BONUS QUEST</span>
+                    </label>
+                    
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input id="taskVerification" type="checkbox" class="w-5 h-5 rounded border-2 border-neon-green/50 bg-black/50">
+                        <span class="text-neon-green gaming-title text-sm">✓ VERIFICATION REQUIRED</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="w-full py-4 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl gaming-title font-bold text-lg transition-all hover:scale-105">
+                    🚀 CREATE QUEST
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reward Modal -->
+    <div id="rewardModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-br from-gaming-dark to-purple-900/40 border-2 border-neon-pink/50 rounded-2xl p-8 w-full max-w-2xl card-glow">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-black gaming-title gradient-text">💎 ADD NEW LOOT</h2>
+                <button onclick="closeModal('rewardModal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            
+            <form id="rewardForm" onsubmit="submitReward(event)" class="space-y-4">
+                <div>
+                    <label class="block text-neon-pink gaming-title text-sm mb-2">LOOT TITLE</label>
+                    <input id="rewardTitle" type="text" required class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                </div>
+                
+                <div>
+                    <label class="block text-neon-pink gaming-title text-sm mb-2">DESCRIPTION</label>
+                    <textarea id="rewardDescription" rows="3" required class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-neon-pink gaming-title text-sm mb-2">TYPE</label>
+                        <select id="rewardType" required class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <option value="digital">Digital</option>
+                            <option value="physical">Physical</option>
+                            <option value="voucher">Voucher</option>
+                            <option value="special">Special</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-neon-pink gaming-title text-sm mb-2">XP COST</label>
+                        <input id="rewardCost" type="number" required min="1" class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-neon-pink gaming-title text-sm mb-2">STOCK (leave empty for unlimited)</label>
+                    <input id="rewardQuantity" type="number" min="1" class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                </div>
+                
+                <button type="submit" class="w-full py-4 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl gaming-title font-bold text-lg transition-all hover:scale-105">
+                    💎 ADD LOOT
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - Use relative URL for nginx proxy
+        const API_URL = '/api';
+        let authToken = null;
+
+        // Login
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (!response.ok) throw new Error('Login failed');
+
+                const data = await response.json();
+                authToken = data.access_token;
+                localStorage.setItem('authToken', authToken);
+
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                loadDashboard();
+            } catch (error) {
+                alert('❌ Login failed! Check credentials.');
+                console.error(error);
+            }
+        }
+
+        // Logout
+        function logout() {
+            authToken = null;
+            localStorage.removeItem('authToken');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        // Show section
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.dataset.section === sectionId) {
+                    btn.className = 'tab-btn px-6 py-3 bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 border-2 border-neon-blue/50 rounded-xl gaming-title font-bold transition-all';
+                } else {
+                    btn.className = 'tab-btn px-6 py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title font-bold hover:border-neon-purple/50 hover:scale-105 transition-all';
+                }
+            });
+
+            // Load data for section
+            if (sectionId === 'dashboard') loadDashboard();
+            else if (sectionId === 'users') loadUsers();
+            else if (sectionId === 'tasks') loadTasks();
+            else if (sectionId === 'rewards') loadRewards();
+            else if (sectionId === 'verification') loadVerification();
+        }
+
+        // Load dashboard
+        async function loadDashboard() {
+            try {
+                // Load stats
+                const [usersRes, tasksRes] = await Promise.all([
+                    fetch(`${API_URL}/users`, { headers: { 'Authorization': `Bearer ${authToken}` }}),
+                    fetch(`${API_URL}/tasks`, { headers: { 'Authorization': `Bearer ${authToken}` }})
+                ]);
+
+                const users = await usersRes.json();
+                const tasks = await tasksRes.json();
+
+                document.getElementById('totalUsers').textContent = users.length;
+                document.getElementById('totalTasks').textContent = tasks.length;
+                
+                const totalXP = users.reduce((sum, u) => sum + (u.total_points_earned || 0), 0);
+                document.getElementById('pointsDistributed').textContent = totalXP.toLocaleString();
+                
+                // Load recent activity
+                loadRecentActivity();
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Load recent activity
+        async function loadRecentActivity() {
+            const container = document.getElementById('recentActivity');
+            container.innerHTML = `
+                <div class="space-y-3">
+                    <div class="bg-black/30 border-l-4 border-neon-green rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">✅</span>
+                            <div>
+                                <div class="text-white font-bold gaming-body">Quest Completed</div>
+                                <div class="text-sm text-gray-400">Player earned +50 XP</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-black/30 border-l-4 border-neon-blue rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">👤</span>
+                            <div>
+                                <div class="text-white font-bold gaming-body">New Player Joined</div>
+                                <div class="text-sm text-gray-400">Welcome to the community!</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-black/30 border-l-4 border-neon-pink rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">💎</span>
+                            <div>
+                                <div class="text-white font-bold gaming-body">Loot Claimed</div>
+                                <div class="text-sm text-gray-400">Player redeemed a reward</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const users = await response.json();
+                
+                document.getElementById('userCount').textContent = users.length;
+                
+                const tbody = document.getElementById('usersTable');
+                tbody.innerHTML = users.map(user => `
+                    <tr class="table-row">
+                        <td class="px-4 py-4">
+                            <div class="font-bold text-white gaming-body">${user.first_name || 'Unknown'} ${user.last_name || ''}</div>
+                        </td>
+                        <td class="px-4 py-4 text-gray-300 gaming-body">@${user.username || 'N/A'}</td>
+                        <td class="px-4 py-4">
+                            <span class="px-3 py-1 bg-neon-purple/20 border border-neon-purple/50 rounded-lg text-neon-purple gaming-title text-sm">
+                                LVL ${Math.floor((user.total_points_earned || 0) / 100) + 1}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 text-neon-green font-bold gaming-body">${user.points || 0}</td>
+                        <td class="px-4 py-4 text-neon-blue font-bold gaming-body">${user.total_points_earned || 0}</td>
+                        <td class="px-4 py-4">
+                            <span class="px-3 py-1 ${user.is_banned ? 'bg-red-900/30 border-red-500/50 text-red-400' : 'bg-neon-green/20 border-neon-green/50 text-neon-green'} border rounded-lg gaming-title text-sm">
+                                ${user.is_banned ? '🚫 BANNED' : '✓ ACTIVE'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4">
+                            <button onclick="toggleUserBan('${user.telegram_id}')" class="px-4 py-2 ${user.is_banned ? 'bg-neon-green/20 hover:bg-neon-green/30 border-neon-green/50' : 'bg-red-900/30 hover:bg-red-900/50 border-red-500/50'} border rounded-lg gaming-title text-sm transition-all hover:scale-105">
+                                ${user.is_banned ? 'UNBAN' : 'BAN'}
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Load tasks
+        async function loadTasks() {
+            try {
+                const response = await fetch(`${API_URL}/tasks`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const tasks = await response.json();
+                
+                const tbody = document.getElementById('tasksTable');
+                tbody.innerHTML = tasks.map(task => {
+                    const rarityColors = {
+                        'common': 'text-gray-400 border-gray-500/50',
+                        'rare': 'text-neon-blue border-neon-blue/50',
+                        'epic': 'text-neon-purple border-neon-purple/50',
+                        'legendary': 'text-neon-yellow border-neon-yellow/50'
+                    };
+                    const rarity = task.points_reward < 50 ? 'common' : task.points_reward < 100 ? 'rare' : task.points_reward < 200 ? 'epic' : 'legendary';
+                    
+                    return `
+                    <tr class="table-row">
+                        <td class="px-4 py-4">
+                            <div class="font-bold text-white gaming-body">${task.title}</div>
+                            ${task.is_bonus ? '<span class="text-neon-yellow text-xs">⭐ BONUS</span>' : ''}
+                        </td>
+                        <td class="px-4 py-4 text-gray-300 gaming-body capitalize">${task.task_type || 'N/A'}</td>
+                        <td class="px-4 py-4 text-gray-300 gaming-body capitalize">${task.platform || '—'}</td>
+                        <td class="px-4 py-4 text-neon-green font-bold gaming-body">+${task.points_reward} XP</td>
+                        <td class="px-4 py-4">
+                            <span class="px-3 py-1 bg-black/30 border ${rarityColors[rarity]} rounded-lg gaming-title text-xs uppercase">
+                                ${rarity}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4">
+                            <span class="px-3 py-1 ${task.is_active ? 'bg-neon-green/20 border-neon-green/50 text-neon-green' : 'bg-gray-700/30 border-gray-600/50 text-gray-400'} border rounded-lg gaming-title text-sm">
+                                ${task.is_active ? '✓ ACTIVE' : '⏸ INACTIVE'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4">
+                            <button onclick="deleteTask('${task.id}')" class="px-4 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-500/50 rounded-lg gaming-title text-sm transition-all hover:scale-105">
+                                🗑 DELETE
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        }
+
+        // Load rewards
+        async function loadRewards() {
+            try {
+                const response = await fetch(`${API_URL}/rewards`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const rewards = await response.json();
+                
+                const tbody = document.getElementById('rewardsTable');
+                tbody.innerHTML = rewards.map(reward => `
+                    <tr class="table-row">
+                        <td class="px-4 py-4">
+                            <div class="font-bold text-white gaming-body">${reward.title}</div>
+                        </td>
+                        <td class="px-4 py-4 text-gray-300 gaming-body capitalize">${reward.reward_type || 'N/A'}</td>
+                        <td class="px-4 py-4 text-neon-purple font-bold gaming-body">${reward.points_cost} XP</td>
+                        <td class="px-4 py-4 text-neon-blue font-bold gaming-body">${reward.quantity_available || '∞'}</td>
+                        <td class="px-4 py-4 text-neon-pink font-bold gaming-body">${reward.quantity_claimed || 0}</td>
+                        <td class="px-4 py-4">
+                            <span class="px-3 py-1 ${reward.is_active ? 'bg-neon-green/20 border-neon-green/50 text-neon-green' : 'bg-gray-700/30 border-gray-600/50 text-gray-400'} border rounded-lg gaming-title text-sm">
+                                ${reward.is_active ? '✓ ACTIVE' : '⏸ INACTIVE'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4">
+                            <button class="px-4 py-2 bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/50 rounded-lg gaming-title text-sm transition-all hover:scale-105">
+                                ✏ EDIT
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading rewards:', error);
+            }
+        }
+
+        // Load verification
+        async function loadVerification() {
+            try {
+                const response = await fetch(`${API_URL}/admin/user-tasks?status=submitted`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                const userTasks = await response.json();
+                
+                document.getElementById('verificationCount').textContent = userTasks.length;
+                
+                const tbody = document.getElementById('verificationTable');
+                if (userTasks.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-12 text-gray-500">No pending verifications</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = userTasks.map(ut => `
+                    <tr class="table-row">
+                        <td class="px-4 py-4 text-white font-bold gaming-body">${ut.users?.first_name || 'Unknown'}</td>
+                        <td class="px-4 py-4 text-gray-300 gaming-body">${ut.tasks?.title || 'Unknown'}</td>
+                        <td class="px-4 py-4 text-neon-green font-bold gaming-body">+${ut.tasks?.points_reward || 0} XP</td>
+                        <td class="px-4 py-4">
+                            ${ut.proof_url ? `<a href="${ut.proof_url}" target="_blank" class="text-neon-blue hover:text-neon-purple transition-colors">🔗 View Proof</a>` : '<span class="text-gray-500">No proof</span>'}
+                        </td>
+                        <td class="px-4 py-4 text-gray-400 text-sm gaming-body">${new Date(ut.created_at).toLocaleDateString()}</td>
+                        <td class="px-4 py-4">
+                            <div class="flex gap-2">
+                                <button onclick="verifyTask('${ut.id}', true)" class="px-4 py-2 bg-neon-green/20 hover:bg-neon-green/30 border border-neon-green/50 rounded-lg gaming-title text-sm text-neon-green transition-all hover:scale-105">
+                                    ✓ APPROVE
+                                </button>
+                                <button onclick="verifyTask('${ut.id}', false)" class="px-4 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-500/50 rounded-lg gaming-title text-sm transition-all hover:scale-105">
+                                    ✗ REJECT
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading verification:', error);
+            }
+        }
+
+        // Submit task
+        async function submitTask(event) {
+            event.preventDefault();
+
+            const taskData = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                task_type: document.getElementById('taskType').value,
+                platform: document.getElementById('taskPlatform').value || null,
+                url: document.getElementById('taskUrl').value || null,
+                points_reward: parseInt(document.getElementById('taskPoints').value),
+                is_bonus: document.getElementById('taskBonus').checked,
+                verification_required: document.getElementById('taskVerification').checked
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(taskData)
+                });
+
+                if (response.ok) {
+                    alert('⚔️ Quest created successfully!');
+                    closeModal('taskModal');
+                    loadTasks();
+                    document.getElementById('taskForm').reset();
+                }
+            } catch (error) {
+                console.error('Error creating task:', error);
+                alert('❌ Failed to create quest');
+            }
+        }
+
+        // Submit reward
+        async function submitReward(event) {
+            event.preventDefault();
+
+            const rewardData = {
+                title: document.getElementById('rewardTitle').value,
+                description: document.getElementById('rewardDescription').value,
+                reward_type: document.getElementById('rewardType').value,
+                points_cost: parseInt(document.getElementById('rewardCost').value),
+                quantity_available: document.getElementById('rewardQuantity').value ? 
+                                   parseInt(document.getElementById('rewardQuantity').value) : null
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/rewards`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(rewardData)
+                });
+
+                if (response.ok) {
+                    alert('💎 Loot added successfully!');
+                    closeModal('rewardModal');
+                    loadRewards();
+                    document.getElementById('rewardForm').reset();
+                }
+            } catch (error) {
+                console.error('Error creating reward:', error);
+                alert('❌ Failed to add loot');
+            }
+        }
+
+        // Verify task
+        async function verifyTask(userTaskId, approved) {
+            try {
+                const response = await fetch(`${API_URL}/admin/user-tasks/${userTaskId}/verify?approved=${approved}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert(`${approved ? '✅ Quest approved!' : '❌ Quest rejected!'}`);
+                    loadVerification();
+                }
+            } catch (error) {
+                console.error('Error verifying task:', error);
+            }
+        }
+
+        // Toggle user ban
+        async function toggleUserBan(userId) {
+            try {
+                const response = await fetch(`${API_URL}/admin/users/${userId}/ban`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('✓ Player status updated!');
+                    loadUsers();
+                }
+            } catch (error) {
+                console.error('Error toggling user ban:', error);
+            }
+        }
+
+        // Delete task
+        async function deleteTask(taskId) {
+            if (!confirm('⚠️ Delete this quest permanently?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (response.ok) {
+                    alert('🗑 Quest deleted!');
+                    loadTasks();
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+            }
+        }
+
+        // Modal functions
+        function showAddTaskModal() {
+            document.getElementById('taskModal').classList.remove('hidden');
+        }
+
+        function showAddRewardModal() {
+            document.getElementById('rewardModal').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Check if already logged in
+        window.onload = function() {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                authToken = token;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                loadDashboard();
+            }
+        };
+    </script>
+    <script src="https://unpkg.com/flowbite@1.7.0/dist/flowbite.js"></script>
+</body>
+</html>

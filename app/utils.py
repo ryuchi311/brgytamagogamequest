@@ -155,6 +155,28 @@ def sanitize_input(text: str, max_length: int = 1000) -> str:
     return text
 
 
+def extract_youtube_video_id(url: str) -> Optional[str]:
+    """Extract YouTube video ID from various URL formats"""
+    import re
+    
+    if not url:
+        return None
+    
+    # Patterns for different YouTube URL formats
+    patterns = [
+        r'(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})',
+        r'youtube\.com\/embed\/([a-zA-Z0-9_-]{11})',
+        r'youtube\.com\/v\/([a-zA-Z0-9_-]{11})',
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+    
+    return None
+
+
 def paginate(items: list, page: int = 1, page_size: int = 10) -> dict:
     """Paginate a list of items"""
     total_items = len(items)

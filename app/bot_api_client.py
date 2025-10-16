@@ -122,3 +122,91 @@ class BotAPIClient:
         except Exception as e:
             print(f"Error creating notification: {e}")
             return None
+    
+    @staticmethod
+    def verify_twitter_follow(user_id: str, task_id: str, twitter_username: str) -> Optional[Dict[str, Any]]:
+        """Verify Twitter follow via API"""
+        try:
+            data = {
+                "user_id": user_id,
+                "task_id": task_id,
+                "twitter_username": twitter_username,
+                "verification_type": "follow"
+            }
+            response = requests.post(f"{API_URL}/twitter/verify", json=data)
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Error verifying Twitter follow: {e}")
+            return None
+    
+    @staticmethod
+    def verify_twitter_like(user_id: str, task_id: str, twitter_username: str, tweet_id: str) -> Optional[Dict[str, Any]]:
+        """Verify Twitter like via API"""
+        try:
+            data = {
+                "user_id": user_id,
+                "task_id": task_id,
+                "twitter_username": twitter_username,
+                "tweet_id": tweet_id,
+                "verification_type": "like"
+            }
+            response = requests.post(f"{API_URL}/twitter/verify", json=data)
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Error verifying Twitter like: {e}")
+            return None
+    
+    @staticmethod
+    def verify_twitter_retweet(user_id: str, task_id: str, twitter_username: str, tweet_id: str) -> Optional[Dict[str, Any]]:
+        """Verify Twitter retweet via API"""
+        try:
+            data = {
+                "user_id": user_id,
+                "task_id": task_id,
+                "twitter_username": twitter_username,
+                "tweet_id": tweet_id,
+                "verification_type": "retweet"
+            }
+            response = requests.post(f"{API_URL}/twitter/verify", json=data)
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Error verifying Twitter retweet: {e}")
+            return None
+    
+    # Video Verification Methods
+    
+    @staticmethod
+    def start_video_view(user_id: str, task_id: str) -> Optional[Dict[str, Any]]:
+        """Record when user starts watching a video"""
+        try:
+            response = requests.post(
+                f"{API_URL}/video-views/start",
+                json={"user_id": user_id, "task_id": task_id}
+            )
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Error starting video view: {e}")
+            return None
+    
+    @staticmethod
+    def verify_video_code(user_id: str, code: str) -> Optional[Dict[str, Any]]:
+        """Verify video code with time delay check"""
+        try:
+            response = requests.post(
+                f"{API_URL}/video-views/verify",
+                json={"user_id": user_id, "code": code}
+            )
+            if response.status_code == 200:
+                return response.json()
+            return None
+        except Exception as e:
+            print(f"Error verifying video code: {e}")
+            return None

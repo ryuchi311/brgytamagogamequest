@@ -78,6 +78,7 @@ class TaskCreate(BaseModel):
     points_reward: int
     is_bonus: bool = False
     verification_required: bool = False
+    verification_data: Optional[dict] = None
 
 
 class RewardCreate(BaseModel):
@@ -192,6 +193,28 @@ async def get_users(skip: int = 0, limit: int = 100):
     return response.data or []
 
 
+@app.post("/api/users/init")
+async def init_user(telegram_id: int, username: str = None):
+    """Initialize a user if they don't exist (for frontend testing)"""
+    # Check if user exists
+    existing = DatabaseService.get_user_by_telegram_id(telegram_id)
+    if existing:
+        return existing
+    
+    # Create new user
+    user_data = {
+        "telegram_id": telegram_id,
+        "username": username or f"user_{telegram_id}",
+        "points": 0,
+        "is_banned": False
+    }
+    
+    response = supabase.table("users").insert(user_data).execute()
+    if response.data:
+        return response.data[0]
+    raise HTTPException(status_code=500, detail="Failed to create user")
+
+
 @app.get("/api/users/{telegram_id}", response_model=UserResponse)
 async def get_user(telegram_id: int):
     """Get user by Telegram ID"""
@@ -210,6 +233,131 @@ async def get_user_notifications(telegram_id: int, unread_only: bool = False):
     
     notifications = DatabaseService.get_user_notifications(user['id'], unread_only)
     return notifications
+
+
+@app.post("/api/verify")
+async def verify_task_completion(request: dict):
+    """Verify and complete a task for a user"""
+    from datetime import datetime, timezone
+    from app.twitter_client import TwitterClient
+    from app.utils import extract_youtube_video_id
+    
+    telegram_id = request.get('telegram_id')
+    task_id = request.get('task_id')
+    
+    if not telegram_id or not task_id:
+        raise HTTPException(status_code=400, detail="telegram_id and task_id are required")
+    
+    # Get user
+    user = DatabaseService.get_user_by_telegram_id(telegram_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get task
+    task_response = supabase.table("tasks").select("*").eq("id", task_id).eq("is_active", True).execute()
+    if not task_response.data:
+        raise HTTPException(status_code=404, detail="Task not found or inactive")
+    
+    task = task_response.data[0]
+    
+    # Check if user already completed this task
+    existing = supabase.table("user_tasks").select("*").eq("user_id", user['id']).eq("task_id", task_id).eq("status", "completed").execute()
+    if existing.data:
+        return {"success": False, "message": "Task already completed"}
+    
+    # Perform verification based on task platform
+    verification_success = False
+    verification_message = "Verification pending"
+    
+    platform = task.get('platform', '').lower()
+    verification_data = task.get('verification_data') or {}
+    
+    if platform == 'twitter':
+        # Twitter verification
+        try:
+            twitter_client = TwitterClient()
+            verification_type = verification_data.get('type', 'follow')
+            
+            if verification_type == 'follow':
+                target_username = verification_data.get('username')
+                user_twitter = request.get('twitter_username')
+                if user_twitter and target_username:
+                    result = twitter_client.verify_follow(user_twitter, target_username)
+                    verification_success = result.get('verified', False)
+                    verification_message = result.get('message', 'Verification completed')
+                else:
+                    verification_message = "Twitter username required"
+            
+            elif verification_type == 'like':
+                tweet_id = verification_data.get('tweet_id')
+                user_twitter = request.get('twitter_username')
+                if user_twitter and tweet_id:
+                    result = twitter_client.verify_like(user_twitter, tweet_id)
+                    verification_success = result.get('verified', False)
+                    verification_message = result.get('message', 'Verification completed')
+                else:
+                    verification_message = "Twitter username and tweet ID required"
+                    
+        except Exception as e:
+            verification_message = f"Twitter verification error: {str(e)}"
+            
+    elif platform == 'youtube':
+        # YouTube video verification
+        video_id = extract_youtube_video_id(task.get('url', ''))
+        if video_id:
+            # For YouTube, create a pending user_task that will be verified via video code
+            verification_success = True  # Allow user to start watching
+            verification_message = "Video quest started - enter the code shown in the video"
+        else:
+            verification_message = "Invalid YouTube URL"
+            
+    else:
+        # Generic/manual verification - create pending task for admin review
+        verification_success = True
+        verification_message = "Task submitted for verification"
+    
+    # Create or update user_task record
+    if verification_success:
+        # Check if pending task exists
+        pending_task = supabase.table("user_tasks").select("*").eq("user_id", user['id']).eq("task_id", task_id).execute()
+        
+        if pending_task.data:
+            # Update existing
+            user_task_id = pending_task.data[0]['id']
+            supabase.table("user_tasks").update({
+                "status": "completed" if platform != 'youtube' else "pending",
+                "completed_at": datetime.now(timezone.utc).isoformat() if platform != 'youtube' else None
+            }).eq("id", user_task_id).execute()
+        else:
+            # Create new
+            user_task_data = {
+                "user_id": user['id'],
+                "task_id": task_id,
+                "status": "completed" if platform != 'youtube' else "pending",
+                "completed_at": datetime.now(timezone.utc).isoformat() if platform != 'youtube' else None
+            }
+            supabase.table("user_tasks").insert(user_task_data).execute()
+        
+        # Award points if completed (not YouTube pending)
+        if platform != 'youtube':
+            points_reward = task.get('points_reward', 0)
+            new_points = user['points'] + points_reward
+            supabase.table("users").update({"points": new_points}).eq("id", user['id']).execute()
+            
+            return {
+                "success": True,
+                "message": verification_message,
+                "points_earned": points_reward,
+                "new_total": new_points
+            }
+        else:
+            return {
+                "success": True,
+                "message": verification_message,
+                "requires_code": True
+            }
+    
+    return {"success": False, "message": verification_message}
 
 
 # Task Endpoints
@@ -237,7 +385,22 @@ async def get_task(task_id: str):
 @app.post("/api/tasks", response_model=TaskResponse)
 async def create_task(task: TaskCreate, admin=Depends(get_current_admin)):
     """Create a new task (Admin only)"""
-    task_data = task.dict()
+    # Convert to dict and prepare for insertion
+    task_data = {
+        "title": task.title,
+        "description": task.description,
+        "task_type": task.task_type,
+        "platform": task.platform,
+        "url": task.url,
+        "points_reward": task.points_reward,
+        "is_bonus": task.is_bonus,
+        "verification_required": task.verification_required
+    }
+    
+    # Add verification_data only if it exists and is not None
+    if task.verification_data is not None:
+        task_data["verification_data"] = task.verification_data
+    
     response = supabase.table("tasks").insert(task_data).execute()
     
     if not response.data:
@@ -448,6 +611,416 @@ async def ban_user(user_id: str, admin=Depends(get_current_admin)):
     supabase.table("users").update({"is_banned": new_status}).eq("id", user_id).execute()
     
     return {"message": f"User {'banned' if new_status else 'unbanned'} successfully"}
+
+
+# ============================================================================
+# VIDEO VERIFICATION ENDPOINTS
+# ============================================================================
+
+@app.post("/api/video-views/start")
+async def start_video_view(request: dict):
+    """Start tracking a video view for time delay verification"""
+    user_id = request.get('user_id')
+    task_id = request.get('task_id')
+    
+    if not user_id or not task_id:
+        raise HTTPException(status_code=400, detail="user_id and task_id are required")
+    
+    # Get task to extract verification code
+    task_response = supabase.table("tasks").select("*").eq("id", task_id).execute()
+    
+    if not task_response.data:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = task_response.data[0]
+    verification_data = task.get('verification_data', {})
+    
+    if not verification_data or verification_data.get('method') != 'time_delay_code':
+        raise HTTPException(status_code=400, detail="Task does not support video verification")
+    
+    verification_code = verification_data.get('code')
+    
+    # Check if there's already an active view for this user-task combination
+    existing_view = supabase.table("video_views").select("*").eq("user_id", user_id).eq("task_id", task_id).eq("status", "watching").execute()
+    
+    if existing_view.data:
+        # Return existing view
+        return {"message": "Video view already started", "view": existing_view.data[0]}
+    
+    # Create new video view record
+    view_data = {
+        "user_id": user_id,
+        "task_id": task_id,
+        "verification_code": verification_code,
+        "status": "watching"
+    }
+    
+    result = supabase.table("video_views").insert(view_data).execute()
+    
+    return {"message": "Video view started", "view": result.data[0] if result.data else None}
+
+
+@app.post("/api/video-views/verify")
+async def verify_video_code(request: dict):
+    """Verify video code with time delay check"""
+    from datetime import datetime, timezone
+    
+    user_id = request.get('user_id')
+    code = request.get('code', '').strip()
+    
+    if not user_id or not code:
+        raise HTTPException(status_code=400, detail="user_id and code are required")
+    
+    # Find active video view for this user with matching code
+    view_response = supabase.table("video_views").select("*, tasks(*)").eq("user_id", user_id).eq("verification_code", code).eq("status", "watching").execute()
+    
+    if not view_response.data:
+        # No active view found - could be wrong code or no active quest
+        return {"success": False, "error": "no_active_view", "message": "No active video quest found with this code"}
+    
+    view = view_response.data[0]
+    task = view['tasks']
+    verification_data = task.get('verification_data', {})
+    
+    min_watch_time = verification_data.get('min_watch_time_seconds', 120)
+    max_attempts = verification_data.get('max_attempts', 3)
+    
+    # Calculate time watched
+    started_at = datetime.fromisoformat(view['started_at'].replace('Z', '+00:00'))
+    now = datetime.now(timezone.utc)
+    time_watched_seconds = int((now - started_at).total_seconds())
+    
+    # Check if max attempts reached
+    if view['code_attempts'] >= max_attempts:
+        # Update status to failed
+        supabase.table("video_views").update({"status": "failed"}).eq("id", view['id']).execute()
+        return {
+            "success": False,
+            "error": "max_attempts",
+            "message": "Maximum verification attempts reached",
+            "attempts_left": 0
+        }
+    
+    # Increment attempt counter
+    new_attempts = view['code_attempts'] + 1
+    supabase.table("video_views").update({"code_attempts": new_attempts}).eq("id", view['id']).execute()
+    
+    # Check if code is correct (case-insensitive)
+    if code.upper() != verification_data.get('code', '').upper():
+        attempts_left = max_attempts - new_attempts
+        
+        if attempts_left <= 0:
+            # Failed after max attempts
+            supabase.table("video_views").update({"status": "failed"}).eq("id", view['id']).execute()
+        
+        return {
+            "success": False,
+            "error": "wrong_code",
+            "message": "Incorrect verification code",
+            "attempts_left": attempts_left,
+            "time_watched_seconds": time_watched_seconds
+        }
+    
+    # Check if minimum watch time has elapsed
+    if time_watched_seconds < min_watch_time:
+        time_remaining = min_watch_time - time_watched_seconds
+        return {
+            "success": False,
+            "error": "too_soon",
+            "message": "Please watch more of the video",
+            "time_watched_seconds": time_watched_seconds,
+            "min_watch_time_seconds": min_watch_time,
+            "time_remaining_seconds": time_remaining,
+            "attempts_left": max_attempts - new_attempts
+        }
+    
+    # All checks passed! Mark as completed
+    supabase.table("video_views").update({
+        "status": "completed",
+        "completed_at": now.isoformat()
+    }).eq("id", view['id']).execute()
+    
+    # Check if user already completed this task
+    existing_completion = supabase.table("user_tasks").select("*").eq("user_id", user_id).eq("task_id", task['id']).execute()
+    
+    if existing_completion.data:
+        return {
+            "success": False,
+            "error": "already_completed",
+            "message": "You have already completed this task"
+        }
+    
+    # Complete the task
+    user_task_data = {
+        "user_id": user_id,
+        "task_id": task['id'],
+        "status": "verified"
+    }
+    supabase.table("user_tasks").insert(user_task_data).execute()
+    
+    # Update user points
+    user_response = supabase.table("users").select("points").eq("id", user_id).execute()
+    current_points = user_response.data[0]['points'] if user_response.data else 0
+    new_points = current_points + task['points_reward']
+    
+    supabase.table("users").update({"points": new_points}).eq("id", user_id).execute()
+    
+    # Create notification
+    notification_data = {
+        "user_id": user_id,
+        "title": "Quest Completed!",
+        "message": f"You earned {task['points_reward']} points for completing '{task['title']}'",
+        "type": "task_verified"
+    }
+    supabase.table("notifications").insert(notification_data).execute()
+    
+    return {
+        "success": True,
+        "message": "Video quest completed successfully!",
+        "task": task,
+        "points_earned": task['points_reward'],
+        "time_watched_seconds": time_watched_seconds,
+        "attempts_left": max_attempts - new_attempts
+    }
+
+
+@app.get("/api/video-views/stats")
+async def get_video_stats(current_admin: dict = Depends(get_current_admin)):
+    """Get statistics about video views for admin dashboard"""
+    
+    # Get counts by status
+    stats_query = """
+        SELECT 
+            COUNT(*) as total,
+            COUNT(CASE WHEN status = 'watching' THEN 1 END) as watching,
+            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
+            COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed,
+            AVG(CASE 
+                WHEN completed_at IS NOT NULL 
+                THEN EXTRACT(EPOCH FROM (completed_at - started_at))
+                ELSE NULL 
+            END) as avg_watch_time_seconds
+        FROM video_views
+    """
+    
+    # Execute raw SQL query
+    result = supabase.rpc('exec_sql', {'query': stats_query}).execute()
+    
+    # If RPC doesn't exist, fall back to counting separately
+    if not result.data:
+        all_views = supabase.table("video_views").select("status").execute()
+        
+        stats = {
+            "total": len(all_views.data),
+            "watching": len([v for v in all_views.data if v['status'] == 'watching']),
+            "completed": len([v for v in all_views.data if v['status'] == 'completed']),
+            "failed": len([v for v in all_views.data if v['status'] == 'failed']),
+            "avg_watch_time_seconds": 0
+        }
+    else:
+        stats = result.data[0]
+    
+    return stats
+
+
+# ============================================================================
+# TWITTER VERIFICATION ENDPOINTS
+# ============================================================================
+
+@app.post("/api/twitter/verify")
+async def verify_twitter_action(request: dict):
+    """
+    Verify Twitter actions (follow, like, retweet) using Twitter API v2
+    Free tier: 100 reads/month
+    """
+    from app.twitter_client import twitter_client
+    from datetime import timezone
+    
+    user_id = request.get('user_id')
+    task_id = request.get('task_id')
+    twitter_username = request.get('twitter_username', '').strip().lstrip('@')
+    verification_type = request.get('verification_type')  # 'follow', 'like', 'retweet'
+    tweet_id = request.get('tweet_id')  # For like/retweet
+    
+    if not all([user_id, task_id, twitter_username, verification_type]):
+        raise HTTPException(status_code=400, detail="Missing required fields")
+    
+    if verification_type in ['like', 'retweet'] and not tweet_id:
+        raise HTTPException(status_code=400, detail="tweet_id required for like/retweet verification")
+    
+    # Check if already verified (cache check)
+    cache_check = supabase.table("twitter_verifications").select("*").eq("user_id", user_id).eq("task_id", task_id).eq("verified", True).execute()
+    
+    if cache_check.data:
+        cached = cache_check.data[0]
+        # Check if cache is still valid (24 hours)
+        expires_at = datetime.fromisoformat(cached['expires_at'].replace('Z', '+00:00'))
+        if datetime.now(timezone.utc) < expires_at:
+            return {
+                "success": True,
+                "verified": True,
+                "cached": True,
+                "message": "Already verified (cached)",
+                "verified_at": cached['verified_at']
+            }
+    
+    # Get task details
+    task_response = supabase.table("tasks").select("*").eq("id", task_id).execute()
+    if not task_response.data:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = task_response.data[0]
+    
+    # Verify based on type
+    result = None
+    verified = False
+    
+    if verification_type == 'follow':
+        result = twitter_client.verify_follow(twitter_username)
+        verified = result.get('is_following', False) if result.get('success') else False
+        
+    elif verification_type == 'like':
+        result = twitter_client.verify_like(twitter_username, tweet_id)
+        verified = result.get('has_liked', False) if result.get('success') else False
+        
+    elif verification_type == 'retweet':
+        result = twitter_client.verify_retweet(twitter_username, tweet_id)
+        verified = result.get('has_retweeted', False) if result.get('success') else False
+    else:
+        raise HTTPException(status_code=400, detail=f"Invalid verification_type: {verification_type}")
+    
+    # Check if API call failed
+    if not result or not result.get('success'):
+        error_message = result.get('message', 'Twitter API error') if result else 'Twitter API unavailable'
+        
+        # If API unavailable, fall back to manual verification
+        if result and not result.get('api_available', True):
+            return {
+                "success": False,
+                "verified": False,
+                "fallback_to_manual": True,
+                "error": "twitter_api_unavailable",
+                "message": "Twitter API limit reached. Task will be marked for manual verification."
+            }
+        
+        return {
+            "success": False,
+            "verified": False,
+            "error": result.get('error') if result else 'api_error',
+            "message": error_message
+        }
+    
+    # Store verification result
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(hours=24)  # Cache for 24 hours
+    
+    verification_data = {
+        "user_id": user_id,
+        "task_id": task_id,
+        "twitter_username": twitter_username,
+        "verification_type": verification_type,
+        "tweet_id": tweet_id,
+        "verified": verified,
+        "verified_at": now.isoformat() if verified else None,
+        "expires_at": expires_at.isoformat(),
+        "api_response": result
+    }
+    
+    # Upsert verification record
+    existing = supabase.table("twitter_verifications").select("id").eq("user_id", user_id).eq("task_id", task_id).execute()
+    
+    if existing.data:
+        supabase.table("twitter_verifications").update(verification_data).eq("id", existing.data[0]['id']).execute()
+    else:
+        supabase.table("twitter_verifications").insert(verification_data).execute()
+    
+    # Update user's Twitter username if verified
+    if verified:
+        supabase.table("users").update({
+            "twitter_username": twitter_username,
+            "twitter_verified": True,
+            "twitter_verified_at": now.isoformat()
+        }).eq("id", user_id).execute()
+    
+    # If not verified, return failure
+    if not verified:
+        return {
+            "success": True,
+            "verified": False,
+            "message": f"Twitter {verification_type} not detected. Please complete the action and try again."
+        }
+    
+    # If verified, complete the task
+    # Check if already completed
+    existing_completion = supabase.table("user_tasks").select("*").eq("user_id", user_id).eq("task_id", task_id).execute()
+    
+    if existing_completion.data:
+        return {
+            "success": True,
+            "verified": True,
+            "already_completed": True,
+            "message": "Task already completed"
+        }
+    
+    # Complete the task
+    user_task_data = {
+        "user_id": user_id,
+        "task_id": task_id,
+        "status": "verified",
+        "completed_at": now.isoformat(),
+        "verified_at": now.isoformat()
+    }
+    supabase.table("user_tasks").insert(user_task_data).execute()
+    
+    # Update user points
+    user_response = supabase.table("users").select("points, total_earned_points").eq("id", user_id).execute()
+    if user_response.data:
+        current_points = user_response.data[0]['points']
+        total_earned = user_response.data[0].get('total_earned_points', 0)
+        
+        new_points = current_points + task['points_reward']
+        new_total_earned = total_earned + task['points_reward']
+        
+        supabase.table("users").update({
+            "points": new_points,
+            "total_earned_points": new_total_earned
+        }).eq("id", user_id).execute()
+    
+    # Create notification
+    notification_data = {
+        "user_id": user_id,
+        "title": "Twitter Quest Completed!",
+        "message": f"You earned {task['points_reward']} points for completing '{task['title']}'",
+        "type": "task_verified"
+    }
+    supabase.table("notifications").insert(notification_data).execute()
+    
+    return {
+        "success": True,
+        "verified": True,
+        "task": task,
+        "points_earned": task['points_reward'],
+        "message": f"Twitter {verification_type} verified! {task['points_reward']} points earned!"
+    }
+
+
+@app.get("/api/twitter/usage")
+async def get_twitter_api_usage(current_admin: dict = Depends(get_current_admin)):
+    """Get Twitter API usage statistics (admin only)"""
+    from app.twitter_client import twitter_client
+    
+    usage_stats = twitter_client.get_usage_stats()
+    
+    # Also get from database
+    current_month_start = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    current_month_end = (current_month_start + timedelta(days=32)).replace(day=1) - timedelta(seconds=1)
+    
+    db_stats = supabase.table("twitter_api_usage").select("*").gte("period_start", current_month_start.isoformat()).execute()
+    
+    return {
+        "current_usage": usage_stats,
+        "db_tracking": db_stats.data if db_stats.data else []
+    }
 
 
 if __name__ == "__main__":

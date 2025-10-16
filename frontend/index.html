@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Gaming Quest Hub | Earn XP & Rewards</title>
-    <!-- Tailwind Play CDN with custom gaming config -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -18,532 +19,397 @@
                         'neon-pink': '#ff006e',
                         'neon-green': '#39ff14',
                         'neon-yellow': '#fff01f',
-                    },
-                    animation: {
-                        'glow': 'glow 2s ease-in-out infinite alternate',
-                        'float': 'float 3s ease-in-out infinite',
-                        'slide-in': 'slideIn 0.5s ease-out',
-                    },
-                    keyframes: {
-                        glow: {
-                            '0%': { boxShadow: '0 0 5px #00d4ff, 0 0 10px #00d4ff' },
-                            '100%': { boxShadow: '0 0 20px #00d4ff, 0 0 30px #00d4ff, 0 0 40px #b537f2' },
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        },
-                        slideIn: {
-                            '0%': { transform: 'translateX(-100%)', opacity: '0' },
-                            '100%': { transform: 'translateX(0)', opacity: '1' },
-                        }
                     }
                 }
             }
         }
     </script>
-    <!-- Flowbite for components -->
-    <link href="https://unpkg.com/flowbite@1.7.0/dist/flowbite.min.css" rel="stylesheet" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
-        body { font-family: 'Rajdhani', sans-serif; }
+        body { font-family: 'Rajdhani', sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
         .gaming-title { font-family: 'Orbitron', sans-serif; }
-        .gradient-text { 
-            background: linear-gradient(90deg, #00d4ff 0%, #b537f2 50%, #ff006e 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .card-glow { 
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-            transition: all 0.3s ease;
-        }
-        .card-glow:hover { 
-            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6), 0 0 50px rgba(181, 55, 242, 0.4);
-            transform: translateY(-5px);
-        }
+        .gradient-text { background: linear-gradient(90deg, #00d4ff 0%, #b537f2 50%, #ff006e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .content-wrapper { padding-bottom: env(safe-area-inset-bottom, 80px); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 -4px 20px rgba(0, 212, 255, 0.3); padding-bottom: env(safe-area-inset-bottom, 0); }
+        .bottom-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 8px 0; transition: all 0.3s ease; position: relative; }
+        .bottom-nav-item.active { color: #00d4ff; }
+        .bottom-nav-item.active::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 40px; height: 3px; background: linear-gradient(90deg, #00d4ff, #b537f2); border-radius: 0 0 10px 10px; }
+        .bottom-nav-icon { font-size: 24px; line-height: 1; margin-bottom: 4px; }
+        .bottom-nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
 </head>
 <body class="bg-gaming-darker text-white">
-    <div class="min-h-screen bg-gradient-to-br from-gaming-darker via-gaming-dark to-gaming-darker relative overflow-hidden">
-        <!-- Animated background grid -->
-        <div class="absolute inset-0 opacity-10">
-            <div class="absolute inset-0" style="background-image: linear-gradient(#00d4ff 1px, transparent 1px), linear-gradient(90deg, #00d4ff 1px, transparent 1px); background-size: 50px 50px;"></div>
-        </div>
-
-        <div class="max-w-6xl mx-auto p-4 relative z-10">
-            <!-- Gaming Header -->
-            <header class="bg-gradient-to-r from-gaming-dark/90 to-purple-900/50 backdrop-blur-lg rounded-2xl shadow-2xl p-6 mb-6 border border-neon-blue/30 card-glow">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 bg-gradient-to-br from-neon-blue to-neon-purple rounded-xl flex items-center justify-center text-3xl animate-float">
-                            🎮
-                        </div>
+    <div class="min-h-screen bg-gradient-to-br from-gaming-darker via-gaming-dark to-gaming-darker">
+        <div class="content-wrapper">
+            <header class="bg-gradient-to-r from-gaming-dark/95 to-purple-900/60 backdrop-blur-lg shadow-2xl p-4 mb-4 border-b border-neon-blue/30 sticky top-0 z-40">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-neon-blue to-neon-purple rounded-xl flex items-center justify-center text-2xl">🎮</div>
                         <div>
-                            <h1 class="text-3xl md:text-4xl font-black gaming-title gradient-text">QUEST HUB</h1>
-                            <p class="text-neon-blue text-sm">Complete Quests • Earn XP • Dominate</p>
+                            <h1 class="text-xl font-black gaming-title gradient-text leading-none">QUEST HUB</h1>
+                            <p class="text-neon-blue text-xs">Earn XP  • Level Up</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <div class="bg-gradient-to-r from-neon-purple to-neon-pink px-6 py-3 rounded-xl border-2 border-neon-pink/50 animate-glow">
-                            <div class="text-xs text-gray-300">XP BALANCE</div>
-                            <div id="userPoints" class="text-2xl font-black gaming-title">Loading...</div>
+                    <div class="flex items-center gap-2">
+                        <div class="bg-gradient-to-r from-neon-purple to-neon-pink px-4 py-2 rounded-xl border border-neon-pink/50">
+                            <div class="text-xs text-gray-300 leading-none mb-1">XP</div>
+                            <div id="userPoints" class="text-lg font-black gaming-title leading-none">...</div>
                         </div>
-                        <button onclick="loadUserData()" class="px-4 py-3 bg-neon-blue/20 hover:bg-neon-blue/40 border border-neon-blue rounded-xl transition-all duration-300 hover:scale-110">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        <button onclick="loadUserData()" class="p-2 bg-neon-blue/20 hover:bg-neon-blue/40 border border-neon-blue rounded-lg transition-all active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         </button>
                     </div>
                 </div>
             </header>
 
-            <!-- Gaming Navigation Tabs -->
-            <nav class="bg-gaming-dark/80 backdrop-blur-md rounded-2xl p-2 flex gap-2 overflow-x-auto mb-6 border border-neon-blue/20">
-                <button class="tab-button flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-neon-blue to-neon-purple font-bold gaming-title text-sm transition-all duration-300" onclick="showTab('tasks', this)">
-                    ⚔️ QUESTS
-                </button>
-                <button class="tab-button flex-1 py-3 px-4 rounded-xl hover:bg-white/10 font-bold gaming-title text-sm transition-all duration-300" onclick="showTab('leaderboard', this)">
-                    🏆 LEADERBOARD
-                </button>
-                <button class="tab-button flex-1 py-3 px-4 rounded-xl hover:bg-white/10 font-bold gaming-title text-sm transition-all duration-300" onclick="showTab('rewards', this)">
-                    💎 REWARDS
-                </button>
-                <button class="tab-button flex-1 py-3 px-4 rounded-xl hover:bg-white/10 font-bold gaming-title text-sm transition-all duration-300" onclick="showTab('notifications', this)">
-                    � ALERTS
-                </button>
-            </nav>
-
-
-            <main>
-                <!-- Quests Section (Tasks) -->
+            <main class="px-4 pb-4">
                 <section id="tasks" class="tab-content">
-                    <div id="tasksContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="col-span-full text-center py-12 text-neon-blue animate-pulse">⚡ Loading Quests...</div>
+                    <div class="mb-3 flex items-center justify-between">
+                        <h2 class="text-xl font-black gaming-title gradient-text">⚔️ Active Quests</h2>
+                        <span id="tasksCount" class="text-xs bg-neon-blue/20 px-2 py-1 rounded-full">0</span>
+                    </div>
+                    <div id="tasksContainer" class="space-y-3">
+                        <div class="text-center py-12 text-neon-blue">⚡ Loading Quests...</div>
                     </div>
                 </section>
 
-                <!-- Leaderboard Section -->
                 <section id="leaderboard" class="tab-content hidden">
-                    <div class="bg-gaming-dark/80 backdrop-blur-md rounded-2xl p-6 border border-neon-purple/30">
-                        <h2 class="text-2xl font-black gaming-title gradient-text mb-6 flex items-center gap-3">
-                            🏆 TOP PLAYERS
-                            <span class="text-sm text-gray-400 font-normal">Hall of Fame</span>
-                        </h2>
-                        <div id="leaderboardContainer" class="space-y-3">
-                            <div class="text-center py-12 text-neon-blue animate-pulse">Loading rankings...</div>
-                        </div>
+                    <div class="mb-3">
+                        <h2 class="text-xl font-black gaming-title gradient-text">🏆 Top Players</h2>
+                    </div>
+                    <div id="leaderboardContainer" class="space-y-3">
+                        <div class="text-center py-12 text-neon-blue">Loading rankings...</div>
                     </div>
                 </section>
 
-                <!-- Rewards Section -->
                 <section id="rewards" class="tab-content hidden">
-                    <div class="mb-4">
-                        <h2 class="text-2xl font-black gaming-title gradient-text flex items-center gap-3">
-                            💎 EPIC LOOT
-                            <span class="text-sm text-gray-400 font-normal">Redeem Your XP</span>
-                        </h2>
+                    <div class="mb-3">
+                        <h2 class="text-xl font-black gaming-title gradient-text">�� Epic Loot</h2>
                     </div>
-                    <div id="rewardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="text-center py-12 text-neon-blue animate-pulse">Loading rewards...</div>
+                    <div id="rewardsContainer" class="space-y-3">
+                        <div class="text-center py-12 text-neon-blue">Loading rewards...</div>
                     </div>
                 </section>
 
-                <!-- Notifications Section -->
-                <section id="notifications" class="tab-content hidden">
-                    <div class="bg-gaming-dark/80 backdrop-blur-md rounded-2xl p-6 border border-neon-green/30">
-                        <h2 class="text-2xl font-black gaming-title gradient-text mb-6 flex items-center gap-3">
-                            📡 MISSION CONTROL
-                            <span class="text-sm text-gray-400 font-normal">Recent Updates</span>
-                        </h2>
-                        <div id="notificationsContainer" class="space-y-2">
-                            <div class="text-center py-12 text-neon-blue animate-pulse">Loading alerts...</div>
+                <section id="profile" class="tab-content hidden">
+                    <div class="mb-3">
+                        <h2 class="text-xl font-black gaming-title gradient-text">👤 Your Profile</h2>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="bg-gaming-dark/80 backdrop-blur-md rounded-2xl p-4 border border-neon-blue/30">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-16 h-16 bg-gradient-to-br from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-3xl">👤</div>
+                                <div class="flex-1">
+                                    <div class="text-lg font-bold gaming-title" id="profileUsername">Player</div>
+                                    <div class="text-xs text-gray-400">Level <span id="profileLevel">1</span></div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="bg-gaming-darker/50 rounded-xl p-3 text-center">
+                                    <div class="text-2xl font-black gaming-title text-neon-blue" id="profileQuests">0</div>
+                                    <div class="text-xs text-gray-400">Quests</div>
+                                </div>
+                                <div class="bg-gaming-darker/50 rounded-xl p-3 text-center">
+                                    <div class="text-2xl font-black gaming-title text-neon-purple" id="profileRank">-</div>
+                                    <div class="text-xs text-gray-400">Rank</div>
+                                </div>
+                                <div class="bg-gaming-darker/50 rounded-xl p-3 text-center">
+                                    <div class="text-2xl font-black gaming-title text-neon-pink" id="profileXP">0</div>
+                                    <div class="text-xs text-gray-400">XP</div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </section>
+
+                <section id="notifications" class="tab-content hidden">
+                    <div class="mb-3">
+                        <h2 class="text-xl font-black gaming-title gradient-text">📡 Mission Control</h2>
+                    </div>
+                    <div id="notificationsContainer" class="space-y-2">
+                        <div class="text-center py-12 text-neon-blue">Loading alerts...</div>
                     </div>
                 </section>
             </main>
         </div>
 
-        <!-- Gaming-styled Modals -->
-        <div id="taskModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-full md:inset-0 h-modal md:h-full bg-black/80 backdrop-blur-sm">
-            <div class="relative p-4 w-full max-w-2xl h-full md:h-auto mx-auto mt-20">
-                <div class="relative bg-gradient-to-br from-gaming-dark to-purple-900/50 rounded-2xl shadow-2xl border-2 border-neon-blue/50">
-                    <button type="button" class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-neon-pink/20 rounded-lg text-sm p-2 ml-auto inline-flex items-center transition-all" onclick="closeModal('taskModal')">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    </button>
-                    <div class="p-6" id="taskModalContent"></div>
-                </div>
+        <nav class="bottom-nav bg-gaming-dark/95 border-t border-neon-blue/30">
+            <div class="flex items-center justify-around max-w-xl mx-auto">
+                <button class="bottom-nav-item active" onclick="showTab('tasks', this)">
+                    <div class="bottom-nav-icon">⚔️</div>
+                    <div class="bottom-nav-label">Quests</div>
+                </button>
+                <button class="bottom-nav-item" onclick="showTab('leaderboard', this)">
+                    <div class="bottom-nav-icon">🏆</div>
+                    <div class="bottom-nav-label">Ranks</div>
+                </button>
+                <button class="bottom-nav-item" onclick="showTab('rewards', this)">
+                    <div class="bottom-nav-icon">💎</div>
+                    <div class="bottom-nav-label">Rewards</div>
+                </button>
+                <button class="bottom-nav-item" onclick="showTab('profile', this)">
+                    <div class="bottom-nav-icon">👤</div>
+                    <div class="bottom-nav-label">Profile</div>
+                </button>
+                <button class="bottom-nav-item" onclick="showTab('notifications', this)">
+                    <div class="bottom-nav-icon">📡</div>
+                    <div class="bottom-nav-label">Alerts</div>
+                </button>
             </div>
-        </div>
+        </nav>
+    </div>
 
-        <div id="rewardModal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 w-full md:inset-0 h-modal md:h-full bg-black/80 backdrop-blur-sm">
-            <div class="relative p-4 w-full max-w-2xl h-full md:h-auto mx-auto mt-20">
-                <div class="relative bg-gradient-to-br from-gaming-dark to-purple-900/50 rounded-2xl shadow-2xl border-2 border-neon-purple/50">
-                    <button type="button" class="absolute top-3 right-3 text-gray-400 bg-transparent hover:bg-neon-pink/20 rounded-lg text-sm p-2 ml-auto inline-flex items-center transition-all" onclick="closeModal('rewardModal')">
-                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
-                    </button>
-                    <div class="p-6" id="rewardModalContent"></div>
+    <!-- Task Detail Modal -->
+    <div id="taskModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-end md:items-center justify-center">
+        <div class="bg-gaming-dark w-full md:max-w-lg md:rounded-3xl rounded-t-3xl border-t md:border border-neon-blue/30 shadow-[0_0_50px_rgba(0,149,255,0.3)] max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-gaming-dark/95 backdrop-blur-md p-4 border-b border-neon-blue/30 flex items-center justify-between">
+                <h3 class="text-xl font-black gaming-title gradient-text" id="modalTitle">Quest Details</h3>
+                <button onclick="closeTaskModal()" class="text-3xl text-gray-400 hover:text-white transition-colors">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="text-5xl" id="modalEmoji">🎯</div>
+                    <div>
+                        <div class="text-sm text-gray-400 uppercase tracking-wide" id="modalPlatform">Platform</div>
+                        <div class="text-3xl font-black gaming-title text-neon-green" id="modalPoints">+0 XP</div>
+                    </div>
                 </div>
+                <div class="bg-gaming-darker/50 rounded-xl p-4">
+                    <p class="text-sm text-gray-300 leading-relaxed" id="modalDescription">Quest description goes here</p>
+                </div>
+                <button onclick="completeTask()" class="w-full bg-gradient-to-r from-neon-blue to-neon-purple text-white font-bold py-4 rounded-xl hover:shadow-[0_0_30px_rgba(0,149,255,0.5)] transition-all active:scale-95">
+                    🚀 START QUEST
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Use relative URL for nginx proxy
         const API_URL = '/api';
-        const TELEGRAM_ID = 123456789; // Replace with actual Telegram ID from bot
+        const TELEGRAM_ID = 123456789;
 
-        // Tab switching (Tailwind)
         function showTab(tabName, btn) {
-            document.querySelectorAll('.tab-content').forEach(section => section.classList.add('hidden'));
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('bg-indigo-100','text-indigo-700'));
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.bottom-nav-item').forEach(i => i.classList.remove('active'));
             document.getElementById(tabName).classList.remove('hidden');
-            if (btn) btn.classList.add('bg-indigo-100','text-indigo-700');
-
-            // Load content when shown
-            if (tabName === 'tasks') loadTasks();
-            else if (tabName === 'leaderboard') loadLeaderboard();
-            else if (tabName === 'rewards') loadRewards();
-            else if (tabName === 'notifications') loadNotifications();
+            if (btn) btn.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            if (tabName === 'leaderboard') loadLeaderboard();
+            if (tabName === 'rewards') loadRewards();
+            if (tabName === 'profile') loadProfile();
+            if (tabName === 'notifications') loadNotifications();
         }
 
-        // Load user data
         async function loadUserData() {
             try {
-                const response = await fetch(`${API_URL}/users/${TELEGRAM_ID}`);
-                if (!response.ok) throw new Error('User not found');
+                let response = await fetch(`${API_URL}/users/${TELEGRAM_ID}`);
+                
+                // If user doesn't exist, create them
+                if (response.status === 404) {
+                    await fetch(`${API_URL}/users/init?telegram_id=${TELEGRAM_ID}&username=player${TELEGRAM_ID}`, {
+                        method: 'POST'
+                    });
+                    response = await fetch(`${API_URL}/users/${TELEGRAM_ID}`);
+                }
+                
                 const user = await response.json();
-                document.getElementById('userPoints').textContent = `💰 ${user.points} pts`;
+                document.getElementById('userPoints').textContent = user.points || 0;
             } catch (error) {
-                console.error('Error loading user data:', error);
-                document.getElementById('userPoints').textContent = '—';
+                console.error('Error loading user:', error);
+                document.getElementById('userPoints').textContent = '---';
             }
         }
 
-        // Load tasks with gaming theme
         async function loadTasks() {
-            const container = document.getElementById('tasksContainer');
-            container.innerHTML = '<div class="col-span-full text-center py-12 text-neon-blue animate-pulse">⚡ Loading Quests...</div>';
             try {
-                const res = await fetch(`${API_URL}/tasks`);
-                if (!res.ok) throw new Error('Failed to fetch tasks');
-                const tasks = await res.json();
-                if (!tasks || tasks.length === 0) {
-                    container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400">No active quests available</div>';
+                const response = await fetch(`${API_URL}/tasks`);
+                const tasks = await response.json();
+                const container = document.getElementById('tasksContainer');
+                document.getElementById('tasksCount').textContent = tasks.length;
+                
+                if (tasks.length === 0) {
+                    container.innerHTML = '<div class="text-center py-12 text-gray-400">No active quests</div>';
                     return;
                 }
-                container.innerHTML = '';
-                tasks.forEach((task, idx) => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-gradient-to-br from-gaming-dark/90 to-purple-900/30 rounded-2xl p-5 border-2 border-neon-blue/30 card-glow hover:border-neon-purple/60 transition-all duration-300 animate-slide-in';
-                    card.style.animationDelay = `${idx * 0.1}s`;
+
+                container.innerHTML = tasks.map(task => {
+                    const platformEmoji = {
+                        'youtube': '📺',
+                        'twitter': '🐦',
+                        'telegram': '✈️',
+                        'discord': '💬',
+                        'instagram': '📷'
+                    }[task.platform] || '🎯';
                     
-                    const rarityColors = {
-                        common: 'text-gray-400',
-                        rare: 'text-neon-blue',
-                        epic: 'text-neon-purple',
-                        legendary: 'text-neon-yellow'
-                    };
-                    const rarity = task.is_bonus ? 'legendary' : 'common';
+                    const platformName = task.platform || 'general';
+                    const points = task.points_reward || 0;
                     
-                    card.innerHTML = `
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-2">
-                                    ${task.is_bonus ? '<span class="px-2 py-1 bg-gradient-to-r from-neon-yellow/20 to-neon-pink/20 border border-neon-yellow/50 rounded text-xs gaming-title text-neon-yellow animate-glow">⭐ BONUS</span>' : ''}
-                                    <span class="text-xs ${rarityColors[rarity]} gaming-title">${rarity.toUpperCase()}</span>
-                                </div>
-                                <h3 class="text-xl font-bold gaming-title text-white mb-2">⚔️ ${task.title}</h3>
-                                <p class="text-sm text-gray-400 leading-relaxed">${task.description || ''}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-neon-blue/20">
-                            <div class="flex items-center gap-2">
-                                <div class="w-10 h-10 bg-gradient-to-br from-neon-blue to-neon-purple rounded-lg flex items-center justify-center text-xl animate-float">💰</div>
-                                <div>
-                                    <div class="text-2xl font-black gaming-title gradient-text">+${task.points_reward}</div>
-                                    <div class="text-xs text-gray-500">XP REWARD</div>
+                    return `
+                        <div class="bg-gaming-dark/80 rounded-xl p-4 border border-neon-blue/30 active:scale-95 transition-all cursor-pointer hover:border-neon-purple/50" onclick="showTaskDetail('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${(task.description || '').replace(/'/g, "\\'")}', '${task.url || ''}', ${points}, '${platformName}', '${platformEmoji}')">
+                            <div class="flex items-start gap-3">
+                                <div class="text-3xl">${platformEmoji}</div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-sm mb-1">${task.title}</h3>
+                                    <p class="text-xs text-gray-400 mb-2">${task.description || 'Complete this quest to earn points!'}</p>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs px-2 py-1 bg-neon-blue/20 text-neon-blue rounded-full uppercase">${platformName}</span>
+                                        <span class="text-sm font-black text-neon-green">+${points} XP</span>
+                                    </div>
                                 </div>
                             </div>
-                            <button class="px-5 py-2 bg-gradient-to-r from-neon-blue to-neon-purple hover:from-neon-purple hover:to-neon-pink rounded-xl font-bold gaming-title transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-neon-purple/50" onclick="showTaskDetails('${task.id}')">
-                                START →
-                            </button>
                         </div>
                     `;
-                    container.appendChild(card);
-                });
-            } catch (err) {
-                container.innerHTML = '<div class="col-span-full text-center py-12 text-red-400">⚠️ Error loading quests</div>';
-                console.error(err);
-            }
-        }
-
-        // Show task details
-        async function showTaskDetails(taskId) {
-            try {
-                const response = await fetch(`${API_URL}/tasks/${taskId}`);
-                if (!response.ok) throw new Error('Task not found');
-                const task = await response.json();
-                const content = `
-                    <h2 class="text-xl font-semibold">${task.title}</h2>
-                    <p class="mt-2 text-gray-600">${task.description || ''}</p>
-                    ${task.url ? `<a href="${task.url}" target="_blank" class="mt-3 inline-block text-indigo-600">🔗 Open Task</a>` : ''}
-                    <div class="mt-3 text-indigo-600 font-bold">${task.points_reward} pts</div>
-                    <div class="mt-4"><button class="px-3 py-2 bg-indigo-600 text-white rounded-md" onclick="completeTask('${task.id}')">Mark Completed</button></div>
-                `;
-                document.getElementById('taskModalContent').innerHTML = content;
-                document.getElementById('taskModal').classList.remove('hidden');
+                }).join('');
             } catch (error) {
-                console.error('Error loading task details:', error);
-            }
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
-        }
-
-        // Complete task (UI only)
-        async function completeTask(taskId) {
-            alert('Task marked as completed! Points will be added to your account.');
-            closeModal('taskModal');
-            loadUserData();
-        }
-
-        // Load leaderboard with gaming theme
-        async function loadLeaderboard() {
-            const container = document.getElementById('leaderboardContainer');
-            container.innerHTML = '<div class="text-center py-12 text-neon-blue animate-pulse">Loading rankings...</div>';
-            try {
-                const res = await fetch(`${API_URL}/leaderboard`);
-                if (!res.ok) throw new Error('Failed to fetch leaderboard');
-                const leaders = await res.json();
-                container.innerHTML = '';
-                
-                const medals = ['🥇', '🥈', '🥉'];
-                const rankColors = ['from-neon-yellow to-neon-pink', 'from-gray-300 to-gray-400', 'from-yellow-700 to-yellow-900'];
-                
-                leaders.forEach((u, idx) => {
-                    const item = document.createElement('div');
-                    const isTopThree = idx < 3;
-                    item.className = `flex items-center justify-between bg-gradient-to-r ${isTopThree ? rankColors[idx] : 'from-gaming-dark to-purple-900/20'} ${isTopThree ? 'p-5' : 'p-4'} rounded-xl border ${isTopThree ? 'border-2 border-neon-yellow/50 animate-glow' : 'border-neon-blue/20'} transition-all duration-300 hover:scale-105`;
-                    item.innerHTML = `
-                        <div class="flex items-center gap-4">
-                            <div class="relative">
-                                <div class="w-12 h-12 ${isTopThree ? 'bg-black/40' : 'bg-gaming-dark'} rounded-xl flex items-center justify-center text-2xl border ${isTopThree ? 'border-white/30' : 'border-neon-blue/30'}">
-                                    ${isTopThree ? medals[idx] : `#${idx + 1}`}
-                                </div>
-                                ${isTopThree ? '<div class="absolute -top-1 -right-1 w-4 h-4 bg-neon-yellow rounded-full animate-ping"></div>' : ''}
-                            </div>
-                            <div>
-                                <div class="font-bold gaming-title ${isTopThree ? 'text-xl text-black' : 'text-white'}">${u.username || 'Anonymous'}</div>
-                                <div class="text-sm ${isTopThree ? 'text-black/70' : 'text-gray-400'}">Level ${Math.floor(u.points / 100) + 1}</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-black gaming-title ${isTopThree ? 'text-black' : 'gradient-text'}">${u.points}</div>
-                            <div class="text-xs ${isTopThree ? 'text-black/70' : 'text-gray-500'} gaming-title">XP</div>
-                        </div>
-                    `;
-                    container.appendChild(item);
-                });
-            } catch (err) {
-                container.innerHTML = '<div class="text-center py-12 text-red-400">⚠️ Error loading leaderboard</div>';
-                console.error(err);
-            }
-        }
-
-        // Load rewards with gaming theme
-        async function loadRewards() {
-            const container = document.getElementById('rewardsContainer');
-            container.innerHTML = '<div class="text-center py-12 text-neon-blue animate-pulse">Loading loot...</div>';
-            try {
-                const res = await fetch(`${API_URL}/rewards`);
-                if (!res.ok) throw new Error('Failed to fetch rewards');
-                const rewards = await res.json();
-                container.innerHTML = '';
-                rewards.forEach((reward, idx) => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-gradient-to-br from-purple-900/40 to-gaming-dark/90 rounded-2xl p-5 border-2 border-neon-purple/30 card-glow hover:border-neon-pink/60 transition-all duration-300';
-                    card.style.animationDelay = `${idx * 0.1}s`;
-                    
-                    const lootIcons = ['💎', '🎁', '🏆', '⭐', '👑', '🔮'];
-                    const randomIcon = lootIcons[idx % lootIcons.length];
-                    
-                    card.innerHTML = `
-                        <div class="text-center mb-4">
-                            <div class="w-16 h-16 mx-auto bg-gradient-to-br from-neon-purple to-neon-pink rounded-2xl flex items-center justify-center text-3xl mb-3 animate-float">${randomIcon}</div>
-                            <h3 class="text-xl font-bold gaming-title text-white">${reward.title}</h3>
-                            <p class="text-sm text-gray-400 mt-2">${reward.description || ''}</p>
-                        </div>
-                        
-                        <div class="bg-black/30 rounded-xl p-3 mb-4 border border-neon-purple/20">
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-400 text-sm">COST</span>
-                                <span class="text-2xl font-black gaming-title gradient-text">${reward.points_cost} XP</span>
-                            </div>
-                            <div class="flex items-center justify-between mt-2">
-                                <span class="text-gray-400 text-sm">STOCK</span>
-                                <span class="text-neon-green font-bold">${reward.quantity || 'Unlimited'}</span>
-                            </div>
-                        </div>
-                        
-                        <button class="w-full py-3 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl font-bold gaming-title transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-neon-pink/50" onclick="showRewardDetails('${reward.id}')">
-                            CLAIM REWARD →
-                        </button>
-                    `;
-                    container.appendChild(card);
-                });
-            } catch (err) {
-                container.innerHTML = '<div class="text-center py-12 text-red-400">⚠️ Error loading rewards</div>';
-                console.error(err);
-            }
-        }
-
-        // Load notifications with gaming theme
-        async function loadNotifications() {
-            const container = document.getElementById('notificationsContainer');
-            container.innerHTML = '<div class="text-center py-12 text-neon-blue animate-pulse">Loading alerts...</div>';
-            try {
-                const res = await fetch(`${API_URL}/users/${TELEGRAM_ID}/notifications`);
-                if (!res.ok) throw new Error('Failed to fetch notifications');
-                const notifications = await res.json();
-                container.innerHTML = '';
-                if (!notifications || notifications.length === 0) {
-                    container.innerHTML = '<div class="text-center py-12 text-gray-400">No alerts yet</div>';
-                    return;
-                }
-                notifications.forEach(n => {
-                    const div = document.createElement('div');
-                    div.className = 'bg-gaming-dark/60 border-l-4 border-neon-green rounded-xl p-4 hover:bg-gaming-dark/80 transition-all duration-300';
-                    div.innerHTML = `
-                        <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 bg-neon-green/20 border border-neon-green/50 rounded-lg flex items-center justify-center text-xl">📡</div>
-                            <div class="flex-1">
-                                <div class="font-bold text-white">${n.title}</div>
-                                <div class="text-sm text-gray-400 mt-1">${n.message}</div>
-                                <div class="text-xs text-neon-green mt-2">${getTimeAgo(new Date(n.created_at))}</div>
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(div);
-                });
-            } catch (err) { console.error(err); }
-        }
-
-        // Show task details with gaming theme
-        async function showTaskDetails(taskId) {
-            try {
-                const response = await fetch(`${API_URL}/tasks/${taskId}`);
-                if (!response.ok) throw new Error('Task not found');
-                const task = await response.json();
-                const content = `
-                    <div class="text-center mb-6">
-                        <div class="w-20 h-20 mx-auto bg-gradient-to-br from-neon-blue to-neon-purple rounded-2xl flex items-center justify-center text-4xl mb-4 animate-float">⚔️</div>
-                        <h2 class="text-3xl font-black gaming-title gradient-text">${task.title}</h2>
-                        ${task.is_bonus ? '<div class="mt-2"><span class="px-3 py-1 bg-gradient-to-r from-neon-yellow/20 to-neon-pink/20 border border-neon-yellow/50 rounded-full text-sm gaming-title text-neon-yellow animate-glow">⭐ BONUS QUEST</span></div>' : ''}
-                    </div>
-                    
-                    <div class="bg-black/40 rounded-xl p-4 mb-6 border border-neon-blue/30">
-                        <p class="text-gray-300 leading-relaxed">${task.description || ''}</p>
-                    </div>
-                    
-                    ${task.url ? `<a href="${task.url}" target="_blank" class="block mb-4 p-4 bg-neon-blue/10 hover:bg-neon-blue/20 border border-neon-blue/30 rounded-xl text-neon-blue text-center transition-all">🔗 Open Quest Link</a>` : ''}
-                    
-                    <div class="bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 rounded-xl p-4 mb-6 border border-neon-purple/30">
-                        <div class="flex items-center justify-between">
-                            <span class="gaming-title text-gray-300">REWARD</span>
-                            <span class="text-3xl font-black gaming-title gradient-text">+${task.points_reward} XP</span>
-                        </div>
-                    </div>
-                    
-                    <button class="w-full py-4 bg-gradient-to-r from-neon-blue to-neon-purple hover:from-neon-purple hover:to-neon-pink rounded-xl font-bold gaming-title text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-neon-purple/50" onclick="completeTask('${task.id}')">
-                        ✓ COMPLETE QUEST
-                    </button>
-                `;
-                document.getElementById('taskModalContent').innerHTML = content;
-                document.getElementById('taskModal').classList.remove('hidden');
-            } catch (error) {
-                console.error('Error loading task details:', error);
-            }
-        }
-
-        async function showRewardDetails(rewardId) {
-            try {
-                const res = await fetch(`${API_URL}/rewards`);
-                const rewards = await res.json();
-                const reward = rewards.find(r => r.id === rewardId) || rewards[0];
-                
-                const lootIcons = ['💎', '🎁', '🏆', '⭐', '👑', '🔮'];
-                const randomIcon = lootIcons[Math.floor(Math.random() * lootIcons.length)];
-                
-                const content = `
-                    <div class="text-center mb-6">
-                        <div class="w-20 h-20 mx-auto bg-gradient-to-br from-neon-purple to-neon-pink rounded-2xl flex items-center justify-center text-4xl mb-4 animate-float">${randomIcon}</div>
-                        <h2 class="text-3xl font-black gaming-title gradient-text">${reward.title}</h2>
-                    </div>
-                    
-                    <div class="bg-black/40 rounded-xl p-4 mb-6 border border-neon-purple/30">
-                        <p class="text-gray-300 leading-relaxed">${reward.description || ''}</p>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-gradient-to-br from-neon-purple/20 to-transparent rounded-xl p-4 border border-neon-purple/30 text-center">
-                            <div class="text-gray-400 text-sm mb-2">COST</div>
-                            <div class="text-2xl font-black gaming-title gradient-text">${reward.points_cost} XP</div>
-                        </div>
-                        <div class="bg-gradient-to-br from-neon-green/20 to-transparent rounded-xl p-4 border border-neon-green/30 text-center">
-                            <div class="text-gray-400 text-sm mb-2">STOCK</div>
-                            <div class="text-xl font-bold text-neon-green">${reward.quantity || '∞'}</div>
-                        </div>
-                    </div>
-                    
-                    <button class="w-full py-4 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl font-bold gaming-title text-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-neon-pink/50" onclick="redeemReward('${reward.id}')">
-                        💎 REDEEM NOW
-                    </button>
-                `;
-                document.getElementById('rewardModalContent').innerHTML = content;
-                document.getElementById('rewardModal').classList.remove('hidden');
-            } catch (err) { console.error(err); }
-        }
-
-        function redeemReward(rewardId) {
-            // Show success notification with gaming flair
-            alert('🎉 REWARD CLAIMED! Check your notifications for details.');
-            closeModal('rewardModal');
-            loadUserData();
-        }
-
-        async function completeTask(taskId) {
-            try {
-                const response = await fetch(`${API_URL}/users/${TELEGRAM_ID}/tasks/${taskId}/complete`, {
-                    method: 'POST'
-                });
-                if (!response.ok) throw new Error('Failed to complete task');
-                alert('⚔️ QUEST COMPLETED! XP awarded!');
-                closeModal('taskModal');
-                loadUserData();
-                loadTasks();
-            } catch (error) {
-                alert('❌ Error completing quest. Try again!');
                 console.error(error);
             }
         }
 
-        function getTimeAgo(date) {
-            const seconds = Math.floor((new Date() - date) / 1000);
-            if (seconds < 60) return 'Just now';
-            if (seconds < 3600) return `${Math.floor(seconds/60)} minutes ago`;
-            if (seconds < 86400) return `${Math.floor(seconds/3600)} hours ago`;
-            return `${Math.floor(seconds/86400)} days ago`;
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch(`${API_URL}/leaderboard`);
+                const leaders = await response.json();
+                const container = document.getElementById('leaderboardContainer');
+                
+                container.innerHTML = leaders.map((user, i) => `
+                    <div class="bg-gaming-darker/50 rounded-xl p-4 border border-neon-blue/30 flex items-center gap-4">
+                        <div class="text-2xl font-black w-12 text-center">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}</div>
+                        <div class="flex-1">
+                            <div class="font-bold">${user.username || 'Player'}</div>
+                            <div class="text-xs text-gray-400">${user.completed_tasks || 0} quests</div>
+                        </div>
+                        <div class="text-xl font-black text-neon-green">${user.points}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+            }
         }
 
-        // Initialize gaming hub
+        async function loadRewards() {
+            try {
+                const response = await fetch(`${API_URL}/rewards`);
+                const rewards = await response.json();
+                const container = document.getElementById('rewardsContainer');
+                
+                container.innerHTML = rewards.map(reward => `
+                    <div class="bg-gaming-dark/80 rounded-xl p-4 border border-neon-purple/30">
+                        <div class="flex items-start gap-3">
+                            <div class="text-3xl">💎</div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-sm mb-1">${reward.title}</h3>
+                                <p class="text-xs text-gray-400 mb-2">${reward.description || ''}</p>
+                                <div class="flex justify-between">
+                                    <span class="text-xs text-gray-400">${reward.quantity_available || 0} left</span>
+                                    <span class="text-sm font-black text-neon-pink">${reward.points_required} XP</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        async function loadProfile() {
+            try {
+                const response = await fetch(`${API_URL}/users/${TELEGRAM_ID}`);
+                const user = await response.json();
+                const level = Math.floor(user.points / 100) + 1;
+                
+                document.getElementById('profileUsername').textContent = user.username || 'Player';
+                document.getElementById('profileLevel').textContent = level;
+                document.getElementById('profileXP').textContent = user.points;
+                document.getElementById('profileQuests').textContent = user.completed_tasks || 0;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function loadNotifications() {
+            const container = document.getElementById('notificationsContainer');
+            container.innerHTML = `
+                <div class="bg-gaming-darker/50 rounded-lg p-3 border-l-4 border-neon-blue">
+                    <div class="flex gap-3">
+                        <span class="text-xl">⚔️</span>
+                        <div class="flex-1">
+                            <div class="text-sm font-bold">Quest Completed!</div>
+                            <div class="text-xs text-gray-400">You earned 50 XP</div>
+                            <div class="text-xs text-gray-500 mt-1">Just now</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        let currentTaskId = null;
+        let currentTaskUrl = null;
+
+        function showTaskDetail(taskId, title, description, url, points, platform, emoji) {
+            currentTaskId = taskId;
+            currentTaskUrl = url;
+            
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalDescription').textContent = description || 'Complete this quest to earn points!';
+            document.getElementById('modalEmoji').textContent = emoji;
+            document.getElementById('modalPlatform').textContent = platform.toUpperCase();
+            document.getElementById('modalPoints').textContent = `+${points} XP`;
+            document.getElementById('taskModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.add('hidden');
+            document.body.style.overflow = '';
+            currentTaskId = null;
+            currentTaskUrl = null;
+        }
+
+        async function completeTask() {
+            if (!currentTaskId || !currentTaskUrl) return;
+            
+            // Open the task URL
+            window.open(currentTaskUrl, '_blank');
+            
+            // Submit completion
+            try {
+                const response = await fetch(`${API_URL}/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        telegram_id: TELEGRAM_ID,
+                        task_id: currentTaskId
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('🎉 Quest Completed! +' + result.points_earned + ' XP');
+                    loadUserData();
+                    loadTasks();
+                    closeTaskModal();
+                } else {
+                    alert('❌ Verification failed: ' + (result.message || 'Please complete the task and try again'));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('⚠️ Error verifying quest. Please try again.');
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('taskModal').addEventListener('click', (e) => {
+            if (e.target.id === 'taskModal') {
+                closeTaskModal();
+            }
+        });
+
         loadUserData();
         loadTasks();
-        
-        // Refresh data periodically
         setInterval(loadUserData, 30000);
     </script>
-    <script src="https://unpkg.com/flowbite@1.7.0/dist/flowbite.js"></script>
-</body>
-</html>
 </body>
 </html>

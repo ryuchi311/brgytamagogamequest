@@ -50,6 +50,12 @@ class TelegramBot:
         self.application.add_handler(CommandHandler("leaderboard", self.leaderboard_command))
         self.application.add_handler(CommandHandler("rewards", self.rewards_command))
         self.application.add_handler(CallbackQueryHandler(self.button_callback))
+        
+        # Handler for video verification codes (must be after commands, before catch-all)
+        self.application.add_handler(MessageHandler(
+            filters.TEXT & ~filters.COMMAND, 
+            self.verify_video_code_handler
+        ))
     
     async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /start command"""
@@ -234,6 +240,9 @@ Keep completing tasks to earn more points! 🚀
         elif data.startswith("task_"):
             task_id = data.split("_")[1]
             await self.show_task_details(query, task_id)
+        elif data.startswith("twitter_verify_"):
+            task_id = data.split("_")[2]
+            await self.start_twitter_verification(query, task_id)
         elif data.startswith("complete_task_"):
             task_id = data.split("_")[2]
             await self.complete_task(query, task_id)
@@ -340,6 +349,18 @@ Keep earning! 🚀
             await query.edit_message_text("Task not found.")
             return
         
+        # Check if this is a YouTube video quest with verification
+        is_video_quest = (task.get('platform') == 'youtube' and 
+                         task.get('verification_data') and 
+                         task['verification_data'].get('method') == 'time_delay_code')
+        
+        if is_video_quest:
+            await self.start_video_quest(query, task)
+            return
+        
+        # Check if this is a Twitter quest that can be auto-verified
+        is_twitter_quest = task.get('platform') == 'twitter'
+        
         bonus_tag = "🌟 BONUS TASK\n" if task['is_bonus'] else ""
         message = f"""
 {bonus_tag}📋 *{task['title']}*
@@ -352,10 +373,20 @@ Keep earning! 🚀
         if task['url']:
             message += f"\n🔗 [Click here to complete]({task['url']})"
         
-        keyboard = [
-            [InlineKeyboardButton("✅ Mark as Complete", callback_data=f"complete_task_{task_id}")],
-            [InlineKeyboardButton("« Back to Tasks", callback_data="view_tasks")]
-        ]
+        # For Twitter tasks, offer auto-verification
+        if is_twitter_quest:
+            message += "\n\n🔍 *Auto-Verification Available!*\nClick 'Verify Twitter' to automatically check if you completed this task."
+            keyboard = [
+                [InlineKeyboardButton("🐦 Verify Twitter", callback_data=f"twitter_verify_{task_id}")],
+                [InlineKeyboardButton("✅ Manual Verification", callback_data=f"complete_task_{task_id}")],
+                [InlineKeyboardButton("« Back to Tasks", callback_data="view_tasks")]
+            ]
+        else:
+            keyboard = [
+                [InlineKeyboardButton("✅ Mark as Complete", callback_data=f"complete_task_{task_id}")],
+                [InlineKeyboardButton("« Back to Tasks", callback_data="view_tasks")]
+            ]
+        
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
@@ -392,6 +423,331 @@ Keep earning! 🚀
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await query.edit_message_text(message, reply_markup=reply_markup)
+    
+    async def start_video_quest(self, query, task):
+        """Start a YouTube video quest with time delay + code verification"""
+        user = query.from_user
+        db_user = BotAPIClient.get_user_by_telegram_id(user.id)
+        
+        if not db_user:
+            await query.edit_message_text("Please use /start to register first.")
+            return
+        
+        # Start video view tracking
+        result = BotAPIClient.start_video_view(db_user['id'], task['id'])
+        
+        if not result or 'error' in result:
+            await query.edit_message_text("❌ Error starting video quest. Please try again.")
+            return
+        
+        # Get verification data
+        verification_data = task['verification_data']
+        min_watch_time = verification_data.get('min_watch_time_seconds', 120)
+        code_timestamp = verification_data.get('code_timestamp', 'during the video')
+        
+        bonus_tag = "🌟 BONUS TASK\n" if task['is_bonus'] else ""
+        message = f"""
+{bonus_tag}🎬 *{task['title']}*
+
+**Description:** {task['description']}
+**Reward:** {task['points_reward']} points 💰
+
+📺 *How to Complete:*
+1. Watch the video for at least {min_watch_time // 60} minutes
+2. Look for the secret code at {code_timestamp}
+3. Send me the code to complete the quest
+
+⚠️ *Important:*
+• You have 3 attempts to enter the correct code
+• The timer has started - watch carefully!
+
+{task['url'] if task.get('url') else 'No URL provided'}
+"""
+        
+        keyboard = [[InlineKeyboardButton("« Back to Tasks", callback_data="view_tasks")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+        
+        # Store task_id in user context for code verification
+        if 'user_data' not in query._bot.__dict__:
+            query._bot.user_data = {}
+        if user.id not in query._bot.user_data:
+            query._bot.user_data[user.id] = {}
+        query._bot.user_data[user.id]['active_video_task'] = task['id']
+    
+    async def verify_video_code_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle video verification code submissions OR Twitter username"""
+        user = update.effective_user
+        text_input = update.message.text.strip()
+        
+        # Check if user has an active Twitter verification
+        if (hasattr(context.bot, 'user_data') and 
+            user.id in context.bot.user_data and 
+            'twitter_task_id' in context.bot.user_data[user.id]):
+            # Handle Twitter username
+            await self.handle_twitter_username(update, context)
+            return
+        
+        # Check if user has an active video quest
+        if (not hasattr(context.bot, 'user_data') or 
+            user.id not in context.bot.user_data or 
+            'active_video_task' not in context.bot.user_data[user.id]):
+            # Not in any verification mode, ignore
+            return
+        
+        # Handle video code
+        code = text_input        
+        db_user = BotAPIClient.get_user_by_telegram_id(user.id)
+        if not db_user:
+            await update.message.reply_text("Please use /start to register first.")
+            return
+        
+        # Verify the code
+        result = BotAPIClient.verify_video_code(db_user['id'], code)
+        
+        if not result:
+            await update.message.reply_text("❌ Error verifying code. Please try again.")
+            return
+        
+        if result.get('success'):
+            task = result.get('task', {})
+            time_watched = result.get('time_watched_seconds', 0)
+            
+            message = f"""
+🎉 *Quest Completed!*
+
+Congratulations! You've successfully completed the video quest!
+
+**Task:** {task.get('title', 'Video Quest')}
+**Points Earned:** {task.get('points_reward', 0)} points 💰
+**Time Watched:** {time_watched // 60}m {time_watched % 60}s
+
+Keep completing quests to climb the leaderboard! 🏆
+"""
+            
+            # Clear active video task
+            del context.bot.user_data[user.id]['active_video_task']
+            
+            await update.message.reply_text(message, parse_mode='Markdown')
+            
+        elif result.get('error') == 'too_soon':
+            min_time = result.get('min_watch_time_seconds', 120)
+            time_watched = result.get('time_watched_seconds', 0)
+            time_remaining = min_time - time_watched
+            
+            message = f"""
+⏱️ *Please watch more of the video!*
+
+You need to watch at least {min_time // 60} minutes.
+Time watched: {time_watched // 60}m {time_watched % 60}s
+Time remaining: {time_remaining // 60}m {time_remaining % 60}s
+
+Come back and send the code after watching more! 📺
+"""
+            await update.message.reply_text(message, parse_mode='Markdown')
+            
+        elif result.get('error') == 'wrong_code':
+            attempts_left = result.get('attempts_left', 0)
+            
+            if attempts_left > 0:
+                message = f"""
+❌ *Incorrect code!*
+
+That's not the right code. Please try again.
+Attempts remaining: {attempts_left}
+
+Make sure you're entering the exact code shown in the video! 🔍
+"""
+            else:
+                message = """
+🚫 *Quest Failed*
+
+You've used all 3 attempts with incorrect codes.
+Please try again with a different quest or watch the video again.
+"""
+                # Clear active video task
+                if user.id in context.bot.user_data:
+                    context.bot.user_data[user.id].pop('active_video_task', None)
+            
+            await update.message.reply_text(message, parse_mode='Markdown')
+            
+        elif result.get('error') == 'max_attempts':
+            message = """
+🚫 *Maximum Attempts Reached*
+
+You've already used all 3 attempts for this quest.
+Please try a different quest.
+"""
+            # Clear active video task
+            if user.id in context.bot.user_data:
+                context.bot.user_data[user.id].pop('active_video_task', None)
+            
+            await update.message.reply_text(message, parse_mode='Markdown')
+            
+        else:
+            await update.message.reply_text("❌ Error verifying code. Please try again.")
+    
+    async def start_twitter_verification(self, query, task_id: str):
+        """Start Twitter verification flow - ask for username"""
+        user = query.from_user
+        db_user = BotAPIClient.get_user_by_telegram_id(user.id)
+        
+        if not db_user:
+            await query.edit_message_text("Please use /start to register first.")
+            return
+        
+        task = BotAPIClient.get_task_by_id(task_id)
+        if not task:
+            await query.edit_message_text("Task not found.")
+            return
+        
+        # Store task_id in user context
+        if 'user_data' not in query._bot.__dict__:
+            query._bot.user_data = {}
+        if user.id not in query._bot.user_data:
+            query._bot.user_data[user.id] = {}
+        query._bot.user_data[user.id]['twitter_task_id'] = task_id
+        query._bot.user_data[user.id]['twitter_task_url'] = task.get('url', '')
+        
+        # Determine verification type from task
+        task_title = task['title'].lower()
+        task_desc = task['description'].lower()
+        
+        if 'follow' in task_title or 'follow' in task_desc:
+            verification_type = 'follow'
+        elif 'like' in task_title or 'like' in task_desc:
+            verification_type = 'like'
+        elif 'retweet' in task_title or 'retweet' in task_desc:
+            verification_type = 'retweet'
+        else:
+            verification_type = 'follow'  # Default
+        
+        query._bot.user_data[user.id]['twitter_verification_type'] = verification_type
+        
+        message = f"""
+🐦 *Twitter Verification*
+
+**Quest:** {task['title']}
+**Reward:** {task['points_reward']} points 💰
+
+📋 *Steps:*
+1. Complete the Twitter action: {task.get('url', 'See task description')}
+2. Send me your Twitter username (e.g., @YourHandle)
+3. I'll verify automatically!
+
+⚡ *Please send your Twitter username now:*
+"""
+        
+        await query.edit_message_text(message, parse_mode='Markdown')
+    
+    async def handle_twitter_username(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle Twitter username submission for verification"""
+        user = update.effective_user
+        username_input = update.message.text.strip()
+        
+        # Check if user has active Twitter verification
+        if (not hasattr(context.bot, 'user_data') or 
+            user.id not in context.bot.user_data or 
+            'twitter_task_id' not in context.bot.user_data[user.id]):
+            # Not in Twitter verification mode
+            return
+        
+        db_user = BotAPIClient.get_user_by_telegram_id(user.id)
+        if not db_user:
+            await update.message.reply_text("Please use /start to register first.")
+            return
+        
+        task_id = context.bot.user_data[user.id]['twitter_task_id']
+        task_url = context.bot.user_data[user.id].get('twitter_task_url', '')
+        verification_type = context.bot.user_data[user.id].get('twitter_verification_type', 'follow')
+        
+        # Extract tweet ID if it's a like/retweet task
+        tweet_id = None
+        if verification_type in ['like', 'retweet'] and task_url:
+            # Extract tweet ID from URL
+            from app.twitter_client import twitter_client
+            tweet_id = twitter_client.extract_tweet_id(task_url)
+        
+        # Send "verifying" message
+        verifying_msg = await update.message.reply_text("🔍 Verifying your Twitter account... Please wait.")
+        
+        # Call verification API
+        result = None
+        if verification_type == 'follow':
+            result = BotAPIClient.verify_twitter_follow(db_user['id'], task_id, username_input)
+        elif verification_type == 'like' and tweet_id:
+            result = BotAPIClient.verify_twitter_like(db_user['id'], task_id, username_input, tweet_id)
+        elif verification_type == 'retweet' and tweet_id:
+            result = BotAPIClient.verify_twitter_retweet(db_user['id'], task_id, username_input, tweet_id)
+        else:
+            await verifying_msg.edit_text("❌ Could not determine verification type. Please use manual verification.")
+            return
+        
+        # Delete "verifying" message
+        await verifying_msg.delete()
+        
+        if not result:
+            await update.message.reply_text("❌ Error connecting to Twitter API. Please try manual verification.")
+            # Clear Twitter task from context
+            context.bot.user_data[user.id].pop('twitter_task_id', None)
+            return
+        
+        # Check if API unavailable (rate limit)
+        if result.get('fallback_to_manual'):
+            message = f"""
+⚠️ *Twitter API Limit Reached*
+
+Our monthly Twitter verification limit has been reached.
+Your task has been submitted for manual verification by our team.
+
+You'll be notified once it's reviewed! 📧
+"""
+            await update.message.reply_text(message, parse_mode='Markdown')
+            # Clear Twitter task from context
+            context.bot.user_data[user.id].pop('twitter_task_id', None)
+            return
+        
+        if result.get('success') and result.get('verified'):
+            # Success!
+            points_earned = result.get('points_earned', 0)
+            message = f"""
+🎉 *Twitter Quest Completed!*
+
+Congratulations! Your Twitter {verification_type} has been verified!
+
+**Points Earned:** {points_earned} XP 💰
+
+Keep completing quests to climb the leaderboard! 🏆
+"""
+            # Clear Twitter task from context
+            context.bot.user_data[user.id].pop('twitter_task_id', None)
+            context.bot.user_data[user.id].pop('twitter_task_url', None)
+            context.bot.user_data[user.id].pop('twitter_verification_type', None)
+            
+            await update.message.reply_text(message, parse_mode='Markdown')
+            
+        elif result.get('already_completed'):
+            await update.message.reply_text("✅ You've already completed this quest!")
+            # Clear Twitter task from context
+            context.bot.user_data[user.id].pop('twitter_task_id', None)
+            
+        else:
+            # Not verified
+            error_message = result.get('message', 'Verification failed')
+            message = f"""
+❌ *Verification Failed*
+
+{error_message}
+
+💡 *Make sure you:*
+1. Completed the Twitter action
+2. Your account is public (not private)
+3. Entered the correct username
+
+You can try again or use manual verification.
+"""
+            await update.message.reply_text(message, parse_mode='Markdown')
     
     async def show_reward_details(self, query, reward_id: str):
         """Show reward details"""

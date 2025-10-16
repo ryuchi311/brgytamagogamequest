@@ -234,6 +234,26 @@
                         </button>
                     </div>
                     
+                    <!-- YouTube Verification Stats -->
+                    <div id="youtubeStats" class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="bg-gradient-to-br from-purple-900/40 to-black/40 border border-neon-purple/30 rounded-xl p-4">
+                            <div class="text-neon-purple gaming-title text-sm mb-1">🎬 VIDEO VIEWS</div>
+                            <div id="totalViews" class="text-3xl font-black text-white">0</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-900/40 to-black/40 border border-neon-green/30 rounded-xl p-4">
+                            <div class="text-neon-green gaming-title text-sm mb-1">✅ COMPLETED</div>
+                            <div id="completedViews" class="text-3xl font-black text-white">0</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-yellow-900/40 to-black/40 border border-neon-yellow/30 rounded-xl p-4">
+                            <div class="text-neon-yellow gaming-title text-sm mb-1">⏱️ WATCHING</div>
+                            <div id="watchingViews" class="text-3xl font-black text-white">0</div>
+                        </div>
+                        <div class="bg-gradient-to-br from-red-900/40 to-black/40 border border-red-500/30 rounded-xl p-4">
+                            <div class="text-red-400 gaming-title text-sm mb-1">❌ FAILED</div>
+                            <div id="failedViews" class="text-3xl font-black text-white">0</div>
+                        </div>
+                    </div>
+                    
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead>
@@ -349,7 +369,7 @@
                     
                     <div>
                         <label class="block text-neon-blue gaming-title text-sm mb-2">PLATFORM</label>
-                        <select id="taskPlatform" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                        <select id="taskPlatform" onchange="toggleYouTubeVerification()" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
                             <option value="">None</option>
                             <option value="telegram">Telegram</option>
                             <option value="twitter">Twitter</option>
@@ -362,6 +382,45 @@
                 <div>
                     <label class="block text-neon-blue gaming-title text-sm mb-2">QUEST URL</label>
                     <input id="taskUrl" type="url" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                </div>
+                
+                <!-- YouTube Verification Section -->
+                <div id="youtubeVerification" class="hidden border-2 border-neon-purple/30 rounded-xl p-4 bg-purple-900/20">
+                    <h3 class="text-lg font-bold gaming-title text-neon-purple mb-4">🎬 YouTube Video Verification</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-neon-blue gaming-title text-sm mb-2">SECRET CODE</label>
+                            <input id="taskSecretCode" type="text" placeholder="e.g., GAMER2024" class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <p class="text-xs text-gray-400 mt-1">This code should appear in your video</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-neon-blue gaming-title text-sm mb-2">MIN. WATCH TIME (seconds)</label>
+                                <input id="taskMinWatchTime" type="number" value="120" min="30" max="3600" class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                                <p class="text-xs text-gray-400 mt-1">Default: 120s (2 minutes)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-neon-blue gaming-title text-sm mb-2">MAX ATTEMPTS</label>
+                                <input id="taskMaxAttempts" type="number" value="3" min="1" max="10" class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                                <p class="text-xs text-gray-400 mt-1">Code verification attempts</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-neon-blue gaming-title text-sm mb-2">CODE TIMESTAMP HINT</label>
+                            <input id="taskCodeTimestamp" type="text" placeholder="e.g., 2:30 or at the end" value="during the video" class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <p class="text-xs text-gray-400 mt-1">Tell users when the code appears</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 p-3 bg-neon-purple/10 border border-neon-purple/30 rounded-lg">
+                        <p class="text-sm text-gray-300">
+                            ⚡ <strong>How it works:</strong> Users must watch the video for the minimum time before submitting the code. They get limited attempts to enter the correct code.
+                        </p>
+                    </div>
                 </div>
                 
                 <div>
@@ -440,6 +499,16 @@
         // Configuration - Use relative URL for nginx proxy
         const API_URL = '/api';
         let authToken = null;
+
+        // Handle authentication errors
+        function handleAuthError() {
+            console.error('Authentication failed - token expired or invalid');
+            authToken = null;
+            localStorage.removeItem('authToken');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            alert('🔒 Session expired! Please login again.');
+        }
 
         // Login
         async function login() {
@@ -644,8 +713,37 @@
                     </tr>
                 `;
                 }).join('');
+                
+                // Load video stats after tasks are loaded
+                loadVideoStats();
             } catch (error) {
                 console.error('Error loading tasks:', error);
+            }
+        }
+        
+        // Load YouTube video verification stats
+        async function loadVideoStats() {
+            try {
+                const response = await fetch(`${API_URL}/video-views/stats`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById('totalViews').textContent = stats.total || 0;
+                    document.getElementById('completedViews').textContent = stats.completed || 0;
+                    document.getElementById('watchingViews').textContent = stats.watching || 0;
+                    document.getElementById('failedViews').textContent = stats.failed || 0;
+                } else {
+                    // If endpoint doesn't exist yet, show zeros
+                    document.getElementById('totalViews').textContent = '0';
+                    document.getElementById('completedViews').textContent = '0';
+                    document.getElementById('watchingViews').textContent = '0';
+                    document.getElementById('failedViews').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error loading video stats:', error);
+                // Silently fail - stats are optional
             }
         }
 
@@ -740,6 +838,24 @@
                 is_bonus: document.getElementById('taskBonus').checked,
                 verification_required: document.getElementById('taskVerification').checked
             };
+            
+            // Add YouTube verification data if platform is YouTube
+            const platform = document.getElementById('taskPlatform').value;
+            if (platform === 'youtube') {
+                const secretCode = document.getElementById('taskSecretCode').value.trim();
+                if (!secretCode) {
+                    alert('⚠️ Please enter a secret code for YouTube verification!');
+                    return;
+                }
+                
+                taskData.verification_data = {
+                    method: 'time_delay_code',
+                    code: secretCode,
+                    min_watch_time_seconds: parseInt(document.getElementById('taskMinWatchTime').value) || 120,
+                    code_timestamp: document.getElementById('taskCodeTimestamp').value || 'during the video',
+                    max_attempts: parseInt(document.getElementById('taskMaxAttempts').value) || 3
+                };
+            }
 
             try {
                 const response = await fetch(`${API_URL}/tasks`, {
@@ -756,10 +872,23 @@
                     closeModal('taskModal');
                     loadTasks();
                     document.getElementById('taskForm').reset();
+                    document.getElementById('youtubeVerification').classList.add('hidden');
+                } else {
+                    // Handle authentication errors
+                    if (response.status === 401) {
+                        handleAuthError();
+                        return;
+                    }
+                    
+                    // Handle other errors
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+                    console.error('Failed to create quest:', errorMessage, errorData);
+                    alert(`❌ Failed to create quest!\n\nError: ${errorMessage}`);
                 }
             } catch (error) {
                 console.error('Error creating task:', error);
-                alert('❌ Failed to create quest');
+                alert(`❌ Network error: ${error.message}\n\nPlease check your connection and try again.`);
             }
         }
 
@@ -791,10 +920,16 @@
                     closeModal('rewardModal');
                     loadRewards();
                     document.getElementById('rewardForm').reset();
+                } else {
+                    // Handle error response
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+                    console.error('Failed to create reward:', errorMessage, errorData);
+                    alert(`❌ Failed to add loot!\n\nError: ${errorMessage}`);
                 }
             } catch (error) {
                 console.error('Error creating reward:', error);
-                alert('❌ Failed to add loot');
+                alert(`❌ Network error: ${error.message}\n\nPlease check your connection and try again.`);
             }
         }
 
@@ -855,6 +990,17 @@
         function showAddTaskModal() {
             document.getElementById('taskModal').classList.remove('hidden');
         }
+        
+        function toggleYouTubeVerification() {
+            const platform = document.getElementById('taskPlatform').value;
+            const verificationSection = document.getElementById('youtubeVerification');
+            
+            if (platform === 'youtube') {
+                verificationSection.classList.remove('hidden');
+            } else {
+                verificationSection.classList.add('hidden');
+            }
+        }
 
         function showAddRewardModal() {
             document.getElementById('rewardModal').classList.remove('hidden');
@@ -865,13 +1011,32 @@
         }
 
         // Check if already logged in
-        window.onload = function() {
+        window.onload = async function() {
             const token = localStorage.getItem('authToken');
             if (token) {
                 authToken = token;
-                document.getElementById('loginScreen').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
-                loadDashboard();
+                
+                // Validate token by making a test API call
+                try {
+                    const response = await fetch(`${API_URL}/tasks`, {
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    
+                    if (response.ok) {
+                        // Token is valid
+                        document.getElementById('loginScreen').classList.add('hidden');
+                        document.getElementById('adminDashboard').classList.remove('hidden');
+                        loadDashboard();
+                    } else if (response.status === 401) {
+                        // Token expired or invalid
+                        handleAuthError();
+                    }
+                } catch (error) {
+                    console.error('Token validation failed:', error);
+                    // Clear invalid token
+                    localStorage.removeItem('authToken');
+                    authToken = null;
+                }
             }
         };
     </script>

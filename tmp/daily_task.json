@@ -1,0 +1,9 @@
+{
+  "title": "Daily Check-in",
+  "description": "Check in daily to earn XP",
+  "task_type": "daily_checkin",
+  "platform": "daily",
+  "points_reward": 10,
+  "verification_required": false,
+  "verification_data": {"method": "daily_checkin", "reset_time_utc": "00:00"}
+}

@@ -1,0 +1,11 @@
+{
+  "title": "Twitter Follow Test",
+  "description": "Follow @example",
+  "task_type": "twitter_follow",
+  "platform": "twitter",
+  "points_reward": 25,
+  "is_bonus": false,
+  "verification_required": true,
+  "url": "https://twitter.com/example",
+  "verification_data": {"method": "twitter_api", "type": "follow", "username": "example"}
+}

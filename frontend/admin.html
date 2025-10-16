@@ -107,41 +107,47 @@
     <div id="adminDashboard" class="hidden">
         <!-- Top Navigation -->
         <nav class="bg-gaming-dark/80 backdrop-blur-lg border-b-2 border-neon-blue/20 sticky top-0 z-50">
-            <div class="container mx-auto px-4 py-4">
+            <div class="container mx-auto px-2 sm:px-4 py-3 sm:py-4">
                 <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <span class="text-3xl">⚔️</span>
+                    <div class="flex items-center gap-2 sm:gap-4">
+                        <span class="text-2xl sm:text-3xl">⚔️</span>
                         <div>
-                            <h1 class="text-2xl font-black gaming-title gradient-text">COMMAND CENTER</h1>
-                            <p class="text-xs text-gray-400">Gaming Community Admin</p>
+                            <h1 class="text-lg sm:text-2xl font-black gaming-title gradient-text">COMMAND CENTER</h1>
+                            <p class="text-xs text-gray-400 hidden sm:block">Gaming Community Admin</p>
                         </div>
                     </div>
-                    <button onclick="logout()" class="px-4 py-2 bg-red-900/50 hover:bg-red-800 border border-red-500/50 rounded-lg gaming-title text-sm transition-all hover:scale-105">
-                        🚪 LOGOUT
+                    <button onclick="logout()" class="px-3 sm:px-4 py-2 bg-red-900/50 hover:bg-red-800 border border-red-500/50 rounded-lg gaming-title text-xs sm:text-sm transition-all hover:scale-105">
+                        <span class="hidden sm:inline">🚪 LOGOUT</span>
+                        <span class="sm:hidden">🚪</span>
                     </button>
                 </div>
             </div>
         </nav>
 
         <!-- Main Content -->
-        <div class="container mx-auto px-4 py-8">
+        <div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
             
             <!-- Navigation Tabs -->
-            <div class="mb-8 flex flex-wrap gap-2">
-                <button onclick="showSection('dashboard')" class="tab-btn px-6 py-3 bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 border-2 border-neon-blue/50 rounded-xl gaming-title font-bold hover:scale-105 transition-all" data-section="dashboard">
-                    📊 DASHBOARD
+            <div class="mb-6 sm:mb-8 flex flex-wrap gap-2">
+                <button onclick="showSection('dashboard')" class="tab-btn px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 border-2 border-neon-blue/50 rounded-xl gaming-title text-xs sm:text-sm font-bold hover:scale-105 transition-all" data-section="dashboard">
+                    <span class="hidden sm:inline">📊 DASHBOARD</span>
+                    <span class="sm:hidden">📊</span>
                 </button>
-                <button onclick="showSection('users')" class="tab-btn px-6 py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="users">
-                    👥 PLAYERS
+                <button onclick="showSection('users')" class="tab-btn px-3 sm:px-6 py-2 sm:py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title text-xs sm:text-sm font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="users">
+                    <span class="hidden sm:inline">👥 PLAYERS</span>
+                    <span class="sm:hidden">👥</span>
                 </button>
-                <button onclick="showSection('tasks')" class="tab-btn px-6 py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="tasks">
-                    ⚔️ QUESTS
+                <button onclick="showSection('tasks')" class="tab-btn px-3 sm:px-6 py-2 sm:py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title text-xs sm:text-sm font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="tasks">
+                    <span class="hidden sm:inline">⚔️ QUESTS</span>
+                    <span class="sm:hidden">⚔️</span>
                 </button>
-                <button onclick="showSection('rewards')" class="tab-btn px-6 py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="rewards">
-                    💎 LOOT
+                <button onclick="showSection('rewards')" class="tab-btn px-3 sm:px-6 py-2 sm:py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title text-xs sm:text-sm font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="rewards">
+                    <span class="hidden sm:inline">💎 LOOT</span>
+                    <span class="sm:hidden">💎</span>
                 </button>
-                <button onclick="showSection('verification')" class="tab-btn px-6 py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="verification">
-                    ✓ VERIFICATION
+                <button onclick="showSection('verification')" class="tab-btn px-3 sm:px-6 py-2 sm:py-3 bg-gaming-dark/50 border-2 border-gray-700 rounded-xl gaming-title text-xs sm:text-sm font-bold hover:border-neon-purple/50 hover:scale-105 transition-all" data-section="verification">
+                    <span class="hidden sm:inline">✓ VERIFICATION</span>
+                    <span class="sm:hidden">✓</span>
                 </button>
             </div>
 
@@ -197,13 +203,14 @@
 
             <!-- Users Section -->
             <section id="users" class="content-section hidden">
-                <div class="bg-gaming-dark/60 border-2 border-neon-blue/20 rounded-2xl p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-2xl font-black gaming-title gradient-text">👥 PLAYER MANAGEMENT</h2>
-                        <div class="text-sm text-gray-400 gaming-body">Total Players: <span id="userCount" class="text-neon-blue font-bold">0</span></div>
+                <div class="bg-gaming-dark/60 border-2 border-neon-blue/20 rounded-2xl p-3 sm:p-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-2">
+                        <h2 class="text-xl sm:text-2xl font-black gaming-title gradient-text">👥 PLAYER MANAGEMENT</h2>
+                        <div class="text-xs sm:text-sm text-gray-400 gaming-body">Total Players: <span id="userCount" class="text-neon-blue font-bold">0</span></div>
                     </div>
                     
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table -->
+                    <div class="hidden lg:block overflow-x-auto">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-b-2 border-neon-blue/20">
@@ -221,40 +228,46 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Mobile Card View -->
+                    <div id="usersCards" class="lg:hidden space-y-3">
+                        <div class="text-center py-8 text-gray-500">Loading players...</div>
+                    </div>
                 </div>
             </section>
 
             <!-- Tasks Section -->
             <section id="tasks" class="content-section hidden">
-                <div class="bg-gaming-dark/60 border-2 border-neon-purple/20 rounded-2xl p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-2xl font-black gaming-title gradient-text">⚔️ QUEST MANAGEMENT</h2>
-                        <button onclick="showAddTaskModal()" class="px-6 py-3 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl gaming-title font-bold transition-all hover:scale-105 hover:shadow-lg hover:shadow-neon-purple/50">
+                <div class="bg-gaming-dark/60 border-2 border-neon-purple/20 rounded-2xl p-3 sm:p-6">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+                        <h2 class="text-xl sm:text-2xl font-black gaming-title gradient-text">⚔️ QUEST MANAGEMENT</h2>
+                        <button onclick="showAddTaskModal()" class="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl gaming-title text-sm sm:text-base font-bold transition-all hover:scale-105 hover:shadow-lg hover:shadow-neon-purple/50">
                             ➕ CREATE QUEST
                         </button>
                     </div>
                     
                     <!-- YouTube Verification Stats -->
-                    <div id="youtubeStats" class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="bg-gradient-to-br from-purple-900/40 to-black/40 border border-neon-purple/30 rounded-xl p-4">
-                            <div class="text-neon-purple gaming-title text-sm mb-1">🎬 VIDEO VIEWS</div>
-                            <div id="totalViews" class="text-3xl font-black text-white">0</div>
+                    <div id="youtubeStats" class="mb-4 sm:mb-6 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+                        <div class="bg-gradient-to-br from-purple-900/40 to-black/40 border border-neon-purple/30 rounded-xl p-3 sm:p-4">
+                            <div class="text-neon-purple gaming-title text-xs sm:text-sm mb-1">🎬 VIDEO VIEWS</div>
+                            <div id="totalViews" class="text-2xl sm:text-3xl font-black text-white">0</div>
                         </div>
-                        <div class="bg-gradient-to-br from-green-900/40 to-black/40 border border-neon-green/30 rounded-xl p-4">
-                            <div class="text-neon-green gaming-title text-sm mb-1">✅ COMPLETED</div>
-                            <div id="completedViews" class="text-3xl font-black text-white">0</div>
+                        <div class="bg-gradient-to-br from-green-900/40 to-black/40 border border-neon-green/30 rounded-xl p-3 sm:p-4">
+                            <div class="text-neon-green gaming-title text-xs sm:text-sm mb-1">✅ COMPLETED</div>
+                            <div id="completedViews" class="text-2xl sm:text-3xl font-black text-white">0</div>
                         </div>
-                        <div class="bg-gradient-to-br from-yellow-900/40 to-black/40 border border-neon-yellow/30 rounded-xl p-4">
-                            <div class="text-neon-yellow gaming-title text-sm mb-1">⏱️ WATCHING</div>
-                            <div id="watchingViews" class="text-3xl font-black text-white">0</div>
+                        <div class="bg-gradient-to-br from-yellow-900/40 to-black/40 border border-neon-yellow/30 rounded-xl p-3 sm:p-4">
+                            <div class="text-neon-yellow gaming-title text-xs sm:text-sm mb-1">⏱️ WATCHING</div>
+                            <div id="watchingViews" class="text-2xl sm:text-3xl font-black text-white">0</div>
                         </div>
-                        <div class="bg-gradient-to-br from-red-900/40 to-black/40 border border-red-500/30 rounded-xl p-4">
-                            <div class="text-red-400 gaming-title text-sm mb-1">❌ FAILED</div>
-                            <div id="failedViews" class="text-3xl font-black text-white">0</div>
+                        <div class="bg-gradient-to-br from-red-900/40 to-black/40 border border-red-500/30 rounded-xl p-3 sm:p-4">
+                            <div class="text-red-400 gaming-title text-xs sm:text-sm mb-1">❌ FAILED</div>
+                            <div id="failedViews" class="text-2xl sm:text-3xl font-black text-white">0</div>
                         </div>
                     </div>
                     
-                    <div class="overflow-x-auto">
+                    <!-- Desktop Table View -->
+                    <div class="hidden lg:block overflow-x-auto">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-b-2 border-neon-purple/20">
@@ -271,6 +284,11 @@
                                 <tr><td colspan="7" class="text-center py-12 text-gray-500">Loading quests...</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                    
+                    <!-- Mobile Card View -->
+                    <div id="tasksCards" class="lg:hidden space-y-3">
+                        <div class="text-center py-8 text-gray-500">Loading quests...</div>
                     </div>
                 </div>
             </section>
@@ -339,108 +357,242 @@
 
     <!-- Task Modal -->
     <div id="taskModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-gradient-to-br from-gaming-dark to-purple-900/40 border-2 border-neon-purple/50 rounded-2xl p-8 w-full max-w-2xl card-glow max-h-[90vh] overflow-y-auto">
+        <div class="bg-gradient-to-br from-gaming-dark to-purple-900/40 border-2 border-neon-purple/50 rounded-2xl p-8 w-full max-w-3xl card-glow max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-black gaming-title gradient-text">⚔️ CREATE NEW QUEST</h2>
                 <button onclick="closeModal('taskModal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
             </div>
             
             <form id="taskForm" onsubmit="submitTask(event)" class="space-y-4">
-                <div>
-                    <label class="block text-neon-blue gaming-title text-sm mb-2">QUEST TITLE</label>
-                    <input id="taskTitle" type="text" required class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                <!-- Step 1: Choose Quest Type -->
+                <div class="mb-6">
+                    <label class="block text-neon-blue gaming-title text-sm mb-3">SELECT QUEST TYPE</label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <button type="button" onclick="selectQuestType('twitter')" class="quest-type-btn border-2 border-neon-blue/30 hover:border-neon-blue bg-black/50 rounded-xl p-4 text-center transition-all hover:scale-105" data-type="twitter">
+                            <div class="text-3xl mb-2">🐦</div>
+                            <div class="text-sm gaming-title">Twitter</div>
+                        </button>
+                        <button type="button" onclick="selectQuestType('youtube')" class="quest-type-btn border-2 border-neon-blue/30 hover:border-neon-blue bg-black/50 rounded-xl p-4 text-center transition-all hover:scale-105" data-type="youtube">
+                            <div class="text-3xl mb-2">📺</div>
+                            <div class="text-sm gaming-title">YouTube</div>
+                        </button>
+                        <button type="button" onclick="selectQuestType('telegram')" class="quest-type-btn border-2 border-neon-blue/30 hover:border-neon-blue bg-black/50 rounded-xl p-4 text-center transition-all hover:scale-105" data-type="telegram">
+                            <div class="text-3xl mb-2">✈️</div>
+                            <div class="text-sm gaming-title">Telegram</div>
+                        </button>
+                        <button type="button" onclick="selectQuestType('daily')" class="quest-type-btn border-2 border-neon-blue/30 hover:border-neon-blue bg-black/50 rounded-xl p-4 text-center transition-all hover:scale-105" data-type="daily">
+                            <div class="text-3xl mb-2">📅</div>
+                            <div class="text-sm gaming-title">Daily Check-in</div>
+                        </button>
+                        <button type="button" onclick="selectQuestType('manual')" class="quest-type-btn border-2 border-neon-blue/30 hover:border-neon-blue bg-black/50 rounded-xl p-4 text-center transition-all hover:scale-105" data-type="manual">
+                            <div class="text-3xl mb-2">✍️</div>
+                            <div class="text-sm gaming-title">Manual</div>
+                        </button>
+                    </div>
                 </div>
-                
-                <div>
-                    <label class="block text-neon-blue gaming-title text-sm mb-2">DESCRIPTION</label>
-                    <textarea id="taskDescription" rows="3" required class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple"></textarea>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-4">
+
+                <!-- Common Fields -->
+                <div class="space-y-4 common-fields" style="display: none;">
                     <div>
-                        <label class="block text-neon-blue gaming-title text-sm mb-2">TYPE</label>
-                        <select id="taskType" required class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
-                            <option value="social">Social</option>
-                            <option value="content">Content</option>
-                            <option value="referral">Referral</option>
-                            <option value="engagement">Engagement</option>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">QUEST TITLE</label>
+                        <input id="taskTitle" type="text" required class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">DESCRIPTION</label>
+                        <textarea id="taskDescription" rows="3" required class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">XP REWARD</label>
+                        <input id="taskPoints" type="number" required min="1" value="50" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                    </div>
+                </div>
+
+                <!-- Twitter Specific Fields -->
+                <div id="twitterFields" class="hidden border-2 border-neon-blue/30 rounded-xl p-5 bg-blue-900/20 space-y-4">
+                    <h3 class="text-lg font-bold gaming-title text-neon-blue mb-3">🐦 Twitter Quest Configuration</h3>
+                    
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">ACTION TYPE</label>
+                        <select id="twitterActionType" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <option value="follow">Follow Account</option>
+                            <option value="like">Like Tweet</option>
+                            <option value="retweet">Retweet</option>
+                            <option value="reply">Reply to Tweet</option>
                         </select>
                     </div>
-                    
-                    <div>
-                        <label class="block text-neon-blue gaming-title text-sm mb-2">PLATFORM</label>
-                        <select id="taskPlatform" onchange="toggleYouTubeVerification()" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
-                            <option value="">None</option>
-                            <option value="telegram">Telegram</option>
-                            <option value="twitter">Twitter</option>
-                            <option value="discord">Discord</option>
-                            <option value="youtube">YouTube</option>
-                        </select>
+
+                    <div id="twitterUsernameField">
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">TARGET USERNAME (without @)</label>
+                        <input id="twitterUsername" type="text" placeholder="username" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                        <p class="text-xs text-gray-400 mt-1">Example: elonmusk</p>
                     </div>
-                </div>
-                
-                <div>
-                    <label class="block text-neon-blue gaming-title text-sm mb-2">QUEST URL</label>
-                    <input id="taskUrl" type="url" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
-                </div>
-                
-                <!-- YouTube Verification Section -->
-                <div id="youtubeVerification" class="hidden border-2 border-neon-purple/30 rounded-xl p-4 bg-purple-900/20">
-                    <h3 class="text-lg font-bold gaming-title text-neon-purple mb-4">🎬 YouTube Video Verification</h3>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-neon-blue gaming-title text-sm mb-2">SECRET CODE</label>
-                            <input id="taskSecretCode" type="text" placeholder="e.g., GAMER2024" class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
-                            <p class="text-xs text-gray-400 mt-1">This code should appear in your video</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-neon-blue gaming-title text-sm mb-2">MIN. WATCH TIME (seconds)</label>
-                                <input id="taskMinWatchTime" type="number" value="120" min="30" max="3600" class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
-                                <p class="text-xs text-gray-400 mt-1">Default: 120s (2 minutes)</p>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-neon-blue gaming-title text-sm mb-2">MAX ATTEMPTS</label>
-                                <input id="taskMaxAttempts" type="number" value="3" min="1" max="10" class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
-                                <p class="text-xs text-gray-400 mt-1">Code verification attempts</p>
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-neon-blue gaming-title text-sm mb-2">CODE TIMESTAMP HINT</label>
-                            <input id="taskCodeTimestamp" type="text" placeholder="e.g., 2:30 or at the end" value="during the video" class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
-                            <p class="text-xs text-gray-400 mt-1">Tell users when the code appears</p>
-                        </div>
+
+                    <div id="twitterTweetField" class="hidden">
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">TWEET URL</label>
+                        <input id="twitterTweetUrl" type="url" placeholder="https://twitter.com/username/status/123456" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
                     </div>
-                    
-                    <div class="mt-4 p-3 bg-neon-purple/10 border border-neon-purple/30 rounded-lg">
+
+                    <div class="p-3 bg-neon-blue/10 border border-neon-blue/30 rounded-lg">
                         <p class="text-sm text-gray-300">
-                            ⚡ <strong>How it works:</strong> Users must watch the video for the minimum time before submitting the code. They get limited attempts to enter the correct code.
+                            ⚡ <strong>Auto-Verification:</strong> Uses Twitter API to verify completion (Rate limited: 100 checks/day)
                         </p>
                     </div>
                 </div>
-                
-                <div>
-                    <label class="block text-neon-blue gaming-title text-sm mb-2">XP REWARD</label>
-                    <input id="taskPoints" type="number" required min="1" class="w-full bg-black/50 border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
-                </div>
-                
-                <div class="flex gap-6">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input id="taskBonus" type="checkbox" class="w-5 h-5 rounded border-2 border-neon-yellow/50 bg-black/50">
-                        <span class="text-neon-yellow gaming-title text-sm">⭐ BONUS QUEST</span>
-                    </label>
+
+                <!-- Telegram Specific Fields -->
+                <div id="telegramFields" class="hidden border-2 border-cyan-500/30 rounded-xl p-5 bg-cyan-900/20 space-y-4">
+                    <h3 class="text-lg font-bold gaming-title text-cyan-400 mb-3">✈️ Telegram Quest Configuration</h3>
                     
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input id="taskVerification" type="checkbox" class="w-5 h-5 rounded border-2 border-neon-green/50 bg-black/50">
-                        <span class="text-neon-green gaming-title text-sm">✓ VERIFICATION REQUIRED</span>
-                    </label>
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">ACTION TYPE</label>
+                        <select id="telegramActionType" class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <option value="join_group">Join Group/Supergroup</option>
+                            <option value="join_channel">Subscribe to Channel</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">TELEGRAM LINK</label>
+                        <input id="telegramLink" type="url" placeholder="https://t.me/yourgroupname or @yourgroupname" class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                        <p class="text-xs text-gray-400 mt-1">Example: https://t.me/mychannel or @mychannel</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">GROUP/CHANNEL ID</label>
+                        <input id="telegramChatId" type="text" placeholder="-1001234567890 or @channelname" class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                        <p class="text-xs text-gray-400 mt-1">Numeric ID (e.g., -1001234567890) or username (e.g., @mychannel)</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">GROUP/CHANNEL NAME</label>
+                        <input id="telegramChatName" type="text" placeholder="My Awesome Channel" class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                        <p class="text-xs text-gray-400 mt-1">Display name for users</p>
+                    </div>
+
+                    <div class="p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                        <p class="text-sm text-gray-300">
+                            ⚡ <strong>Auto-Verification:</strong> Bot checks if user is a member of the specified group/channel
+                        </p>
+                        <p class="text-xs text-gray-400 mt-2">
+                            ⚠️ <strong>Requirements:</strong>
+                            <br>• Bot must be admin in the group/channel
+                            <br>• Group/channel must be public or bot must have access
+                            <br>• Bot needs permission to see member list
+                        </p>
+                    </div>
                 </div>
+
+                <!-- YouTube Specific Fields -->
+                <div id="youtubeFields" class="hidden border-2 border-red-500/30 rounded-xl p-5 bg-red-900/20 space-y-4">
+                    <h3 class="text-lg font-bold gaming-title text-red-400 mb-3">📺 YouTube Video Quest</h3>
+                    
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">YOUTUBE VIDEO URL</label>
+                        <input id="youtubeUrl" type="url" placeholder="https://youtube.com/watch?v=..." class="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                    </div>
+
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">SECRET CODE (shown in video)</label>
+                        <input id="youtubeSecretCode" type="text" placeholder="e.g., QUEST2025" class="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                        <p class="text-xs text-gray-400 mt-1">Users must enter this code after watching</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-neon-blue gaming-title text-sm mb-2">MIN. WATCH TIME (seconds)</label>
+                            <input id="youtubeMinWatchTime" type="number" value="120" min="30" max="3600" class="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-neon-blue gaming-title text-sm mb-2">MAX ATTEMPTS</label>
+                            <input id="youtubeMaxAttempts" type="number" value="3" min="1" max="10" class="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">CODE APPEARS AT</label>
+                        <input id="youtubeCodeHint" type="text" placeholder="e.g., 2:30 or at the end" value="during the video" class="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                    </div>
+
+                    <div class="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                        <p class="text-sm text-gray-300">
+                            ⚡ <strong>How it works:</strong> User watches video, enters code shown in video. Watch time is tracked.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Daily Check-in Fields -->
+                <div id="dailyFields" class="hidden border-2 border-neon-green/30 rounded-xl p-5 bg-green-900/20 space-y-4">
+                    <h3 class="text-lg font-bold gaming-title text-neon-green mb-3">📅 Daily Check-in Quest</h3>
+                    
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">STREAK BONUS</label>
+                        <select id="dailyStreakBonus" class="w-full bg-black/50 border-2 border-neon-green/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <option value="none">No Streak Bonus</option>
+                            <option value="multiply">Multiply by Streak (Day 7 = 7x points)</option>
+                            <option value="milestone">Milestone Bonuses (Day 7, 30, 100)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">RESET TIME (UTC)</label>
+                        <input id="dailyResetTime" type="time" value="00:00" class="w-full bg-black/50 border-2 border-neon-green/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                        <p class="text-xs text-gray-400 mt-1">When the daily quest resets</p>
+                    </div>
+
+                    <div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input id="dailyStreakRequired" type="checkbox" class="w-5 h-5 rounded border-2 border-neon-green/50 bg-black/50">
+                            <span class="text-sm gaming-body">Require consecutive days (break streak if missed)</span>
+                        </label>
+                    </div>
+
+                    <div class="p-3 bg-neon-green/10 border border-neon-green/30 rounded-lg">
+                        <p class="text-sm text-gray-300">
+                            ⚡ <strong>Auto-Completion:</strong> Simple button click. Users can complete once per day.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Manual Quest Fields -->
+                <div id="manualFields" class="hidden border-2 border-neon-purple/30 rounded-xl p-5 bg-purple-900/20 space-y-4">
+                    <h3 class="text-lg font-bold gaming-title text-neon-purple mb-3">✍️ Manual Verification Quest</h3>
+                    
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">QUEST URL (Optional)</label>
+                        <input id="manualUrl" type="url" placeholder="https://..." class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                        <p class="text-xs text-gray-400 mt-1">Link to instructions or external platform</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">SUBMISSION TYPE</label>
+                        <select id="manualSubmissionType" class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <option value="none">No Submission Needed</option>
+                            <option value="text">Text/Link Submission</option>
+                            <option value="screenshot">Screenshot Upload</option>
+                            <option value="code">Enter Code</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-neon-blue gaming-title text-sm mb-2">INSTRUCTIONS FOR USERS</label>
+                        <textarea id="manualInstructions" rows="3" placeholder="Tell users exactly what they need to do..." class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple"></textarea>
+                    </div>
+
+                    <div class="p-3 bg-neon-purple/10 border border-neon-purple/30 rounded-lg">
+                        <p class="text-sm text-gray-300">
+                            ⚡ <strong>Admin Review:</strong> Users submit quest completion. Admin manually approves/rejects.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Hidden Fields -->
+                <input type="hidden" id="taskType" value="social">
+                <input type="hidden" id="taskPlatform" value="">
                 
-                <button type="submit" class="w-full py-4 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl gaming-title font-bold text-lg transition-all hover:scale-105">
+                <button type="submit" id="submitQuestBtn" class="hidden w-full py-4 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl gaming-title font-bold text-lg transition-all hover:scale-105">
                     🚀 CREATE QUEST
                 </button>
             </form>
@@ -637,6 +789,7 @@
                 
                 document.getElementById('userCount').textContent = users.length;
                 
+                // Desktop table
                 const tbody = document.getElementById('usersTable');
                 tbody.innerHTML = users.map(user => `
                     <tr class="table-row">
@@ -663,6 +816,44 @@
                         </td>
                     </tr>
                 `).join('');
+                
+                // Mobile cards
+                const cardsContainer = document.getElementById('usersCards');
+                cardsContainer.innerHTML = users.map(user => `
+                    <div class="bg-gradient-to-br from-black/60 to-gray-900/40 border-2 ${user.is_banned ? 'border-red-500/30' : 'border-neon-blue/30'} rounded-xl p-4">
+                        <!-- Header -->
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <h3 class="text-white font-bold gaming-body text-lg">${user.first_name || 'Unknown'} ${user.last_name || ''}</h3>
+                                <p class="text-gray-400 text-sm gaming-body">@${user.username || 'N/A'}</p>
+                            </div>
+                            <span class="px-2 py-1 ${user.is_banned ? 'bg-red-900/30 border-red-500/50 text-red-400' : 'bg-neon-green/20 border-neon-green/50 text-neon-green'} border rounded-lg gaming-title text-xs whitespace-nowrap ml-2">
+                                ${user.is_banned ? '🚫 BANNED' : '✓ ACTIVE'}
+                            </span>
+                        </div>
+                        
+                        <!-- Stats Grid -->
+                        <div class="grid grid-cols-3 gap-3 mb-3">
+                            <div class="bg-neon-purple/10 border border-neon-purple/30 rounded-lg p-2 text-center">
+                                <div class="text-gray-400 text-xs gaming-title mb-1">LEVEL</div>
+                                <div class="text-neon-purple font-bold gaming-body">${Math.floor((user.total_points_earned || 0) / 100) + 1}</div>
+                            </div>
+                            <div class="bg-neon-green/10 border border-neon-green/30 rounded-lg p-2 text-center">
+                                <div class="text-gray-400 text-xs gaming-title mb-1">XP</div>
+                                <div class="text-neon-green font-bold gaming-body">${user.points || 0}</div>
+                            </div>
+                            <div class="bg-neon-blue/10 border border-neon-blue/30 rounded-lg p-2 text-center">
+                                <div class="text-gray-400 text-xs gaming-title mb-1">EARNED</div>
+                                <div class="text-neon-blue font-bold gaming-body">${user.total_points_earned || 0}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action -->
+                        <button onclick="toggleUserBan('${user.telegram_id}')" class="w-full px-4 py-2 ${user.is_banned ? 'bg-neon-green/20 hover:bg-neon-green/30 border-neon-green/50' : 'bg-red-900/30 hover:bg-red-900/50 border-red-500/50'} border rounded-lg gaming-title text-sm transition-all">
+                            ${user.is_banned ? '✅ UNBAN PLAYER' : '🚫 BAN PLAYER'}
+                        </button>
+                    </div>
+                `).join('');
             } catch (error) {
                 console.error('Error loading users:', error);
             }
@@ -676,6 +867,7 @@
                 });
                 const tasks = await response.json();
                 
+                // Desktop table view
                 const tbody = document.getElementById('tasksTable');
                 tbody.innerHTML = tasks.map(task => {
                     const rarityColors = {
@@ -706,11 +898,81 @@
                             </span>
                         </td>
                         <td class="px-4 py-4">
-                            <button onclick="deleteTask('${task.id}')" class="px-4 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-500/50 rounded-lg gaming-title text-sm transition-all hover:scale-105">
-                                🗑 DELETE
-                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="editTask('${task.id}')" class="px-3 py-2 bg-blue-900/30 hover:bg-blue-900/50 border border-blue-500/50 rounded-lg gaming-title text-xs transition-all hover:scale-105" title="Edit Quest">
+                                    ✏️ EDIT
+                                </button>
+                                <button onclick="toggleTaskStatus('${task.id}', ${task.is_active})" class="px-3 py-2 ${task.is_active ? 'bg-yellow-900/30 hover:bg-yellow-900/50 border-yellow-500/50' : 'bg-green-900/30 hover:bg-green-900/50 border-green-500/50'} border rounded-lg gaming-title text-xs transition-all hover:scale-105" title="${task.is_active ? 'Deactivate' : 'Activate'} Quest">
+                                    ${task.is_active ? '⏸' : '▶️'}
+                                </button>
+                                <button onclick="deleteTask('${task.id}')" class="px-3 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-500/50 rounded-lg gaming-title text-xs transition-all hover:scale-105" title="Delete Quest">
+                                    🗑️
+                                </button>
+                            </div>
                         </td>
                     </tr>
+                `;
+                }).join('');
+                
+                // Mobile card view
+                const cardsContainer = document.getElementById('tasksCards');
+                cardsContainer.innerHTML = tasks.map(task => {
+                    const rarityColors = {
+                        'common': 'text-gray-400 border-gray-500/50 bg-gray-900/30',
+                        'rare': 'text-neon-blue border-neon-blue/50 bg-blue-900/20',
+                        'epic': 'text-neon-purple border-neon-purple/50 bg-purple-900/20',
+                        'legendary': 'text-neon-yellow border-neon-yellow/50 bg-yellow-900/20'
+                    };
+                    const rarity = task.points_reward < 50 ? 'common' : task.points_reward < 100 ? 'rare' : task.points_reward < 200 ? 'epic' : 'legendary';
+                    
+                    return `
+                    <div class="bg-gradient-to-br from-black/60 to-gray-900/40 border-2 ${task.is_active ? 'border-neon-purple/30' : 'border-gray-700/50'} rounded-xl p-4">
+                        <!-- Header -->
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <h3 class="text-white font-bold gaming-body text-lg mb-1">${task.title}</h3>
+                                ${task.is_bonus ? '<span class="text-neon-yellow text-xs">⭐ BONUS</span>' : ''}
+                            </div>
+                            <span class="px-2 py-1 ${task.is_active ? 'bg-neon-green/20 border-neon-green/50 text-neon-green' : 'bg-gray-700/30 border-gray-600/50 text-gray-400'} border rounded-lg gaming-title text-xs whitespace-nowrap ml-2">
+                                ${task.is_active ? '✓ ACTIVE' : '⏸ INACTIVE'}
+                            </span>
+                        </div>
+                        
+                        <!-- Details Grid -->
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div>
+                                <div class="text-gray-400 text-xs gaming-title mb-1">TYPE</div>
+                                <div class="text-white gaming-body capitalize text-sm">${task.task_type || 'N/A'}</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-400 text-xs gaming-title mb-1">PLATFORM</div>
+                                <div class="text-white gaming-body capitalize text-sm">${task.platform || '—'}</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-400 text-xs gaming-title mb-1">XP REWARD</div>
+                                <div class="text-neon-green font-bold gaming-body text-sm">+${task.points_reward} XP</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-400 text-xs gaming-title mb-1">RARITY</div>
+                                <span class="inline-block px-2 py-1 border ${rarityColors[rarity]} rounded-lg gaming-title text-xs uppercase">
+                                    ${rarity}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex gap-2">
+                            <button onclick="editTask('${task.id}')" class="flex-1 px-3 py-2 bg-blue-900/30 hover:bg-blue-900/50 border border-blue-500/50 rounded-lg gaming-title text-xs transition-all">
+                                ✏️ EDIT
+                            </button>
+                            <button onclick="toggleTaskStatus('${task.id}', ${task.is_active})" class="flex-1 px-3 py-2 ${task.is_active ? 'bg-yellow-900/30 hover:bg-yellow-900/50 border-yellow-500/50' : 'bg-green-900/30 hover:bg-green-900/50 border-green-500/50'} border rounded-lg gaming-title text-xs transition-all">
+                                ${task.is_active ? '⏸ PAUSE' : '▶️ ACTIVATE'}
+                            </button>
+                            <button onclick="deleteTask('${task.id}')" class="px-3 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-500/50 rounded-lg gaming-title text-xs transition-all">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
                 `;
                 }).join('');
                 
@@ -828,38 +1090,158 @@
         async function submitTask(event) {
             event.preventDefault();
 
-            const taskData = {
+            if (!selectedQuestType) {
+                alert('⚠️ Please select a quest type first!');
+                return;
+            }
+
+            // Base task payload
+            const base = {
                 title: document.getElementById('taskTitle').value,
                 description: document.getElementById('taskDescription').value,
-                task_type: document.getElementById('taskType').value,
                 platform: document.getElementById('taskPlatform').value || null,
-                url: document.getElementById('taskUrl').value || null,
-                points_reward: parseInt(document.getElementById('taskPoints').value),
-                is_bonus: document.getElementById('taskBonus').checked,
-                verification_required: document.getElementById('taskVerification').checked
+                points_reward: parseInt(document.getElementById('taskPoints').value) || 0,
+                is_bonus: false,
+                is_active: true, // New quests are active by default
+                url: null,
+                verification_data: {}
             };
-            
-            // Add YouTube verification data if platform is YouTube
-            const platform = document.getElementById('taskPlatform').value;
-            if (platform === 'youtube') {
-                const secretCode = document.getElementById('taskSecretCode').value.trim();
-                if (!secretCode) {
-                    alert('⚠️ Please enter a secret code for YouTube verification!');
+
+            // Determine task_type, verification_required and build verification_data
+            let task_type = 'custom';
+            let verification_required = true;
+
+            if (selectedQuestType === 'twitter') {
+                const actionType = document.getElementById('twitterActionType').value;
+                const username = document.getElementById('twitterUsername').value.trim();
+
+                if (!username) {
+                    alert('⚠️ Please enter the target Twitter username!');
                     return;
                 }
-                
-                taskData.verification_data = {
+
+                const twitterTypeMap = {
+                    'follow': 'twitter_follow',
+                    'like': 'twitter_like',
+                    'retweet': 'twitter_retweet',
+                    'reply': 'twitter_reply'
+                };
+
+                task_type = twitterTypeMap[actionType] || 'twitter_action';
+                base.verification_data = { method: 'twitter_api', type: actionType, username };
+                base.url = `https://twitter.com/${username}`;
+
+                if (actionType !== 'follow') {
+                    const tweetUrl = document.getElementById('twitterTweetUrl').value.trim();
+                    if (!tweetUrl) {
+                        alert('⚠️ Please enter the tweet URL!');
+                        return;
+                    }
+                    base.url = tweetUrl;
+                    const tweetIdMatch = tweetUrl.match(/status\/(\d+)/);
+                    if (tweetIdMatch) base.verification_data.tweet_id = tweetIdMatch[1];
+                }
+
+            } else if (selectedQuestType === 'telegram') {
+                const actionType = document.getElementById('telegramActionType').value;
+                const telegramLink = document.getElementById('telegramLink').value.trim();
+                const chatId = document.getElementById('telegramChatId').value.trim();
+                const chatName = document.getElementById('telegramChatName').value.trim();
+
+                if (!telegramLink) {
+                    alert('⚠️ Please enter the Telegram link!');
+                    return;
+                }
+                if (!chatId) {
+                    alert('⚠️ Please enter the Group/Channel ID!');
+                    return;
+                }
+                if (!chatName) {
+                    alert('⚠️ Please enter the Group/Channel name!');
+                    return;
+                }
+
+                const telegramTypeMap = {
+                    'join_group': 'telegram_join_group',
+                    'join_channel': 'telegram_join_channel'
+                };
+
+                task_type = telegramTypeMap[actionType] || 'telegram_action';
+                base.url = telegramLink;
+                base.verification_data = {
+                    method: 'telegram_membership',
+                    type: actionType,
+                    chat_id: chatId,
+                    chat_name: chatName,
+                    invite_link: telegramLink
+                };
+
+            } else if (selectedQuestType === 'youtube') {
+                const youtubeUrl = document.getElementById('youtubeUrl').value.trim();
+                const secretCode = document.getElementById('youtubeSecretCode').value.trim();
+
+                if (!youtubeUrl) { alert('⚠️ Please enter the YouTube video URL!'); return; }
+                if (!secretCode) { alert('⚠️ Please enter a secret code for the video!'); return; }
+
+                task_type = 'youtube_watch';
+                base.url = youtubeUrl;
+                base.verification_data = {
                     method: 'time_delay_code',
                     code: secretCode,
-                    min_watch_time_seconds: parseInt(document.getElementById('taskMinWatchTime').value) || 120,
-                    code_timestamp: document.getElementById('taskCodeTimestamp').value || 'during the video',
-                    max_attempts: parseInt(document.getElementById('taskMaxAttempts').value) || 3
+                    min_watch_time_seconds: parseInt(document.getElementById('youtubeMinWatchTime').value) || 120,
+                    code_timestamp: document.getElementById('youtubeCodeHint').value || 'during the video',
+                    max_attempts: parseInt(document.getElementById('youtubeMaxAttempts').value) || 3
+                };
+
+            } else if (selectedQuestType === 'daily') {
+                const streakBonus = document.getElementById('dailyStreakBonus').value;
+                const resetTime = document.getElementById('dailyResetTime').value;
+                const streakRequired = document.getElementById('dailyStreakRequired').checked;
+
+                task_type = 'daily_checkin';
+                verification_required = false; // daily check-in is normally auto-complete
+                base.verification_data = {
+                    method: 'daily_checkin',
+                    streak_bonus: streakBonus,
+                    reset_time_utc: resetTime,
+                    consecutive_required: streakRequired,
+                    frequency: 'daily'
+                };
+
+            } else if (selectedQuestType === 'manual') {
+                const submissionType = document.getElementById('manualSubmissionType').value;
+                const instructions = document.getElementById('manualInstructions').value.trim();
+                const manualUrl = document.getElementById('manualUrl').value.trim();
+
+                task_type = 'manual_review';
+                base.url = manualUrl || null;
+                base.verification_data = {
+                    method: 'manual_review',
+                    submission_type: submissionType,
+                    instructions: instructions,
+                    requires_approval: true
                 };
             }
 
+            // Compose final payload
+            const taskData = Object.assign({}, base, {
+                task_type,
+                verification_required
+            });
+
+            // Remove verification_data if empty
+            if (!taskData.verification_data || Object.keys(taskData.verification_data).length === 0) {
+                delete taskData.verification_data;
+            }
+
             try {
-                const response = await fetch(`${API_URL}/tasks`, {
-                    method: 'POST',
+                // Determine if we're creating or updating
+                const isEditing = editingTaskId !== null;
+                const url = isEditing ? `${API_URL}/tasks/${editingTaskId}` : `${API_URL}/tasks`;
+                const method = isEditing ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${authToken}`
@@ -868,26 +1250,31 @@
                 });
 
                 if (response.ok) {
-                    alert('⚔️ Quest created successfully!');
+                    const emoji = {
+                        'twitter': '🐦',
+                        'telegram': '✈️',
+                        'youtube': '📺',
+                        'daily': '📅',
+                        'manual': '✍️'
+                    }[selectedQuestType] || '⚔️';
+
+                    const action = isEditing ? 'updated' : 'created';
+                    alert(`${emoji} ${selectedQuestType.toUpperCase()} quest ${action} successfully!`);
                     closeModal('taskModal');
                     loadTasks();
                     document.getElementById('taskForm').reset();
-                    document.getElementById('youtubeVerification').classList.add('hidden');
+                    editingTaskId = null; // Reset edit mode
                 } else {
-                    // Handle authentication errors
-                    if (response.status === 401) {
-                        handleAuthError();
-                        return;
-                    }
-                    
-                    // Handle other errors
+                    if (response.status === 401) { handleAuthError(); return; }
                     const errorData = await response.json().catch(() => ({}));
                     const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
-                    console.error('Failed to create quest:', errorMessage, errorData);
-                    alert(`❌ Failed to create quest!\n\nError: ${errorMessage}`);
+                    const action = isEditing ? 'update' : 'create';
+                    console.error(`Failed to ${action} quest:`, errorMessage, errorData);
+                    alert(`❌ Failed to ${action} quest!\n\nError: ${errorMessage}`);
                 }
             } catch (error) {
-                console.error('Error creating task:', error);
+                const action = editingTaskId ? 'updating' : 'creating';
+                console.error(`Error ${action} task:`, error);
                 alert(`❌ Network error: ${error.message}\n\nPlease check your connection and try again.`);
             }
         }
@@ -971,6 +1358,13 @@
         async function deleteTask(taskId) {
             if (!confirm('⚠️ Delete this quest permanently?')) return;
 
+            // Check if user is authenticated
+            if (!authToken) {
+                alert('⚠️ You are not logged in! Please refresh the page and log in again.');
+                handleAuthError();
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_URL}/tasks/${taskId}`, {
                     method: 'DELETE',
@@ -980,15 +1374,229 @@
                 if (response.ok) {
                     alert('🗑 Quest deleted!');
                     loadTasks();
+                } else if (response.status === 401) {
+                    alert('🔒 Session expired! Please log in again.');
+                    handleAuthError();
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}`;
+                    alert(`❌ Failed to delete quest!\n\nError: ${errorMessage}`);
                 }
             } catch (error) {
                 console.error('Error deleting task:', error);
+                alert(`❌ Network error: ${error.message}`);
+            }
+        }
+
+        // Edit task
+        let editingTaskId = null;
+        
+        async function editTask(taskId) {
+            try {
+                // Fetch task details
+                const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (!response.ok) throw new Error('Failed to fetch task');
+                
+                const task = await response.json();
+                editingTaskId = taskId;
+                
+                // Show modal
+                document.getElementById('taskModal').classList.remove('hidden');
+                
+                // Change modal title
+                document.querySelector('#taskModal h2').textContent = '✏️ EDIT QUEST';
+                document.getElementById('submitQuestBtn').textContent = '💾 UPDATE QUEST';
+                
+                // Pre-fill common fields
+                document.getElementById('taskTitle').value = task.title || '';
+                document.getElementById('taskDescription').value = task.description || '';
+                document.getElementById('taskPoints').value = task.points_reward || 0;
+                
+                // Determine quest type and select it
+                let questType = 'manual'; // default
+                if (task.task_type) {
+                    if (task.task_type.startsWith('twitter_')) {
+                        questType = 'twitter';
+                    } else if (task.task_type.startsWith('telegram_')) {
+                        questType = 'telegram';
+                    } else if (task.task_type === 'youtube_watch') {
+                        questType = 'youtube';
+                    } else if (task.task_type === 'daily_checkin') {
+                        questType = 'daily';
+                    } else if (task.task_type === 'manual_review') {
+                        questType = 'manual';
+                    }
+                }
+                
+                // Select quest type
+                selectQuestType(questType);
+                
+                // Pre-fill type-specific fields
+                if (questType === 'twitter' && task.verification_data) {
+                    const actionType = task.task_type.replace('twitter_', '');
+                    document.getElementById('twitterActionType').value = actionType;
+                    document.getElementById('twitterUsername').value = task.verification_data.username || '';
+                    if (task.url) {
+                        document.getElementById('twitterTweetUrl').value = task.url;
+                    }
+                    updateTwitterFields();
+                } else if (questType === 'telegram' && task.verification_data) {
+                    const actionType = task.task_type.replace('telegram_', '');
+                    document.getElementById('telegramActionType').value = actionType;
+                    document.getElementById('telegramLink').value = task.url || task.verification_data.invite_link || '';
+                    document.getElementById('telegramChatId').value = task.verification_data.chat_id || '';
+                    document.getElementById('telegramChatName').value = task.verification_data.chat_name || '';
+                } else if (questType === 'youtube' && task.verification_data) {
+                    document.getElementById('youtubeUrl').value = task.url || '';
+                    document.getElementById('youtubeSecretCode').value = task.verification_data.code || '';
+                    document.getElementById('youtubeMinWatchTime').value = task.verification_data.min_watch_seconds || 120;
+                    document.getElementById('youtubeMaxAttempts').value = task.verification_data.max_attempts || 3;
+                    document.getElementById('youtubeCodeHint').value = task.verification_data.code_hint || 'during the video';
+                } else if (questType === 'daily' && task.verification_data) {
+                    document.getElementById('dailyStreakBonus').value = task.verification_data.streak_bonus || 'none';
+                    document.getElementById('dailyResetTime').value = task.verification_data.reset_time || '00:00';
+                    document.getElementById('dailyStreakRequired').checked = task.verification_data.consecutive_required || false;
+                } else if (questType === 'manual') {
+                    document.getElementById('manualUrl').value = task.url || '';
+                    if (task.verification_data) {
+                        document.getElementById('manualSubmissionType').value = task.verification_data.submission_type || 'none';
+                        document.getElementById('manualInstructions').value = task.verification_data.instructions || '';
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error loading task for edit:', error);
+                alert('❌ Failed to load quest details');
+            }
+        }
+
+        // Toggle task active/inactive status
+        async function toggleTaskStatus(taskId, currentStatus) {
+            const newStatus = !currentStatus;
+            
+            if (!confirm(`${newStatus ? '▶️ Activate' : '⏸ Deactivate'} this quest?`)) return;
+
+            // Check if user is authenticated
+            if (!authToken) {
+                alert('⚠️ You are not logged in! Please refresh the page and log in again.');
+                handleAuthError();
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/tasks/${taskId}/toggle`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    alert(`${result.is_active ? '✅ Quest activated!' : '⏸ Quest deactivated!'}`);
+                    loadTasks();
+                } else if (response.status === 401) {
+                    alert('🔒 Session expired! Please log in again.');
+                    handleAuthError();
+                } else {
+                    const error = await response.json().catch(() => ({}));
+                    throw new Error(error.detail || 'Failed to update status');
+                }
+            } catch (error) {
+                console.error('Error toggling task status:', error);
+                alert(`❌ Failed to toggle quest status: ${error.message}`);
             }
         }
 
         // Modal functions
+        let selectedQuestType = null;
+
         function showAddTaskModal() {
             document.getElementById('taskModal').classList.remove('hidden');
+            
+            // Reset edit mode
+            editingTaskId = null;
+            document.querySelector('#taskModal h2').textContent = '⚔️ CREATE NEW QUEST';
+            document.getElementById('submitQuestBtn').textContent = '🚀 CREATE QUEST';
+            
+            // Reset form
+            document.getElementById('taskForm').reset();
+            selectedQuestType = null;
+            document.querySelectorAll('.quest-type-btn').forEach(btn => {
+                btn.classList.remove('border-neon-purple', 'bg-neon-purple/20');
+                btn.classList.add('border-neon-blue/30');
+            });
+            document.querySelectorAll('.common-fields, #twitterFields, #telegramFields, #youtubeFields, #dailyFields, #manualFields').forEach(el => el.style.display = 'none');
+            document.getElementById('submitQuestBtn').classList.add('hidden');
+        }
+
+        function selectQuestType(type) {
+            selectedQuestType = type;
+            
+            // Update button styles
+            document.querySelectorAll('.quest-type-btn').forEach(btn => {
+                if (btn.dataset.type === type) {
+                    btn.classList.remove('border-neon-blue/30');
+                    btn.classList.add('border-neon-purple', 'bg-neon-purple/20');
+                } else {
+                    btn.classList.remove('border-neon-purple', 'bg-neon-purple/20');
+                    btn.classList.add('border-neon-blue/30');
+                }
+            });
+
+            // Show common fields
+            document.querySelector('.common-fields').style.display = 'block';
+            
+            // Hide all specific fields first
+            document.querySelectorAll('#twitterFields, #telegramFields, #youtubeFields, #dailyFields, #manualFields').forEach(el => {
+                el.classList.add('hidden');
+            });
+
+            // Show relevant fields
+            if (type === 'twitter') {
+                document.getElementById('twitterFields').classList.remove('hidden');
+                document.getElementById('taskPlatform').value = 'twitter';
+                document.getElementById('taskType').value = 'social';
+                // Setup Twitter action type change handler
+                document.getElementById('twitterActionType').onchange = updateTwitterFields;
+                updateTwitterFields();
+            } else if (type === 'telegram') {
+                document.getElementById('telegramFields').classList.remove('hidden');
+                document.getElementById('taskPlatform').value = 'telegram';
+                document.getElementById('taskType').value = 'social';
+            } else if (type === 'youtube') {
+                document.getElementById('youtubeFields').classList.remove('hidden');
+                document.getElementById('taskPlatform').value = 'youtube';
+                document.getElementById('taskType').value = 'content';
+            } else if (type === 'daily') {
+                document.getElementById('dailyFields').classList.remove('hidden');
+                document.getElementById('taskPlatform').value = 'daily';
+                document.getElementById('taskType').value = 'engagement';
+            } else if (type === 'manual') {
+                document.getElementById('manualFields').classList.remove('hidden');
+                document.getElementById('taskPlatform').value = 'manual';
+                document.getElementById('taskType').value = 'engagement';
+            }
+
+            // Show submit button
+            document.getElementById('submitQuestBtn').classList.remove('hidden');
+        }
+
+        function updateTwitterFields() {
+            const actionType = document.getElementById('twitterActionType').value;
+            const tweetField = document.getElementById('twitterTweetField');
+            const usernameField = document.getElementById('twitterUsernameField');
+
+            if (actionType === 'follow') {
+                usernameField.style.display = 'block';
+                tweetField.classList.add('hidden');
+            } else {
+                usernameField.style.display = 'block';
+                tweetField.classList.remove('hidden');
+            }
         }
         
         function toggleYouTubeVerification() {

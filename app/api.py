@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from jose import JWTError, jwt
 from dotenv import load_dotenv
 from app.models import DatabaseService, supabase
+from postgrest.exceptions import APIError
 
 load_dotenv()
 
@@ -71,11 +72,11 @@ class RewardResponse(BaseModel):
 
 class TaskCreate(BaseModel):
     title: str
-    description: Optional[str]
+    description: Optional[str] = None
     task_type: str
-    platform: Optional[str]
-    url: Optional[str]
-    points_reward: int
+    platform: Optional[str] = None
+    url: Optional[str] = None
+    points_reward: int = 0
     is_bonus: bool = False
     verification_required: bool = False
     verification_data: Optional[dict] = None
@@ -265,59 +266,175 @@ async def verify_task_completion(request: dict):
     if existing.data:
         return {"success": False, "message": "Task already completed"}
     
-    # Perform verification based on task platform
+    # Perform verification based on task_type
     verification_success = False
     verification_message = "Verification pending"
     
-    platform = task.get('platform', '').lower()
+    task_type = task.get('task_type', '').lower()
     verification_data = task.get('verification_data') or {}
     
-    if platform == 'twitter':
-        # Twitter verification
+    # Twitter verification (twitter_follow, twitter_like, twitter_retweet, twitter_reply)
+    if task_type.startswith('twitter_'):
         try:
             twitter_client = TwitterClient()
-            verification_type = verification_data.get('type', 'follow')
+            verification_type = verification_data.get('type', task_type.replace('twitter_', ''))
+            target_username = verification_data.get('username')
+            user_twitter = request.get('twitter_username')
+            
+            if not user_twitter:
+                return {"success": False, "message": "Twitter username required for verification"}
+            
+            if not target_username and verification_type == 'follow':
+                return {"success": False, "message": "Target username not configured in task"}
             
             if verification_type == 'follow':
-                target_username = verification_data.get('username')
-                user_twitter = request.get('twitter_username')
-                if user_twitter and target_username:
-                    result = twitter_client.verify_follow(user_twitter, target_username)
-                    verification_success = result.get('verified', False)
-                    verification_message = result.get('message', 'Verification completed')
-                else:
-                    verification_message = "Twitter username required"
+                result = twitter_client.verify_follow(user_twitter, target_username)
+                verification_success = result.get('verified', False)
+                verification_message = result.get('message', 'Twitter follow verified' if verification_success else 'Not following')
             
             elif verification_type == 'like':
                 tweet_id = verification_data.get('tweet_id')
-                user_twitter = request.get('twitter_username')
-                if user_twitter and tweet_id:
-                    result = twitter_client.verify_like(user_twitter, tweet_id)
-                    verification_success = result.get('verified', False)
-                    verification_message = result.get('message', 'Verification completed')
-                else:
-                    verification_message = "Twitter username and tweet ID required"
-                    
+                if not tweet_id:
+                    return {"success": False, "message": "Tweet ID not configured in task"}
+                result = twitter_client.verify_like(user_twitter, tweet_id)
+                verification_success = result.get('verified', False)
+                verification_message = result.get('message', 'Twitter like verified' if verification_success else 'Not liked')
+            
+            elif verification_type == 'retweet':
+                tweet_id = verification_data.get('tweet_id')
+                if not tweet_id:
+                    return {"success": False, "message": "Tweet ID not configured in task"}
+                result = twitter_client.verify_retweet(user_twitter, tweet_id)
+                verification_success = result.get('verified', False)
+                verification_message = result.get('message', 'Twitter retweet verified' if verification_success else 'Not retweeted')
+            
+            else:
+                verification_message = f"Twitter verification type '{verification_type}' not yet implemented"
+                
         except Exception as e:
             verification_message = f"Twitter verification error: {str(e)}"
+    
+    # Telegram membership verification (telegram_join_group, telegram_join_channel)
+    elif task_type.startswith('telegram_'):
+        try:
+            import requests
             
-    elif platform == 'youtube':
-        # YouTube video verification
+            bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+            if not bot_token:
+                return {"success": False, "message": "Telegram bot not configured"}
+            
+            chat_id = verification_data.get('chat_id')
+            if not chat_id:
+                return {"success": False, "message": "Chat ID not configured in task"}
+            
+            # Use Telegram Bot API to check membership
+            url = f"https://api.telegram.org/bot{bot_token}/getChatMember"
+            params = {
+                "chat_id": chat_id,
+                "user_id": telegram_id
+            }
+            
+            response = requests.get(url, params=params, timeout=10)
+            data = response.json()
+            
+            if data.get('ok'):
+                member_status = data.get('result', {}).get('status')
+                # Valid statuses: creator, administrator, member, restricted, left, kicked
+                if member_status in ['creator', 'administrator', 'member', 'restricted']:
+                    verification_success = True
+                    verification_message = f"✅ Telegram membership verified! Welcome to {verification_data.get('chat_name', 'the group')}"
+                else:
+                    verification_success = False
+                    verification_message = f"❌ You are not a member of {verification_data.get('chat_name', 'the group')}. Please join first!"
+            else:
+                error_description = data.get('description', 'Unknown error')
+                verification_message = f"Failed to verify membership: {error_description}"
+                
+        except Exception as e:
+            verification_message = f"Telegram verification error: {str(e)}"
+            
+    # YouTube video watch verification
+    elif task_type == 'youtube_watch':
         video_id = extract_youtube_video_id(task.get('url', ''))
-        if video_id:
-            # For YouTube, create a pending user_task that will be verified via video code
-            verification_success = True  # Allow user to start watching
-            verification_message = "Video quest started - enter the code shown in the video"
-        else:
-            verification_message = "Invalid YouTube URL"
+        if not video_id:
+            return {"success": False, "message": "Invalid YouTube URL"}
+        
+        try:
+            # Check if user already has an active watch session
+            existing_view = supabase.table("video_views").select("*").eq("user_id", user['id']).eq("task_id", task_id).eq("status", "watching").execute()
             
+            if existing_view.data:
+                return {
+                    "success": True,
+                    "message": "Continue watching and enter the code shown in the video",
+                    "requires_code": True,
+                    "video_id": video_id,
+                    "view_id": existing_view.data[0]['id']
+                }
+            
+            # Create new video view session
+            secret_code = verification_data.get('code', 'SECRET')
+            min_watch_time = verification_data.get('min_watch_time_seconds', 120)
+            
+            view_data = {
+                "user_id": user['id'],
+                "task_id": task_id,
+                "video_id": video_id,
+                "verification_code": secret_code,
+                "status": "watching",
+                "started_at": datetime.now(timezone.utc).isoformat(),
+                "code_attempts": 0
+            }
+            
+            view_response = supabase.table("video_views").insert(view_data).execute()
+            
+            if view_response.data:
+                return {
+                    "success": True,
+                    "message": f"Watch the video for at least {min_watch_time} seconds and enter the code",
+                    "requires_code": True,
+                    "video_id": video_id,
+                    "view_id": view_response.data[0]['id'],
+                    "min_watch_time": min_watch_time
+                }
+            else:
+                return {"success": False, "message": "Failed to start video session"}
+        except APIError as e:
+            # If video_views table doesn't exist, create pending task for manual completion
+            if 'video_views' in str(e):
+                verification_success = True
+                verification_message = f"YouTube quest started! Watch the video and remember the code: {verification_data.get('code', 'See video')}"
+            else:
+                raise
+    
+    # Daily check-in
+    elif task_type == 'daily_checkin':
+        # Check if user already checked in today
+        today = datetime.now(timezone.utc).date().isoformat()
+        recent_checkin = supabase.table("user_tasks").select("*").eq("user_id", user['id']).eq("task_id", task_id).eq("status", "completed").gte("completed_at", today).execute()
+        
+        if recent_checkin.data:
+            return {"success": False, "message": "Already checked in today! Come back tomorrow."}
+        
+        verification_success = True
+        verification_message = "Daily check-in complete!"
+    
+    # Manual review tasks
+    elif task_type == 'manual_review':
+        # Create pending user_task for admin review
+        verification_success = True
+        verification_message = "Task submitted for admin review"
+    
+    # Generic/other task types
     else:
-        # Generic/manual verification - create pending task for admin review
         verification_success = True
         verification_message = "Task submitted for verification"
     
     # Create or update user_task record
     if verification_success:
+        # Determine if task needs pending status (YouTube watch, manual review)
+        needs_pending = task_type in ['youtube_watch', 'manual_review']
+        
         # Check if pending task exists
         pending_task = supabase.table("user_tasks").select("*").eq("user_id", user['id']).eq("task_id", task_id).execute()
         
@@ -325,21 +442,21 @@ async def verify_task_completion(request: dict):
             # Update existing
             user_task_id = pending_task.data[0]['id']
             supabase.table("user_tasks").update({
-                "status": "completed" if platform != 'youtube' else "pending",
-                "completed_at": datetime.now(timezone.utc).isoformat() if platform != 'youtube' else None
+                "status": "pending" if needs_pending else "completed",
+                "completed_at": None if needs_pending else datetime.now(timezone.utc).isoformat()
             }).eq("id", user_task_id).execute()
         else:
             # Create new
             user_task_data = {
                 "user_id": user['id'],
                 "task_id": task_id,
-                "status": "completed" if platform != 'youtube' else "pending",
-                "completed_at": datetime.now(timezone.utc).isoformat() if platform != 'youtube' else None
+                "status": "pending" if needs_pending else "completed",
+                "completed_at": None if needs_pending else datetime.now(timezone.utc).isoformat()
             }
             supabase.table("user_tasks").insert(user_task_data).execute()
         
-        # Award points if completed (not YouTube pending)
-        if platform != 'youtube':
+        # Award points immediately for completed tasks (not YouTube or manual pending)
+        if not needs_pending:
             points_reward = task.get('points_reward', 0)
             new_points = user['points'] + points_reward
             supabase.table("users").update({"points": new_points}).eq("id", user['id']).execute()
@@ -354,7 +471,7 @@ async def verify_task_completion(request: dict):
             return {
                 "success": True,
                 "message": verification_message,
-                "requires_code": True
+                "requires_code": task_type == 'youtube_watch'
             }
     
     return {"success": False, "message": verification_message}
@@ -400,8 +517,19 @@ async def create_task(task: TaskCreate, admin=Depends(get_current_admin)):
     # Add verification_data only if it exists and is not None
     if task.verification_data is not None:
         task_data["verification_data"] = task.verification_data
-    
-    response = supabase.table("tasks").insert(task_data).execute()
+    # Attempt insert; if PostgREST schema cache complains about verification_data, retry without it
+    try:
+        response = supabase.table("tasks").insert(task_data).execute()
+    except APIError as e:
+        msg = str(e)
+        # If verification_data column not found in schema cache, remove it and retry
+        if 'verification_data' in msg or 'Could not find the '\
+           "'verification_data' column" in msg:
+            if 'verification_data' in task_data:
+                del task_data['verification_data']
+            response = supabase.table("tasks").insert(task_data).execute()
+        else:
+            raise
     
     if not response.data:
         raise HTTPException(status_code=400, detail="Failed to create task")
@@ -427,12 +555,42 @@ async def update_task(task_id: str, task: TaskCreate, admin=Depends(get_current_
         raise HTTPException(status_code=404, detail="Task not found")
     
     task_data = task.dict()
-    response = supabase.table("tasks").update(task_data).eq("id", task_id).execute()
+    
+    try:
+        response = supabase.table("tasks").update(task_data).eq("id", task_id).execute()
+    except APIError as e:
+        # Handle PostgREST schema cache issue with verification_data
+        if 'verification_data' in str(e) and 'schema cache' in str(e):
+            # Retry without verification_data
+            task_data_without_vd = {k: v for k, v in task_data.items() if k != 'verification_data'}
+            response = supabase.table("tasks").update(task_data_without_vd).eq("id", task_id).execute()
+        else:
+            raise
     
     if not response.data:
         raise HTTPException(status_code=400, detail="Failed to update task")
     
     return response.data[0]
+
+
+@app.patch("/api/tasks/{task_id}/toggle")
+async def toggle_task_status(task_id: str, admin=Depends(get_current_admin)):
+    """Toggle task active/inactive status (Admin only)"""
+    existing_task = DatabaseService.get_task_by_id(task_id)
+    if not existing_task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    # Toggle the is_active status
+    new_status = not existing_task.get('is_active', True)
+    response = supabase.table("tasks").update({"is_active": new_status}).eq("id", task_id).execute()
+    
+    if not response.data:
+        raise HTTPException(status_code=400, detail="Failed to toggle task status")
+    
+    return {
+        "message": f"Task {'activated' if new_status else 'deactivated'} successfully",
+        "is_active": new_status
+    }
 
 
 @app.delete("/api/tasks/{task_id}")

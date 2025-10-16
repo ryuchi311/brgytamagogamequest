@@ -1,0 +1,9 @@
+{
+  "title": "Manual Submission Test",
+  "description": "Upload screenshot to prove completion",
+  "task_type": "manual_review",
+  "platform": "manual",
+  "points_reward": 75,
+  "verification_required": true,
+  "verification_data": {"method": "manual_review", "submission_type": "screenshot", "instructions": "Upload a screenshot showing completion"}
+}

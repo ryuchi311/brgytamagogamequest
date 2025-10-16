@@ -1,0 +1,10 @@
+{
+  "title": "YouTube Watch Test",
+  "description": "Watch video and enter code",
+  "task_type": "youtube_watch",
+  "platform": "youtube",
+  "points_reward": 100,
+  "verification_required": true,
+  "url": "https://youtube.com/watch?v=dQw4w9WgXcQ",
+  "verification_data": {"method": "time_delay_code", "code": "QUEST2025", "min_watch_time_seconds": 60}
+}

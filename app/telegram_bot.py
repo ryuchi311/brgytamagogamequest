@@ -38,17 +38,22 @@ class TelegramBot:
     """Telegram Bot Handler"""
     
     def __init__(self):
+        # Build the application but don't initialize handlers yet
         self.application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
-        self._register_handlers()
+        # Initialize API client
+        self.api_client = BotAPIClient()
     
-    def _register_handlers(self):
+    def setup_handlers(self):
         """Register all command and callback handlers"""
+        # Command handlers
         self.application.add_handler(CommandHandler("start", self.start_command))
         self.application.add_handler(CommandHandler("help", self.help_command))
         self.application.add_handler(CommandHandler("tasks", self.tasks_command))
         self.application.add_handler(CommandHandler("profile", self.profile_command))
         self.application.add_handler(CommandHandler("leaderboard", self.leaderboard_command))
         self.application.add_handler(CommandHandler("rewards", self.rewards_command))
+        
+        # Callback query handler
         self.application.add_handler(CallbackQueryHandler(self.button_callback))
         
         # Handler for video verification codes (must be after commands, before catch-all)
@@ -811,9 +816,17 @@ You can try again or use manual verification.
     def run(self):
         """Run the bot"""
         logger.info("Starting Telegram Bot...")
+        # Setup handlers before running
+        self.setup_handlers()
+        # Start polling
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 if __name__ == "__main__":
-    bot = TelegramBot()
-    bot.run()
+    try:
+        logger.info("Initializing Telegram Bot...")
+        bot = TelegramBot()
+        bot.run()
+    except Exception as e:
+        logger.error(f"Failed to start bot: {e}")
+        raise

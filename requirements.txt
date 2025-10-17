@@ -1,11 +1,11 @@
 # Core Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-python-telegram-bot==20.6
+python-telegram-bot==22.5
 python-dotenv==1.0.0
 
 # Database
-supabase==2.0.3
+supabase==2.22.0
 psycopg2-binary==2.9.9
 sqlalchemy==2.0.23
 

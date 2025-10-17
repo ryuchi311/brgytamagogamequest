@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Quest - BrgyTamago</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'gaming-dark': '#0a0118',
+                        'neon-purple': '#a855f7',
+                        'neon-pink': '#ec4899',
+                        'neon-blue': '#3b82f6',
+                        'neon-green': '#10b981',
+                        'neon-yellow': '#fbbf24',
+                        'brand-gold': '#FEBD11',
+                        'brand-black': '#202020',
+                        'brand-gray': '#585858',
+                        'brand-red': '#F31E21',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0118 0%, #1a0a2e 50%, #0a0118 100%);
+            min-height: 100vh;
+        }
+        
+        /* Alert animations */
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
+        
+        .alert-slide-in {
+            animation: slideInDown 0.3s ease-out;
+        }
+        
+        .alert-slide-out {
+            animation: slideOutUp 0.3s ease-out;
+        }
+        
+        .gaming-title {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 2px;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #fbbf24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .card-glow {
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+        }
+        
+        .quest-type-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quest-type-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(168, 85, 247, 0.4);
+        }
+        
+        .quest-type-card.selected {
+            border-color: #a855f7 !important;
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%);
+            box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
+        }
+        
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(168, 85, 247, 0.2);
+            border: 2px solid rgba(168, 85, 247, 0.5);
+            font-weight: bold;
+        }
+        
+        .step-indicator.active {
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            border-color: #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.8);
+        }
+        
+        .form-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .form-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-white">
+    
+    <!-- Alert Container -->
+    <div id="alertContainer" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] w-full max-w-md px-4"></div>
+    
+    <!-- Header -->
+    <div class="sticky top-0 z-50 bg-gaming-dark/95 backdrop-blur-md border-b-2 border-neon-purple/30">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="/admin.html" class="text-gray-400 hover:text-white transition">
+                    ← Back to Admin
+                </a>
+                <h1 class="text-2xl font-black gaming-title gradient-text">⚔️ CREATE NEW QUEST</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="step-indicator active" id="step1">1</div>
+                <div class="w-12 h-0.5 bg-neon-purple/30"></div>
+                <div class="step-indicator" id="step2">2</div>
+                <div class="w-12 h-0.5 bg-neon-purple/30"></div>
+                <div class="step-indicator" id="step3">3</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        
+        <!-- Step 1: Choose Quest Type -->
+        <div id="stepChooseType" class="form-section active">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-black gaming-title text-white mb-2">Choose Quest Type</h2>
+                <p class="text-gray-400">Select the type of quest you want to create</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Twitter Quest -->
+                <div class="quest-type-card bg-gradient-to-br from-blue-900/40 to-black/40 border-2 border-blue-500/30 rounded-2xl p-6" onclick="selectQuestType('twitter')">
+                    <div class="text-6xl mb-4 text-center">🐦</div>
+                    <h3 class="text-xl font-bold gaming-title text-blue-400 mb-2 text-center">Twitter Quest</h3>
+                    <p class="text-sm text-gray-400 text-center mb-4">Follow, like, retweet, or reply to tweets</p>
+                    <div class="space-y-2 text-xs text-gray-500">
+                        <div>✓ Auto-verification via Twitter API</div>
+                        <div>✓ Follow accounts</div>
+                        <div>✓ Like & retweet posts</div>
+                        <div>✓ Rate limited: 100 checks/day</div>
+                    </div>
+                </div>
+
+                <!-- YouTube Quest -->
+                <div class="quest-type-card bg-gradient-to-br from-red-900/40 to-black/40 border-2 border-red-500/30 rounded-2xl p-6" onclick="selectQuestType('youtube')">
+                    <div class="text-6xl mb-4 text-center">📺</div>
+                    <h3 class="text-xl font-bold gaming-title text-red-400 mb-2 text-center">YouTube Quest</h3>
+                    <p class="text-sm text-gray-400 text-center mb-4">Watch videos and enter secret codes</p>
+                    <div class="space-y-2 text-xs text-gray-500">
+                        <div>✓ Time-tracked viewing</div>
+                        <div>✓ Secret code verification</div>
+                        <div>✓ Multiple attempts allowed</div>
+                        <div>✓ Great for video content</div>
+                    </div>
+                </div>
+
+                <!-- Telegram Quest -->
+                <div class="quest-type-card bg-gradient-to-br from-cyan-900/40 to-black/40 border-2 border-cyan-500/30 rounded-2xl p-6" onclick="selectQuestType('telegram')">
+                    <div class="text-6xl mb-4 text-center">✈️</div>
+                    <h3 class="text-xl font-bold gaming-title text-cyan-400 mb-2 text-center">Telegram Quest</h3>
+                    <p class="text-sm text-gray-400 text-center mb-4">Join groups or subscribe to channels</p>
+                    <div class="space-y-2 text-xs text-gray-500">
+                        <div>✓ Auto-verify membership</div>
+                        <div>✓ Groups & channels</div>
+                        <div>✓ Bot must be admin</div>
+                        <div>✓ Real-time checking</div>
+                    </div>
+                </div>
+
+                <!-- Daily Check-in Quest -->
+                <div class="quest-type-card bg-gradient-to-br from-green-900/40 to-black/40 border-2 border-green-500/30 rounded-2xl p-6" onclick="selectQuestType('daily')">
+                    <div class="text-6xl mb-4 text-center">📅</div>
+                    <h3 class="text-xl font-bold gaming-title text-green-400 mb-2 text-center">Daily Check-in</h3>
+                    <p class="text-sm text-gray-400 text-center mb-4">Reward users for daily engagement</p>
+                    <div class="space-y-2 text-xs text-gray-500">
+                        <div>✓ Once per day completion</div>
+                        <div>✓ Streak bonuses</div>
+                        <div>✓ Customizable reset time</div>
+                        <div>✓ Build habit & loyalty</div>
+                    </div>
+                </div>
+
+                <!-- Manual Review Quest -->
+                <div class="quest-type-card bg-gradient-to-br from-purple-900/40 to-black/40 border-2 border-purple-500/30 rounded-2xl p-6" onclick="selectQuestType('manual')">
+                    <div class="text-6xl mb-4 text-center">✍️</div>
+                    <h3 class="text-xl font-bold gaming-title text-purple-400 mb-2 text-center">Manual Review</h3>
+                    <p class="text-sm text-gray-400 text-center mb-4">Admin manually approves completions</p>
+                    <div class="space-y-2 text-xs text-gray-500">
+                        <div>✓ Custom submissions</div>
+                        <div>✓ Text, links, or screenshots</div>
+                        <div>✓ Admin approval required</div>
+                        <div>✓ Maximum flexibility</div>
+                    </div>
+                </div>
+
+                <!-- Social/Link Quest -->
+                <div class="quest-type-card bg-gradient-to-br from-yellow-900/40 to-black/40 border-2 border-yellow-500/30 rounded-2xl p-6" onclick="selectQuestType('social')">
+                    <div class="text-6xl mb-4 text-center">🌐</div>
+                    <h3 class="text-xl font-bold gaming-title text-yellow-400 mb-2 text-center">Social/Link Quest</h3>
+                    <p class="text-sm text-gray-400 text-center mb-4">Visit websites or social media</p>
+                    <div class="space-y-2 text-xs text-gray-500">
+                        <div>✓ Simple click tracking</div>
+                        <div>✓ Visit websites</div>
+                        <div>✓ External platforms</div>
+                        <div>✓ Quick & easy</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Basic Information -->
+        <div id="stepBasicInfo" class="form-section">
+            <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-black gaming-title text-white mb-2">Quest Details</h2>
+                    <p class="text-gray-400">Fill in the basic information for your quest</p>
+                </div>
+
+                <div class="bg-gradient-to-br from-gaming-dark to-purple-900/40 border-2 border-neon-purple/50 rounded-2xl p-8 card-glow space-y-6">
+                    
+                    <div>
+                        <label class="block text-brand-gold gaming-title text-sm mb-2">📝 QUEST TITLE *</label>
+                        <input id="questTitle" type="text" required 
+                            class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon-purple"
+                            placeholder="Enter an exciting quest title...">
+                    </div>
+
+                    <div>
+                        <label class="block text-brand-gold gaming-title text-sm mb-2">📄 DESCRIPTION *</label>
+                        <textarea id="questDescription" rows="4" required 
+                            class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon-purple"
+                            placeholder="Describe what users need to do to complete this quest..."></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-brand-gold gaming-title text-sm mb-2">💎 XP REWARD *</label>
+                            <input id="questPoints" type="number" required min="1" value="50"
+                                class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon-purple">
+                        </div>
+
+                        <div>
+                            <label class="block text-brand-gold gaming-title text-sm mb-2">⚙️ QUEST STATUS</label>
+                            <select id="questActive" 
+                                class="w-full bg-black/50 border-2 border-neon-purple/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon-purple">
+                                <option value="true">✅ Active (Visible to users)</option>
+                                <option value="false">⏸️ Inactive (Hidden)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
+                        <input type="checkbox" id="questBonus" class="w-5 h-5 rounded border-2 border-yellow-500/50 bg-black/50">
+                        <label for="questBonus" class="text-sm">
+                            <span class="text-yellow-400 font-bold">⭐ BONUS QUEST</span>
+                            <span class="text-gray-400"> - Mark as special limited-time quest</span>
+                        </label>
+                    </div>
+
+                    <div class="flex justify-between pt-4">
+                        <button onclick="goToStep(1)" 
+                            class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl gaming-title transition">
+                            ← Back
+                        </button>
+                        <button onclick="goToStep(3)" 
+                            class="px-8 py-3 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl gaming-title font-bold transition">
+                            Continue →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Quest-Specific Configuration -->
+        <div id="stepConfiguration" class="form-section">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-black gaming-title text-white mb-2">Quest Configuration</h2>
+                    <p class="text-gray-400">Configure specific settings for your quest type</p>
+                </div>
+
+                <!-- Twitter Configuration -->
+                <div id="configTwitter" class="quest-config hidden">
+                    <div class="bg-gradient-to-br from-blue-900/40 to-black/40 border-2 border-blue-500/50 rounded-2xl p-8 card-glow space-y-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">🐦</div>
+                            <h3 class="text-2xl font-bold gaming-title text-blue-400">Twitter Quest Settings</h3>
+                        </div>
+
+                        <div>
+                            <label class="block text-blue-400 gaming-title text-sm mb-2">ACTION TYPE *</label>
+                            <select id="twitterAction" onchange="updateTwitterFields()"
+                                class="w-full bg-black/50 border-2 border-blue-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                                <option value="follow">Follow a Twitter Account</option>
+                                <option value="like">Like a Tweet</option>
+                                <option value="retweet">Retweet a Tweet</option>
+                                <option value="reply">Reply to a Tweet</option>
+                            </select>
+                        </div>
+
+                        <div id="twitterUsernameDiv">
+                            <label class="block text-blue-400 gaming-title text-sm mb-2">TARGET USERNAME (without @) *</label>
+                            <input id="twitterUsername" type="text" 
+                                class="w-full bg-black/50 border-2 border-blue-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                                placeholder="username">
+                            <p class="text-xs text-gray-400 mt-1">Example: elonmusk</p>
+                        </div>
+
+                        <div id="twitterTweetDiv" class="hidden">
+                            <label class="block text-blue-400 gaming-title text-sm mb-2">TWEET URL *</label>
+                            <input id="twitterTweetUrl" type="url"
+                                class="w-full bg-black/50 border-2 border-blue-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                                placeholder="https://twitter.com/username/status/123456">
+                        </div>
+
+                        <div class="p-4 bg-blue-500/10 border border-blue-500/30 rounded-xl">
+                            <p class="text-sm text-gray-300">
+                                ⚡ <strong>Auto-Verification:</strong> Uses Twitter API to verify completion
+                                <br><span class="text-xs text-gray-400">Rate limited: 100 verification checks per day</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- YouTube Configuration -->
+                <div id="configYoutube" class="quest-config hidden">
+                    <div class="bg-gradient-to-br from-red-900/40 to-black/40 border-2 border-red-500/50 rounded-2xl p-8 card-glow space-y-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">📺</div>
+                            <h3 class="text-2xl font-bold gaming-title text-red-400">YouTube Quest Settings</h3>
+                        </div>
+
+                        <div>
+                            <label class="block text-red-400 gaming-title text-sm mb-2">YOUTUBE VIDEO URL *</label>
+                            <input id="youtubeUrl" type="url"
+                                class="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500"
+                                placeholder="https://youtube.com/watch?v=...">
+                        </div>
+
+                        <div>
+                            <label class="block text-red-400 gaming-title text-sm mb-2">SECRET CODE (shown in video) *</label>
+                            <input id="youtubeCode" type="text"
+                                class="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500"
+                                placeholder="e.g., QUEST2025">
+                            <p class="text-xs text-gray-400 mt-1">Users must enter this code after watching</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-red-400 gaming-title text-sm mb-2">MIN. WATCH TIME (sec)</label>
+                                <input id="youtubeWatchTime" type="number" value="120" min="30" max="3600"
+                                    class="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500">
+                            </div>
+                            <div>
+                                <label class="block text-red-400 gaming-title text-sm mb-2">MAX ATTEMPTS</label>
+                                <input id="youtubeAttempts" type="number" value="3" min="1" max="10"
+                                    class="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500">
+                            </div>
+                            <div>
+                                <label class="block text-red-400 gaming-title text-sm mb-2">CODE APPEARS AT</label>
+                                <input id="youtubeHint" type="text" value="during the video"
+                                    class="w-full bg-black/50 border-2 border-red-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500">
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
+                            <p class="text-sm text-gray-300">
+                                ⚡ <strong>How it works:</strong> User watches video, enters code shown. Watch time is tracked.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Telegram Configuration -->
+                <div id="configTelegram" class="quest-config hidden">
+                    <div class="bg-gradient-to-br from-cyan-900/40 to-black/40 border-2 border-cyan-500/50 rounded-2xl p-8 card-glow space-y-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">✈️</div>
+                            <h3 class="text-2xl font-bold gaming-title text-cyan-400">Telegram Quest Settings</h3>
+                        </div>
+
+                        <div>
+                            <label class="block text-cyan-400 gaming-title text-sm mb-2">ACTION TYPE *</label>
+                            <select id="telegramAction"
+                                class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500">
+                                <option value="join_group">Join Group/Supergroup</option>
+                                <option value="join_channel">Subscribe to Channel</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-cyan-400 gaming-title text-sm mb-2">TELEGRAM LINK *</label>
+                            <input id="telegramLink" type="text"
+                                class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
+                                placeholder="https://t.me/yourgroupname or @yourgroupname">
+                            <p class="text-xs text-gray-400 mt-1">Example: https://t.me/mychannel or @mychannel</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-cyan-400 gaming-title text-sm mb-2">GROUP/CHANNEL ID *</label>
+                            <input id="telegramChatId" type="text"
+                                class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
+                                placeholder="-1001234567890 or @channelname">
+                            <p class="text-xs text-gray-400 mt-1">Numeric ID or username with @</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-cyan-400 gaming-title text-sm mb-2">GROUP/CHANNEL NAME *</label>
+                            <input id="telegramName" type="text"
+                                class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
+                                placeholder="My Awesome Channel">
+                            <p class="text-xs text-gray-400 mt-1">Display name for users</p>
+                        </div>
+
+                        <div class="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
+                            <p class="text-sm text-gray-300">
+                                ⚡ <strong>Requirements:</strong>
+                                <br>• Bot must be admin in the group/channel
+                                <br>• Bot needs permission to see member list
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Configuration -->
+                <div id="configDaily" class="quest-config hidden">
+                    <div class="bg-gradient-to-br from-green-900/40 to-black/40 border-2 border-green-500/50 rounded-2xl p-8 card-glow space-y-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">📅</div>
+                            <h3 class="text-2xl font-bold gaming-title text-green-400">Daily Check-in Settings</h3>
+                        </div>
+
+                        <div>
+                            <label class="block text-green-400 gaming-title text-sm mb-2">STREAK BONUS</label>
+                            <select id="dailyStreak"
+                                class="w-full bg-black/50 border-2 border-green-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500">
+                                <option value="none">No Streak Bonus</option>
+                                <option value="multiply">Multiply by Streak (Day 7 = 7x points)</option>
+                                <option value="milestone">Milestone Bonuses (Day 7, 30, 100)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-green-400 gaming-title text-sm mb-2">RESET TIME (UTC)</label>
+                            <input id="dailyResetTime" type="time" value="00:00"
+                                class="w-full bg-black/50 border-2 border-green-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500">
+                            <p class="text-xs text-gray-400 mt-1">When the daily quest resets</p>
+                        </div>
+
+                        <div class="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
+                            <input type="checkbox" id="dailyConsecutive" class="w-5 h-5 rounded border-2 border-green-500/50 bg-black/50">
+                            <label for="dailyConsecutive" class="text-sm">
+                                Require consecutive days (break streak if missed)
+                            </label>
+                        </div>
+
+                        <div class="p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
+                            <p class="text-sm text-gray-300">
+                                ⚡ <strong>Auto-Completion:</strong> Simple button click. Users can complete once per day.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Configuration -->
+                <div id="configManual" class="quest-config hidden">
+                    <div class="bg-gradient-to-br from-purple-900/40 to-black/40 border-2 border-purple-500/50 rounded-2xl p-8 card-glow space-y-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">✍️</div>
+                            <h3 class="text-2xl font-bold gaming-title text-purple-400">Manual Review Settings</h3>
+                        </div>
+
+                        <div>
+                            <label class="block text-purple-400 gaming-title text-sm mb-2">QUEST URL (Optional)</label>
+                            <input id="manualUrl" type="url"
+                                class="w-full bg-black/50 border-2 border-purple-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500"
+                                placeholder="https://...">
+                            <p class="text-xs text-gray-400 mt-1">Link to instructions or external platform</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-purple-400 gaming-title text-sm mb-2">SUBMISSION TYPE</label>
+                            <select id="manualSubmission"
+                                class="w-full bg-black/50 border-2 border-purple-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500">
+                                <option value="none">No Submission Needed</option>
+                                <option value="text">Text/Link Submission</option>
+                                <option value="screenshot">Screenshot Upload</option>
+                                <option value="code">Enter Code</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-purple-400 gaming-title text-sm mb-2">INSTRUCTIONS FOR USERS</label>
+                            <textarea id="manualInstructions" rows="4"
+                                class="w-full bg-black/50 border-2 border-purple-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500"
+                                placeholder="Tell users exactly what they need to do..."></textarea>
+                        </div>
+
+                        <div class="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+                            <p class="text-sm text-gray-300">
+                                ⚡ <strong>Admin Review:</strong> Users submit quest completion. Admin manually approves/rejects.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social/Link Configuration -->
+                <div id="configSocial" class="quest-config hidden">
+                    <div class="bg-gradient-to-br from-yellow-900/40 to-black/40 border-2 border-yellow-500/50 rounded-2xl p-8 card-glow space-y-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="text-4xl">🌐</div>
+                            <h3 class="text-2xl font-bold gaming-title text-yellow-400">Social/Link Quest Settings</h3>
+                        </div>
+
+                        <div>
+                            <label class="block text-yellow-400 gaming-title text-sm mb-2">DESTINATION URL *</label>
+                            <input id="socialUrl" type="url"
+                                class="w-full bg-black/50 border-2 border-yellow-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500"
+                                placeholder="https://...">
+                            <p class="text-xs text-gray-400 mt-1">Where users will be directed</p>
+                        </div>
+
+                        <div class="p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
+                            <p class="text-sm text-gray-300">
+                                ⚡ <strong>Simple Tracking:</strong> Users click the link and quest is marked as complete.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-8">
+                    <button onclick="goToStep(2)" 
+                        class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl gaming-title transition">
+                        ← Back
+                    </button>
+                    <button onclick="submitQuest()" 
+                        class="px-8 py-3 bg-gradient-to-r from-brand-gold to-brand-red hover:scale-105 rounded-xl gaming-title font-bold transition shadow-lg">
+                        🚀 CREATE QUEST
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Configuration - API URL
+        let API_BASE;
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            API_BASE = window.location.origin.replace(':8080', ':8000');
+        } else {
+            API_BASE = window.location.origin.replace('-8080.', '-8000.');
+        }
+        const API_URL = `${API_BASE}/api`;
+        
+        console.log('Create Quest - API_URL:', API_URL);
+
+        let selectedQuestType = null;
+        let authToken = localStorage.getItem('authToken');
+
+        // Flowbite-style Alert System
+        function showAlert(message, type = 'info', duration = 5000) {
+            const alertContainer = document.getElementById('alertContainer');
+            
+            const icons = {
+                success: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>',
+                error: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>',
+                warning: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>',
+                info: '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>'
+            };
+            
+            const colors = {
+                success: 'bg-green-900/90 border-green-500 text-green-300',
+                error: 'bg-red-900/90 border-red-500 text-red-300',
+                warning: 'bg-yellow-900/90 border-yellow-500 text-yellow-300',
+                info: 'bg-blue-900/90 border-blue-500 text-blue-300'
+            };
+            
+            const iconColors = {
+                success: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400',
+                info: 'text-blue-400'
+            };
+            
+            const alertId = 'alert-' + Date.now();
+            const alertHTML = `
+                <div id="${alertId}" class="alert-slide-in flex items-center p-4 mb-4 ${colors[type]} border-2 rounded-xl backdrop-blur-md shadow-lg" role="alert">
+                    <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 ${iconColors[type]} rounded-lg">
+                        ${icons[type]}
+                    </div>
+                    <div class="ml-3 text-sm font-medium gaming-title">
+                        ${message}
+                    </div>
+                    <button type="button" onclick="closeAlert('${alertId}')" class="ml-auto -mx-1.5 -my-1.5 rounded-lg focus:ring-2 p-1.5 inline-flex h-8 w-8 hover:bg-white/10 transition" aria-label="Close">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            
+            alertContainer.insertAdjacentHTML('beforeend', alertHTML);
+            
+            // Auto dismiss
+            if (duration > 0) {
+                setTimeout(() => {
+                    closeAlert(alertId);
+                }, duration);
+            }
+        }
+        
+        function closeAlert(alertId) {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.classList.remove('alert-slide-in');
+                alert.classList.add('alert-slide-out');
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
+            }
+        }
+
+        function selectQuestType(type) {
+            selectedQuestType = type;
+            
+            // Update card selection
+            document.querySelectorAll('.quest-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.quest-type-card').classList.add('selected');
+            
+            // Move to next step after a short delay
+            setTimeout(() => {
+                goToStep(2);
+            }, 300);
+        }
+
+        function goToStep(step) {
+            // Hide all sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Update step indicators
+            document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
+                if (index + 1 <= step) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
+                }
+            });
+            
+            // Show appropriate section
+            if (step === 1) {
+                document.getElementById('stepChooseType').classList.add('active');
+            } else if (step === 2) {
+                document.getElementById('stepBasicInfo').classList.add('active');
+            } else if (step === 3) {
+                document.getElementById('stepConfiguration').classList.add('active');
+                showQuestConfig();
+            }
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showQuestConfig() {
+            // Hide all configs
+            document.querySelectorAll('.quest-config').forEach(config => {
+                config.classList.add('hidden');
+            });
+            
+            // Show selected config
+            if (selectedQuestType) {
+                const configMap = {
+                    'twitter': 'configTwitter',
+                    'youtube': 'configYoutube',
+                    'telegram': 'configTelegram',
+                    'daily': 'configDaily',
+                    'manual': 'configManual',
+                    'social': 'configSocial'
+                };
+                
+                const configId = configMap[selectedQuestType];
+                if (configId) {
+                    document.getElementById(configId).classList.remove('hidden');
+                }
+            }
+        }
+
+        function updateTwitterFields() {
+            const action = document.getElementById('twitterAction').value;
+            const tweetDiv = document.getElementById('twitterTweetDiv');
+            
+            if (action === 'follow') {
+                tweetDiv.classList.add('hidden');
+            } else {
+                tweetDiv.classList.remove('hidden');
+            }
+        }
+
+        async function submitQuest() {
+            if (!authToken) {
+                showAlert('Please login first!', 'warning');
+                setTimeout(() => {
+                    window.location.href = '/admin.html';
+                }, 2000);
+                return;
+            }
+
+            if (!selectedQuestType) {
+                showAlert('Please select a quest type first!', 'warning');
+                goToStep(1);
+                return;
+            }
+
+            // Get common fields
+            const title = document.getElementById('questTitle').value.trim();
+            const description = document.getElementById('questDescription').value.trim();
+            const points = parseInt(document.getElementById('questPoints').value) || 50;
+            const isActive = document.getElementById('questActive').value === 'true';
+            const isBonus = document.getElementById('questBonus').checked;
+
+            if (!title || !description) {
+                showAlert('Please fill in all required fields!', 'warning');
+                goToStep(2);
+                return;
+            }
+
+            // Build quest data based on type
+            let questData = {
+                title,
+                description,
+                points_reward: points,
+                is_active: isActive,
+                is_bonus: isBonus,
+                verification_required: true,
+                verification_data: {}
+            };
+
+            // Type-specific data
+            if (selectedQuestType === 'twitter') {
+                const action = document.getElementById('twitterAction').value;
+                const username = document.getElementById('twitterUsername').value.trim();
+                
+                if (!username) {
+                    showAlert('Please enter the Twitter username!', 'warning');
+                    return;
+                }
+                
+                const typeMap = {
+                    'follow': 'twitter_follow',
+                    'like': 'twitter_like',
+                    'retweet': 'twitter_retweet',
+                    'reply': 'twitter_reply'
+                };
+                
+                questData.task_type = typeMap[action];
+                questData.platform = 'twitter';
+                questData.url = `https://twitter.com/${username}`;
+                questData.verification_data = { method: 'twitter_api', type: action, username };
+                
+                if (action !== 'follow') {
+                    const tweetUrl = document.getElementById('twitterTweetUrl').value.trim();
+                    if (!tweetUrl) {
+                        showAlert('Please enter the tweet URL!', 'warning');
+                        return;
+                    }
+                    questData.url = tweetUrl;
+                    const tweetIdMatch = tweetUrl.match(/status\/(\d+)/);
+                    if (tweetIdMatch) questData.verification_data.tweet_id = tweetIdMatch[1];
+                }
+                
+            } else if (selectedQuestType === 'youtube') {
+                const url = document.getElementById('youtubeUrl').value.trim();
+                const code = document.getElementById('youtubeCode').value.trim();
+                
+                if (!url || !code) {
+                    showAlert('Please fill in all YouTube quest fields!', 'warning');
+                    return;
+                }
+                
+                questData.task_type = 'youtube_watch';
+                questData.platform = 'youtube';
+                questData.url = url;
+                questData.verification_data = {
+                    method: 'time_delay_code',
+                    code: code,
+                    min_watch_time_seconds: parseInt(document.getElementById('youtubeWatchTime').value) || 120,
+                    code_timestamp: document.getElementById('youtubeHint').value || 'during the video',
+                    max_attempts: parseInt(document.getElementById('youtubeAttempts').value) || 3
+                };
+                
+            } else if (selectedQuestType === 'telegram') {
+                const action = document.getElementById('telegramAction').value;
+                const link = document.getElementById('telegramLink').value.trim();
+                const chatId = document.getElementById('telegramChatId').value.trim();
+                const name = document.getElementById('telegramName').value.trim();
+                
+                if (!link || !chatId || !name) {
+                    showAlert('Please fill in all Telegram quest fields!', 'warning');
+                    return;
+                }
+                
+                const typeMap = {
+                    'join_group': 'telegram_join_group',
+                    'join_channel': 'telegram_join_channel'
+                };
+                
+                questData.task_type = typeMap[action];
+                questData.platform = 'telegram';
+                questData.url = link;
+                questData.verification_data = {
+                    method: 'telegram_membership',
+                    type: action,
+                    chat_id: chatId,
+                    chat_name: name,
+                    invite_link: link
+                };
+                
+            } else if (selectedQuestType === 'daily') {
+                questData.task_type = 'daily_checkin';
+                questData.platform = 'daily';
+                questData.verification_required = false;
+                questData.verification_data = {
+                    method: 'daily_checkin',
+                    streak_bonus: document.getElementById('dailyStreak').value,
+                    reset_time_utc: document.getElementById('dailyResetTime').value,
+                    consecutive_required: document.getElementById('dailyConsecutive').checked,
+                    frequency: 'daily'
+                };
+                
+            } else if (selectedQuestType === 'manual') {
+                const url = document.getElementById('manualUrl').value.trim();
+                
+                questData.task_type = 'manual_review';
+                questData.platform = 'manual';
+                questData.url = url || null;
+                questData.verification_data = {
+                    method: 'manual_review',
+                    submission_type: document.getElementById('manualSubmission').value,
+                    instructions: document.getElementById('manualInstructions').value.trim(),
+                    requires_approval: true
+                };
+                
+            } else if (selectedQuestType === 'social') {
+                const url = document.getElementById('socialUrl').value.trim();
+                
+                if (!url) {
+                    showAlert('Please enter the destination URL!', 'warning');
+                    return;
+                }
+                
+                questData.task_type = 'social';
+                questData.platform = null;
+                questData.url = url;
+                questData.verification_required = false;
+                questData.verification_data = {};
+            }
+
+            try {
+                console.log('Creating quest:', questData);
+                
+                const response = await fetch(`${API_URL}/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(questData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to create quest');
+                }
+
+                const result = await response.json();
+                
+                showAlert('Quest created successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = '/admin.html#quests';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error creating quest:', error);
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+    </script>
+
+</body>
+</html>

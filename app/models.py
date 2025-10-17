@@ -5,15 +5,181 @@ import os
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, Field
-from supabase import create_client, Client
 from dotenv import load_dotenv
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 load_dotenv()
 
-# Initialize Supabase client
-supabase_url = os.getenv("SUPABASE_URL")
-supabase_key = os.getenv("SUPABASE_KEY")
-supabase: Client = create_client(supabase_url, supabase_key)
+# Database connection using PostgreSQL directly (avoiding Supabase client issues)
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+def get_db_connection():
+    """Get a direct PostgreSQL connection"""
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+
+# For backwards compatibility, create a simple supabase-like wrapper
+class SimpleSupabaseClient:
+    """Simple database client that mimics Supabase interface"""
+    
+    def table(self, table_name: str):
+        return SimpleTable(table_name)
+
+class SimpleTable:
+    def __init__(self, table_name: str):
+        self.table_name = table_name
+        self._select_fields = "*"
+        self._filters = []
+        
+    def select(self, fields: str = "*"):
+        self._select_fields = fields
+        return self
+    
+    def eq(self, column: str, value):
+        self._filters.append((column, "=", value))
+        return self
+    
+    def order(self, column: str, desc: bool = False):
+        """Add ORDER BY clause"""
+        self._order_column = column
+        self._order_desc = desc
+        return self
+    
+    def limit(self, count: int):
+        """Add LIMIT clause"""
+        self._limit = count
+        return self
+    
+    def range(self, start: int, end: int):
+        """Add LIMIT and OFFSET using range (like Supabase)"""
+        self._offset = start
+        self._limit = end - start + 1
+        return self
+    
+    def execute(self):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        query = f"SELECT {self._select_fields} FROM {self.table_name}"
+        params = []
+        
+        if self._filters:
+            where_clauses = []
+            for col, op, val in self._filters:
+                where_clauses.append(f"{col} {op} %s")
+                params.append(val)
+            query += " WHERE " + " AND ".join(where_clauses)
+        
+        # Add ORDER BY if specified
+        if hasattr(self, '_order_column'):
+            query += f" ORDER BY {self._order_column}"
+            if getattr(self, '_order_desc', False):
+                query += " DESC"
+        
+        # Add LIMIT if specified
+        if hasattr(self, '_limit'):
+            query += f" LIMIT {self._limit}"
+        
+        # Add OFFSET if specified
+        if hasattr(self, '_offset'):
+            query += f" OFFSET {self._offset}"
+        
+        cursor.execute(query, params)
+        data = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        class Result:
+            def __init__(self, data):
+                self.data = data
+        
+        return Result(data)
+    
+    def insert(self, data: dict):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        columns = ", ".join(data.keys())
+        placeholders = ", ".join(["%s"] * len(data))
+        query = f"INSERT INTO {self.table_name} ({columns}) VALUES ({placeholders}) RETURNING *"
+        
+        cursor.execute(query, list(data.values()))
+        result = cursor.fetchone()
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        class Result:
+            def __init__(self, data):
+                self.data = data
+        
+        return Result(result)
+    
+    def update(self, data: dict):
+        """Store update data and return self for method chaining"""
+        self._update_data = data
+        return self
+    
+    def delete(self):
+        """Store delete flag and return self for method chaining"""
+        self._delete = True
+        return self
+    
+    def execute_update(self):
+        """Execute the update query"""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        set_clauses = []
+        params = []
+        
+        if hasattr(self, '_update_data'):
+            for col, val in self._update_data.items():
+                set_clauses.append(f"{col} = %s")
+                params.append(val)
+            
+            query = f"UPDATE {self.table_name} SET {', '.join(set_clauses)}"
+            
+            if self._filters:
+                where_clauses = []
+                for col, op, val in self._filters:
+                    where_clauses.append(f"{col} {op} %s")
+                    params.append(val)
+                query += " WHERE " + " AND ".join(where_clauses)
+            
+            query += " RETURNING *"
+            cursor.execute(query, params)
+            result = cursor.fetchone()
+        elif hasattr(self, '_delete'):
+            query = f"DELETE FROM {self.table_name}"
+            
+            if self._filters:
+                where_clauses = []
+                for col, op, val in self._filters:
+                    where_clauses.append(f"{col} {op} %s")
+                    params.append(val)
+                query += " WHERE " + " AND ".join(where_clauses)
+            
+            cursor.execute(query, params)
+            result = {"deleted": cursor.rowcount}
+        else:
+            # Just execute as select
+            return self.execute()
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        class Result:
+            def __init__(self, data):
+                self.data = data
+        
+        return Result(result)
+
+# Initialize the simple client
+supabase = SimpleSupabaseClient()
 
 
 # Pydantic Models

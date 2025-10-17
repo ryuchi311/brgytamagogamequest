@@ -175,7 +175,7 @@ async def login(login_request: LoginRequest):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
     
     # Update last login
-    supabase.table("admin_users").update({"last_login": datetime.utcnow().isoformat()}).eq("id", admin["id"]).execute()
+    supabase.table("admin_users").update({"last_login": datetime.utcnow().isoformat()}).eq("id", admin["id"]).execute_update()
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

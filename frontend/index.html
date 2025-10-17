@@ -214,6 +214,22 @@
                 <div class="bg-gaming-darker/50 rounded-xl p-4">
                     <p class="text-sm text-gray-300 leading-relaxed" id="modalDescription">Quest description goes here</p>
                 </div>
+                
+                <!-- Code Input for YouTube/Time-delay quests -->
+                <div id="codeInputSection" class="hidden space-y-3">
+                    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                        <p class="text-sm text-yellow-300">
+                            ⏱️ Watch the video and enter the code shown at <span id="codeTime" class="font-bold">0:00</span>
+                        </p>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="verificationCode" 
+                        placeholder="Enter verification code"
+                        class="w-full bg-gaming-darker border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon-blue transition-colors"
+                    >
+                </div>
+                
                 <button onclick="completeTask()" class="w-full bg-gradient-to-r from-neon-blue to-neon-purple text-white font-bold py-4 rounded-xl hover:shadow-[0_0_30px_rgba(0,149,255,0.5)] transition-all active:scale-95">
                     🚀 START QUEST
                 </button>
@@ -282,7 +298,10 @@
                     return;
                 }
 
-                container.innerHTML = tasks.map(task => {
+                // Store tasks globally for access
+                window.tasksData = tasks;
+                
+                container.innerHTML = tasks.map((task, index) => {
                     const platformEmoji = {
                         'youtube': '📺',
                         'twitter': '🐦',
@@ -295,7 +314,7 @@
                     const points = task.points_reward || 0;
                     
                     return `
-                        <div class="bg-gaming-dark/80 rounded-xl p-4 border border-neon-blue/30 active:scale-95 transition-all cursor-pointer hover:border-neon-purple/50" onclick="showTaskDetail('${task.id}', '${task.title.replace(/'/g, "\\'")}', '${(task.description || '').replace(/'/g, "\\'")}', '${task.url || ''}', ${points}, '${platformName}', '${platformEmoji}')">
+                        <div class="bg-gaming-dark/80 rounded-xl p-4 border border-neon-blue/30 active:scale-95 transition-all cursor-pointer hover:border-neon-purple/50" onclick="showTaskDetail(${index})">
                             <div class="flex items-start gap-3">
                                 <div class="text-3xl">${platformEmoji}</div>
                                 <div class="flex-1">
@@ -395,16 +414,48 @@
 
         let currentTaskId = null;
         let currentTaskUrl = null;
+        let currentTask = null;
 
-        function showTaskDetail(taskId, title, description, url, points, platform, emoji) {
-            currentTaskId = taskId;
-            currentTaskUrl = url;
+        function showTaskDetail(taskIndex) {
+            const task = window.tasksData[taskIndex];
+            if (!task) return;
             
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalDescription').textContent = description || 'Complete this quest to earn points!';
-            document.getElementById('modalEmoji').textContent = emoji;
-            document.getElementById('modalPlatform').textContent = platform.toUpperCase();
+            currentTask = task;
+            currentTaskId = task.id;
+            currentTaskUrl = task.url;
+            
+            const platformEmoji = {
+                'youtube': '📺',
+                'twitter': '🐦',
+                'telegram': '✈️',
+                'discord': '💬',
+                'instagram': '📷'
+            }[task.platform] || '🎯';
+            
+            const platformName = task.platform || 'general';
+            const points = task.points_reward || 0;
+            
+            document.getElementById('modalTitle').textContent = task.title;
+            document.getElementById('modalDescription').textContent = task.description || 'Complete this quest to earn points!';
+            document.getElementById('modalEmoji').textContent = platformEmoji;
+            document.getElementById('modalPlatform').textContent = platformName.toUpperCase();
             document.getElementById('modalPoints').textContent = `+${points} XP`;
+            
+            // Show/hide code input based on task type
+            const codeInputSection = document.getElementById('codeInputSection');
+            const verificationData = task.verification_data || {};
+            
+            if (task.task_type === 'youtube_watch' && verificationData.method === 'time_delay_code') {
+                codeInputSection.classList.remove('hidden');
+                const delaySeconds = verificationData.delay_seconds || 0;
+                const minutes = Math.floor(delaySeconds / 60);
+                const seconds = delaySeconds % 60;
+                document.getElementById('codeTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('verificationCode').value = '';
+            } else {
+                codeInputSection.classList.add('hidden');
+            }
+            
             document.getElementById('taskModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }
@@ -414,23 +465,44 @@
             document.body.style.overflow = '';
             currentTaskId = null;
             currentTaskUrl = null;
+            currentTask = null;
+            document.getElementById('verificationCode').value = '';
         }
 
         async function completeTask() {
             if (!currentTaskId || !currentTaskUrl) return;
+            
+            // Check if code is required for YouTube quests
+            const needsCode = currentTask && currentTask.task_type === 'youtube_watch' && 
+                             currentTask.verification_data?.method === 'time_delay_code';
+            
+            if (needsCode) {
+                const code = document.getElementById('verificationCode').value.trim();
+                if (!code) {
+                    alert('⚠️ Please enter the verification code from the video!');
+                    return;
+                }
+            }
             
             // Open the task URL
             window.open(currentTaskUrl, '_blank');
             
             // Submit completion
             try {
+                const requestBody = {
+                    telegram_id: TELEGRAM_ID,
+                    task_id: currentTaskId
+                };
+                
+                // Add code if needed
+                if (needsCode) {
+                    requestBody.verification_code = document.getElementById('verificationCode').value.trim();
+                }
+                
                 const response = await fetch(`${API_URL}/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        telegram_id: TELEGRAM_ID,
-                        task_id: currentTaskId
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
                 const result = await response.json();

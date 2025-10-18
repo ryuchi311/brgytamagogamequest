@@ -238,6 +238,35 @@ async def get_user_notifications(telegram_id: int, unread_only: bool = False):
     return notifications
 
 
+@app.get("/api/users/{telegram_id}/tasks")
+async def get_user_task_history(telegram_id: int):
+    """Get user's quest activity history"""
+    user = DatabaseService.get_user_by_telegram_id(telegram_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get all user tasks with task details
+    response = supabase.table("user_tasks").select("*, tasks(*)").eq("user_id", user['id']).order("updated_at", desc=True).execute()
+    
+    # Format the response
+    activities = []
+    for user_task in response.data:
+        task = user_task.get('tasks', {})
+        activities.append({
+            "id": user_task.get('id'),
+            "task_id": user_task.get('task_id'),
+            "task_title": task.get('title', 'Unknown Quest'),
+            "task_platform": task.get('platform'),
+            "status": user_task.get('status'),
+            "points_earned": user_task.get('points_earned', 0),
+            "completed_at": user_task.get('completed_at'),
+            "created_at": user_task.get('created_at'),
+            "updated_at": user_task.get('updated_at')
+        })
+    
+    return activities
+
+
 @app.post("/api/verify")
 async def verify_task_completion(request: dict):
     """Verify and complete a task for a user"""

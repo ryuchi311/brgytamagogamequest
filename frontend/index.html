@@ -68,6 +68,47 @@
             0% { background-position: -200% center; }
             100% { background-position: 200% center; }
         }
+        
+        /* Fade-in animation for welcome screen */
+        @keyframes fade-in {
+            from { 
+                opacity: 0; 
+                transform: scale(0.95);
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+        }
+        
+        .animate-fade-in {
+            animation: fade-in 0.5s ease-out;
+        }
+        
+        /* Pulse animation for participate button */
+        @keyframes pulse {
+            0%, 100% { 
+                box-shadow: 0 0 0 0 rgba(253, 189, 22, 0.7);
+            }
+            50% { 
+                box-shadow: 0 0 0 10px rgba(253, 189, 22, 0);
+            }
+        }
+        
+        /* Activity filter buttons */
+        .activity-filter {
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        .activity-filter.active {
+            background: rgba(253, 189, 22, 0.3) !important;
+            color: #fdbd16 !important;
+            border: 1px solid rgba(253, 189, 22, 0.5);
+        }
+        .activity-filter:hover {
+            transform: scale(1.05);
+        }
+        
         .content-wrapper { padding-bottom: env(safe-area-inset-bottom, 80px); }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 -4px 20px rgba(0, 212, 255, 0.3); padding-bottom: env(safe-area-inset-bottom, 0); }
         .bottom-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 8px 0; transition: all 0.3s ease; position: relative; }
@@ -135,6 +176,7 @@
                         <h2 class="text-xl font-black gaming-title gradient-text">👤 Your Profile</h2>
                     </div>
                     <div class="space-y-3">
+                        <!-- User Stats Card -->
                         <div class="bg-gaming-dark/80 backdrop-blur-md rounded-2xl p-4 border border-neon-blue/30">
                             <div class="flex items-center gap-4 mb-4">
                                 <div class="w-16 h-16 bg-gradient-to-br from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-3xl">👤</div>
@@ -155,6 +197,42 @@
                                 <div class="bg-gaming-darker/50 rounded-xl p-3 text-center">
                                     <div class="text-2xl font-black gaming-title text-neon-pink" id="profileXP">0</div>
                                     <div class="text-xs text-gray-400">XP</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quest Activity Log -->
+                        <div class="bg-gaming-dark/80 backdrop-blur-md rounded-2xl p-4 border border-brand-gold/30">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-black gaming-title text-brand-gold">📜 Quest Activity</h3>
+                                <div class="flex gap-2 text-xs">
+                                    <button onclick="filterActivity('all')" id="filterAll" class="activity-filter active px-3 py-1 rounded-full bg-brand-gold/20 text-brand-gold">All</button>
+                                    <button onclick="filterActivity('success')" id="filterSuccess" class="activity-filter px-3 py-1 rounded-full bg-gray-700/50 text-gray-400">✓</button>
+                                    <button onclick="filterActivity('failed')" id="filterFailed" class="activity-filter px-3 py-1 rounded-full bg-gray-700/50 text-gray-400">✗</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Activity Stats -->
+                            <div class="grid grid-cols-3 gap-2 mb-4">
+                                <div class="bg-gaming-darker/50 rounded-lg p-2 text-center border border-gray-700/30">
+                                    <div class="text-sm font-bold text-green-400" id="successCount">0</div>
+                                    <div class="text-xs text-gray-500">Success</div>
+                                </div>
+                                <div class="bg-gaming-darker/50 rounded-lg p-2 text-center border border-gray-700/30">
+                                    <div class="text-sm font-bold text-red-400" id="failedCount">0</div>
+                                    <div class="text-xs text-gray-500">Failed</div>
+                                </div>
+                                <div class="bg-gaming-darker/50 rounded-lg p-2 text-center border border-gray-700/30">
+                                    <div class="text-sm font-bold text-blue-400" id="successRate">0%</div>
+                                    <div class="text-xs text-gray-500">Rate</div>
+                                </div>
+                            </div>
+
+                            <!-- Activity List -->
+                            <div id="activityContainer" class="space-y-2 max-h-96 overflow-y-auto">
+                                <div class="text-center py-8 text-gray-500 text-sm">
+                                    <div class="text-4xl mb-2">🎯</div>
+                                    <div>Complete quests to see your activity!</div>
                                 </div>
                             </div>
                         </div>
@@ -270,6 +348,9 @@
             }
         }
         
+        // Track if user has started participating
+        let userHasParticipated = false;
+        
         // Check if user is authenticated via Telegram
         function checkTelegramAuth() {
             if (!TELEGRAM_ID) {
@@ -302,9 +383,117 @@
             return true;
         }
         
+        // Show welcome screen with participate button
+        function showWelcomeScreen() {
+            const welcomeScreen = document.createElement('div');
+            welcomeScreen.id = 'welcomeScreen';
+            welcomeScreen.className = 'fixed inset-0 z-50 bg-gradient-to-br from-gaming-darker via-gaming-dark to-gaming-darker flex items-center justify-center p-6';
+            welcomeScreen.innerHTML = `
+                <div class="max-w-lg w-full bg-gaming-dark/95 backdrop-blur-xl rounded-3xl p-8 border-2 border-brand-gold/50 text-center shadow-2xl animate-fade-in">
+                    <div class="text-7xl mb-6 animate-bounce">🎮</div>
+                    <h1 class="text-4xl font-black gaming-title gradient-text mb-4 leading-tight">
+                        WELCOME TO<br>QUEST HUB!
+                    </h1>
+                    <div class="bg-brand-gold/10 border border-brand-gold/30 rounded-2xl p-5 mb-6">
+                        <div class="text-lg font-bold text-brand-gold mb-2">👋 Hey ${TELEGRAM_USER.first_name || 'Player'}!</div>
+                        <p class="text-gray-300 text-sm leading-relaxed">
+                            You're about to embark on an epic quest journey! Complete challenges, earn XP, and unlock awesome rewards.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-3 gap-3 mb-6">
+                        <div class="bg-gaming-darker/50 rounded-xl p-3">
+                            <div class="text-2xl mb-1">⚔️</div>
+                            <div class="text-xs text-gray-400">Epic<br>Quests</div>
+                        </div>
+                        <div class="bg-gaming-darker/50 rounded-xl p-3">
+                            <div class="text-2xl mb-1">💎</div>
+                            <div class="text-xs text-gray-400">Earn<br>XP</div>
+                        </div>
+                        <div class="bg-gaming-darker/50 rounded-xl p-3">
+                            <div class="text-2xl mb-1">🏆</div>
+                            <div class="text-xs text-gray-400">Win<br>Rewards</div>
+                        </div>
+                    </div>
+                    <button 
+                        onclick="startParticipating()" 
+                        class="w-full bg-gradient-to-r from-brand-gold to-brand-orange hover:from-brand-gold-light hover:to-brand-gold text-gaming-dark font-black text-lg py-4 px-8 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg gaming-title"
+                        style="animation: pulse 2s infinite;">
+                        🚀 PARTICIPATE NOW!
+                    </button>
+                    <div class="mt-4 text-xs text-gray-500">
+                        ✨ No signup required • Start playing instantly!
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(welcomeScreen);
+        }
+        
+        // Start participating - initialize user and load game
+        async function startParticipating() {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const button = welcomeScreen.querySelector('button');
+            
+            // Show loading state
+            button.innerHTML = '⏳ Initializing...';
+            button.disabled = true;
+            
+            try {
+                // Check if user exists, if not create account
+                let response = await fetch(`${API_URL}/users/${TELEGRAM_ID}`);
+                
+                if (response.status === 404) {
+                    // Create new user automatically
+                    const username = TELEGRAM_USER.username || `player${TELEGRAM_ID}`;
+                    const firstName = TELEGRAM_USER.first_name || 'Player';
+                    const lastName = TELEGRAM_USER.last_name || '';
+                    
+                    button.innerHTML = '🎨 Creating Your Profile...';
+                    
+                    await fetch(`${API_URL}/users/init?telegram_id=${TELEGRAM_ID}&username=${encodeURIComponent(username)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}`, {
+                        method: 'POST'
+                    });
+                    
+                    // Wait a moment for dramatic effect
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                }
+                
+                button.innerHTML = '✅ Ready! Starting Game...';
+                
+                // Mark as participated
+                userHasParticipated = true;
+                localStorage.setItem('userParticipated_' + TELEGRAM_ID, 'true');
+                
+                // Fade out welcome screen
+                welcomeScreen.style.opacity = '0';
+                welcomeScreen.style.transition = 'opacity 0.5s ease';
+                
+                setTimeout(() => {
+                    welcomeScreen.remove();
+                    // Load user data and start the game
+                    loadUserData();
+                    loadTasks();
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error starting participation:', error);
+                button.innerHTML = '❌ Error - Try Again';
+                button.disabled = false;
+            }
+        }
+        
         // Block access if not from Telegram
         if (!checkTelegramAuth()) {
             throw new Error('Telegram authentication required');
+        }
+        
+        // Check if user has already participated
+        const hasParticipated = localStorage.getItem('userParticipated_' + TELEGRAM_ID);
+        if (!hasParticipated) {
+            // Show welcome screen on first visit
+            showWelcomeScreen();
+        } else {
+            // User has participated before, load game directly
+            userHasParticipated = true;
         }
         
         console.log('API_URL configured:', API_URL);
@@ -448,6 +637,10 @@
             }
         }
 
+        // Store user activities globally
+        let userActivities = [];
+        let currentActivityFilter = 'all';
+
         async function loadProfile() {
             try {
                 const response = await fetch(`${API_URL}/users/${TELEGRAM_ID}`);
@@ -458,9 +651,124 @@
                 document.getElementById('profileLevel').textContent = level;
                 document.getElementById('profileXP').textContent = user.points;
                 document.getElementById('profileQuests').textContent = user.completed_tasks || 0;
+                
+                // Load quest activity
+                await loadUserActivity();
             } catch (error) {
                 console.error(error);
             }
+        }
+
+        async function loadUserActivity() {
+            try {
+                // Fetch user's task history
+                const response = await fetch(`${API_URL}/users/${TELEGRAM_ID}/tasks`);
+                const userTasks = await response.json();
+                
+                // Store activities
+                userActivities = userTasks || [];
+                
+                // Calculate stats
+                const successCount = userActivities.filter(t => t.status === 'completed').length;
+                const failedCount = userActivities.filter(t => t.status === 'rejected').length;
+                const totalAttempts = successCount + failedCount;
+                const successRate = totalAttempts > 0 ? Math.round((successCount / totalAttempts) * 100) : 0;
+                
+                // Update stats display
+                document.getElementById('successCount').textContent = successCount;
+                document.getElementById('failedCount').textContent = failedCount;
+                document.getElementById('successRate').textContent = successRate + '%';
+                
+                // Display activities
+                displayActivities();
+            } catch (error) {
+                console.error('Error loading activity:', error);
+                document.getElementById('activityContainer').innerHTML = `
+                    <div class="text-center py-8 text-red-400 text-sm">
+                        <div class="text-4xl mb-2">⚠️</div>
+                        <div>Could not load activity</div>
+                    </div>
+                `;
+            }
+        }
+
+        function displayActivities() {
+            const container = document.getElementById('activityContainer');
+            
+            // Filter activities based on current filter
+            let filteredActivities = userActivities;
+            if (currentActivityFilter === 'success') {
+                filteredActivities = userActivities.filter(t => t.status === 'completed');
+            } else if (currentActivityFilter === 'failed') {
+                filteredActivities = userActivities.filter(t => t.status === 'rejected');
+            }
+            
+            // Sort by date (newest first)
+            filteredActivities.sort((a, b) => new Date(b.completed_at || b.updated_at) - new Date(a.completed_at || a.updated_at));
+            
+            if (filteredActivities.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500 text-sm">
+                        <div class="text-4xl mb-2">🎯</div>
+                        <div>${currentActivityFilter === 'all' ? 'Complete quests to see your activity!' : 'No ' + currentActivityFilter + ' quests found'}</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredActivities.map(activity => {
+                const isSuccess = activity.status === 'completed';
+                const isFailed = activity.status === 'rejected';
+                const isPending = !isSuccess && !isFailed;
+                
+                const statusColor = isSuccess ? 'green' : isFailed ? 'red' : 'yellow';
+                const statusIcon = isSuccess ? '✅' : isFailed ? '❌' : '⏳';
+                const statusText = isSuccess ? 'SUCCESS' : isFailed ? 'FAILED' : 'PENDING';
+                
+                const date = new Date(activity.completed_at || activity.updated_at);
+                const timeAgo = getTimeAgo(date);
+                
+                const points = isSuccess ? `+${activity.points_earned || 0} XP` : isFailed ? '0 XP' : '...';
+                
+                return `
+                    <div class="bg-gaming-darker/50 rounded-lg p-3 border-l-4 border-${statusColor}-500/50 hover:bg-gaming-darker/70 transition-all">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">${statusIcon}</div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="text-sm font-bold">${activity.task_title || 'Quest'}</div>
+                                    <div class="text-xs font-black ${isSuccess ? 'text-green-400' : isFailed ? 'text-red-400' : 'text-yellow-400'}">${points}</div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs px-2 py-0.5 rounded-full bg-${statusColor}-500/20 text-${statusColor}-400 font-semibold">${statusText}</span>
+                                    <span class="text-xs text-gray-500">${timeAgo}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterActivity(filter) {
+            currentActivityFilter = filter;
+            
+            // Update button styles
+            document.querySelectorAll('.activity-filter').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('filter' + filter.charAt(0).toUpperCase() + filter.slice(1)).classList.add('active');
+            
+            // Re-display activities
+            displayActivities();
+        }
+
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            if (seconds < 60) return 'Just now';
+            if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+            if (seconds < 604800) return Math.floor(seconds / 86400) + 'd ago';
+            return date.toLocaleDateString();
         }
 
         function loadNotifications() {
@@ -595,9 +903,12 @@
             }
         });
 
-        loadUserData();
-        loadTasks();
-        setInterval(loadUserData, 30000);
+        // Only load data if user has participated
+        if (userHasParticipated) {
+            loadUserData();
+            loadTasks();
+            setInterval(loadUserData, 30000);
+        }
     </script>
 </body>
 </html>

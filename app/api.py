@@ -158,6 +158,11 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
 
+@app.get("/api/health")
+async def api_health_check():
+    """API Health check endpoint"""
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
 
 # Authentication Endpoints
 

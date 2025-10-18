@@ -135,9 +135,11 @@
                             <div class="text-xs text-gray-300 leading-none mb-1">XP</div>
                             <div id="userPoints" class="text-lg font-black gaming-title leading-none">...</div>
                         </div>
-                        <button onclick="loadUserData()" class="p-2 bg-neon-blue/20 hover:bg-neon-blue/40 border border-neon-blue rounded-lg transition-all active:scale-95">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                        </button>
+                        <div id="serverStatus" class="p-2 rounded-lg" title="Server Status">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="8" />
+                            </svg>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -510,6 +512,53 @@
             if (tabName === 'rewards') loadRewards();
             if (tabName === 'profile') loadProfile();
             if (tabName === 'notifications') loadNotifications();
+        }
+
+        // Server Status Monitoring
+        async function checkServerStatus() {
+            const statusIcon = document.getElementById('serverStatus');
+            if (!statusIcon) return;
+            
+            let apiStatus = false;
+            let botStatus = false;
+            
+            // Check API Server
+            try {
+                const apiResponse = await fetch(`${API_URL}/tasks`, { 
+                    method: 'GET',
+                    signal: AbortSignal.timeout(5000) // 5 second timeout
+                });
+                apiStatus = apiResponse.ok;
+            } catch (error) {
+                console.log('API check failed:', error);
+            }
+            
+            // Check Bot Server (optional - checks if bot endpoint responds)
+            try {
+                const botResponse = await fetch(`${API_URL}/health`, { 
+                    method: 'GET',
+                    signal: AbortSignal.timeout(5000)
+                });
+                botStatus = botResponse.ok;
+            } catch (error) {
+                // Bot health endpoint might not exist, default to API status
+                botStatus = apiStatus;
+            }
+            
+            // Update status indicator
+            if (apiStatus && botStatus) {
+                // All good - Green
+                statusIcon.className = 'p-2 rounded-lg text-green-500';
+                statusIcon.title = 'All Systems Operational';
+            } else if (apiStatus || botStatus) {
+                // Partial - Yellow
+                statusIcon.className = 'p-2 rounded-lg text-yellow-500';
+                statusIcon.title = 'Some Services Down';
+            } else {
+                // Down - Red
+                statusIcon.className = 'p-2 rounded-lg text-red-500';
+                statusIcon.title = 'Server Offline';
+            }
         }
 
         async function loadUserData() {
@@ -902,6 +951,11 @@
                 closeTaskModal();
             }
         });
+
+        // Check server status immediately
+        checkServerStatus();
+        // Check server status every 30 seconds
+        setInterval(checkServerStatus, 30000);
 
         // Only load data if user has participated
         if (userHasParticipated) {

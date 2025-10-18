@@ -581,27 +581,62 @@ async def create_task(task: TaskCreate, admin=Depends(get_current_admin)):
 @app.put("/api/tasks/{task_id}", response_model=TaskResponse)
 async def update_task(task_id: str, task: TaskCreate, admin=Depends(get_current_admin)):
     """Update a task (Admin only)"""
+    import json
+    
     existing_task = DatabaseService.get_task_by_id(task_id)
     if not existing_task:
         raise HTTPException(status_code=404, detail="Task not found")
     
     task_data = task.dict()
     
+    # CRITICAL FIX: Properly handle verification_data as JSONB
+    # Supabase/PostgREST requires JSONB to be sent as a JSON string or proper dict
+    if 'verification_data' in task_data and task_data['verification_data']:
+        # Ensure it's a proper dict for JSONB column
+        vd = task_data['verification_data']
+        if not isinstance(vd, dict):
+            task_data['verification_data'] = dict(vd)
+        # Ensure all values are JSON-serializable
+        task_data['verification_data'] = json.loads(json.dumps(vd))
+    
     try:
         response = supabase.table("tasks").update(task_data).eq("id", task_id).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=400, detail="Failed to update task")
+        
+        return response.data[0]
+        
     except APIError as e:
-        # Handle PostgREST schema cache issue with verification_data
-        if 'verification_data' in str(e) and 'schema cache' in str(e):
-            # Retry without verification_data
-            task_data_without_vd = {k: v for k, v in task_data.items() if k != 'verification_data'}
-            response = supabase.table("tasks").update(task_data_without_vd).eq("id", task_id).execute()
+        error_msg = str(e).lower()
+        print(f"ERROR updating task {task_id}: {e}")
+        print(f"Task data: {task_data}")
+        
+        # If verification_data column issue, try alternative approach
+        if 'verification_data' in error_msg:
+            # Try updating verification_data separately using raw SQL approach
+            try:
+                # Update all fields except verification_data first
+                basic_data = {k: v for k, v in task_data.items() if k != 'verification_data'}
+                response = supabase.table("tasks").update(basic_data).eq("id", task_id).execute()
+                
+                # Then update verification_data separately if it exists
+                if 'verification_data' in task_data and task_data['verification_data']:
+                    vd_update = {"verification_data": task_data['verification_data']}
+                    response = supabase.table("tasks").update(vd_update).eq("id", task_id).execute()
+                
+                if not response.data:
+                    raise HTTPException(status_code=400, detail="Failed to update task")
+                
+                return response.data[0]
+            except Exception as inner_e:
+                print(f"Alternative update also failed: {inner_e}")
+                raise HTTPException(
+                    status_code=500, 
+                    detail=f"Failed to update task. Error: {str(e)}"
+                )
         else:
-            raise
-    
-    if not response.data:
-        raise HTTPException(status_code=400, detail="Failed to update task")
-    
-    return response.data[0]
+            raise HTTPException(status_code=500, detail=f"Failed to update task: {str(e)}")
 
 
 @app.patch("/api/tasks/{task_id}/toggle")

@@ -6,6 +6,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Gaming Quest Hub | Earn XP & Rewards</title>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -249,9 +251,64 @@
             API_BASE = window.location.origin.replace('-8080.', '-8000.');
         }
         const API_URL = `${API_BASE}/api`;
-        const TELEGRAM_ID = 123456789;
+        
+        // Telegram Mini App Integration
+        let TELEGRAM_ID = null;
+        let TELEGRAM_USER = null;
+        
+        // Initialize Telegram WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            const tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+            
+            // Get user data from Telegram
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                TELEGRAM_USER = tg.initDataUnsafe.user;
+                TELEGRAM_ID = TELEGRAM_USER.id;
+                console.log('Telegram user authenticated:', TELEGRAM_USER);
+            }
+        }
+        
+        // Check if user is authenticated via Telegram
+        function checkTelegramAuth() {
+            if (!TELEGRAM_ID) {
+                // Show authentication required message
+                document.body.innerHTML = `
+                    <div class="min-h-screen bg-gradient-to-br from-gaming-darker via-gaming-dark to-gaming-darker flex items-center justify-center p-6">
+                        <div class="max-w-md w-full bg-gaming-dark/90 backdrop-blur-md rounded-3xl p-8 border-2 border-brand-gold/30 text-center">
+                            <div class="text-6xl mb-6">🔒</div>
+                            <h1 class="text-3xl font-black gaming-title gradient-text mb-4">TELEGRAM REQUIRED</h1>
+                            <p class="text-gray-300 mb-6 leading-relaxed">
+                                This is a Telegram Mini App. You must access it through Telegram to participate in quests and earn rewards.
+                            </p>
+                            <div class="bg-brand-gold/10 border border-brand-gold/30 rounded-xl p-4 mb-6">
+                                <div class="text-sm font-bold text-brand-gold mb-2">📱 How to Access:</div>
+                                <ol class="text-xs text-left text-gray-300 space-y-2 ml-4 list-decimal">
+                                    <li>Open Telegram app</li>
+                                    <li>Search for our bot</li>
+                                    <li>Click "Start" or "Play Game"</li>
+                                    <li>Complete quests & earn XP!</li>
+                                </ol>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-6">
+                                ⚠️ Direct browser access is not supported
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return false;
+            }
+            return true;
+        }
+        
+        // Block access if not from Telegram
+        if (!checkTelegramAuth()) {
+            throw new Error('Telegram authentication required');
+        }
         
         console.log('API_URL configured:', API_URL);
+        console.log('Telegram ID:', TELEGRAM_ID);
 
         function showTab(tabName, btn) {
             document.querySelectorAll('.tab-content').forEach(s => s.classList.add('hidden'));
@@ -270,9 +327,13 @@
             try {
                 let response = await fetch(`${API_URL}/users/${TELEGRAM_ID}`);
                 
-                // If user doesn't exist, create them
+                // If user doesn't exist, create them automatically with Telegram data
                 if (response.status === 404) {
-                    await fetch(`${API_URL}/users/init?telegram_id=${TELEGRAM_ID}&username=player${TELEGRAM_ID}`, {
+                    const username = TELEGRAM_USER.username || `player${TELEGRAM_ID}`;
+                    const firstName = TELEGRAM_USER.first_name || 'Player';
+                    const lastName = TELEGRAM_USER.last_name || '';
+                    
+                    await fetch(`${API_URL}/users/init?telegram_id=${TELEGRAM_ID}&username=${encodeURIComponent(username)}&first_name=${encodeURIComponent(firstName)}&last_name=${encodeURIComponent(lastName)}`, {
                         method: 'POST'
                     });
                     response = await fetch(`${API_URL}/users/${TELEGRAM_ID}`);
@@ -280,6 +341,12 @@
                 
                 const user = await response.json();
                 document.getElementById('userPoints').textContent = user.points || 0;
+                
+                // Update profile display with Telegram data
+                if (TELEGRAM_USER) {
+                    const displayName = TELEGRAM_USER.first_name || user.username || 'Player';
+                    document.getElementById('profileUsername').textContent = displayName;
+                }
             } catch (error) {
                 console.error('Error loading user:', error);
                 document.getElementById('userPoints').textContent = '---';

@@ -78,9 +78,31 @@ class TelegramBot:
                 "last_name": user.last_name
             }
             db_user = BotAPIClient.create_user(user_data)
-            welcome_message = f"🎉 Welcome, {user.first_name}!\n\nYou've been registered successfully. Start completing tasks to earn points!"
+            welcome_message = f"""🎉 Welcome, {user.first_name}!
+
+You've been registered successfully!
+
+🎮 **Ready to Start Your Quest Journey?**
+
+Use the buttons below to explore, or tap the **Menu Button** (≡) to open our Gaming Quest Hub mini app for the full experience!
+
+✨ In the mini app you can:
+• View all available quests
+• Track your XP in real-time
+• See the leaderboard
+• Claim rewards instantly
+• Get a better gaming experience!
+
+Let's start earning XP! 🚀"""
         else:
-            welcome_message = f"👋 Welcome back, {user.first_name}!\n\nYou have {db_user['points']} points."
+            welcome_message = f"""👋 Welcome back, {user.first_name}!
+
+💎 **Current XP:** {db_user['points']} points
+
+🎮 **Quick Actions:**
+Use the buttons below, or tap the **Menu Button** (≡) to open the Gaming Quest Hub for the full experience!
+
+Keep up the great work! 🔥"""
         
         keyboard = [
             [InlineKeyboardButton("📋 View Tasks", callback_data="view_tasks")],
@@ -95,8 +117,12 @@ class TelegramBot:
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /help command"""
         help_text = """
-🤖 *Bot Commands:*
+🎮 **Gaming Quest Hub - Help Guide**
 
+**🚀 Getting Started:**
+This is a Telegram Mini App! For the best experience, tap the **Menu Button** (≡) to open the full Gaming Quest Hub.
+
+**🤖 Bot Commands:**
 /start - Start the bot and see main menu
 /help - Show this help message
 /tasks - View available tasks
@@ -104,19 +130,43 @@ class TelegramBot:
 /leaderboard - View top users
 /rewards - Browse available rewards
 
-*How it works:*
-1. Complete tasks to earn points
-2. Accumulate points by completing various activities
-3. Redeem points for rewards
-4. Compete with others on the leaderboard!
+**🎯 How it works:**
+1. Complete quests to earn XP points
+2. Each quest has different requirements (follow, like, watch, etc.)
+3. Verify your completion in the app
+4. Earn XP and climb the leaderboard!
+5. Spend XP on exclusive rewards
 
-*Task Types:*
-• Social Media Follows
-• Likes & Shares
-• Video Watching
-• Bonus Tasks
+**📱 Two Ways to Play:**
 
-Happy earning! 💰
+1️⃣ **Mini App (Recommended)**
+   • Tap the Menu Button (≡)
+   • Full gaming interface
+   • Real-time updates
+   • Better quest tracking
+
+2️⃣ **Bot Commands**
+   • Use commands in this chat
+   • Quick access to info
+   • Basic features
+
+**✨ Quest Types:**
+• 📱 Social Media (Follow, Like, Share)
+• 📺 YouTube (Watch, Subscribe)
+• 🐦 Twitter/X (Follow, Retweet)
+• ✈️ Telegram (Join channels/groups)
+• 🎁 Daily Bonuses
+
+**💎 XP & Rewards:**
+• Earn XP by completing quests
+• Spend XP on rewards
+• Compete for top spots
+• Track progress in real-time
+
+**🔐 Your Account:**
+Your Telegram account IS your login - no passwords needed! Your progress is automatically saved.
+
+Happy questing! �
         """
         await update.message.reply_text(help_text, parse_mode='Markdown')
     

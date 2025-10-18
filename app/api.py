@@ -195,17 +195,19 @@ async def get_users(skip: int = 0, limit: int = 100):
 
 
 @app.post("/api/users/init")
-async def init_user(telegram_id: int, username: str = None):
-    """Initialize a user if they don't exist (for frontend testing)"""
+async def init_user(telegram_id: int, username: str = None, first_name: str = None, last_name: str = None):
+    """Initialize a user if they don't exist - Auto-registration from Telegram"""
     # Check if user exists
     existing = DatabaseService.get_user_by_telegram_id(telegram_id)
     if existing:
         return existing
     
-    # Create new user
+    # Create new user with Telegram data
     user_data = {
         "telegram_id": telegram_id,
         "username": username or f"user_{telegram_id}",
+        "first_name": first_name or "Player",
+        "last_name": last_name or "",
         "points": 0,
         "is_banned": False
     }

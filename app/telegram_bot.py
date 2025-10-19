@@ -295,6 +295,9 @@ Keep completing tasks to earn more points! 🚀
         elif data.startswith("task_"):
             task_id = data.split("_")[1]
             await self.show_task_details(query, task_id)
+        elif data.startswith("telegram_verify_"):
+            task_id = data.split("_")[2]
+            await self.verify_telegram_membership(query, task_id)
         elif data.startswith("twitter_verify_"):
             task_id = data.split("_")[2]
             await self.start_twitter_verification(query, task_id)
@@ -411,6 +414,15 @@ Keep earning! 🚀
         
         if is_video_quest:
             await self.start_video_quest(query, task)
+            return
+        
+        # Check if this is a Telegram quest that can be auto-verified
+        is_telegram_quest = (task.get('platform') == 'telegram' and 
+                            task.get('verification_data') and 
+                            task['verification_data'].get('method') == 'telegram_membership')
+        
+        if is_telegram_quest:
+            await self.start_telegram_quest(query, task)
             return
         
         # Check if this is a Twitter quest that can be auto-verified
@@ -530,6 +542,148 @@ Keep earning! 🚀
         if user.id not in query._bot.user_data:
             query._bot.user_data[user.id] = {}
         query._bot.user_data[user.id]['active_video_task'] = task['id']
+    
+    async def start_telegram_quest(self, query, task):
+        """Start a Telegram membership quest with auto-verification"""
+        user = query.from_user
+        db_user = BotAPIClient.get_user_by_telegram_id(user.id)
+        
+        if not db_user:
+            await query.edit_message_text("Please use /start to register first.")
+            return
+        
+        # Get verification data
+        verification_data = task.get('verification_data', {})
+        chat_id = verification_data.get('chat_id')
+        chat_name = verification_data.get('chat_name', 'the group/channel')
+        invite_link = verification_data.get('invite_link') or task.get('url')
+        action_type = verification_data.get('type', 'join_group')
+        
+        bonus_tag = "🌟 BONUS TASK\n" if task.get('is_bonus') else ""
+        
+        # Determine emoji based on action type
+        emoji = "✈️" if action_type == 'join_group' else "📢"
+        action_text = "Join the group" if action_type == 'join_group' else "Join the channel"
+        
+        message = f"""
+{bonus_tag}{emoji} *{task['title']}*
+
+**Description:** {task['description']}
+**Reward:** {task['points_reward']} points 💰
+
+📱 *How to Complete:*
+1. {action_text}: {chat_name}
+2. Click "✅ Verify Membership" below
+3. Bot will automatically check if you're a member
+
+⚠️ *Important:*
+• You must actually join to get verified
+• Already a member? Just verify!
+• Verification is instant!
+"""
+        
+        keyboard = []
+        
+        # Add join button if invite link is available
+        if invite_link:
+            keyboard.append([InlineKeyboardButton(f"{emoji} {action_text.title()}", url=invite_link)])
+        
+        # Add verify button
+        keyboard.append([InlineKeyboardButton("✅ Verify Membership", callback_data=f"telegram_verify_{task['id']}")])
+        keyboard.append([InlineKeyboardButton("« Back to Tasks", callback_data="view_tasks")])
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+    
+    async def verify_telegram_membership(self, query, task_id: str):
+        """Verify if user is a member of the Telegram group/channel"""
+        user = query.from_user
+        db_user = BotAPIClient.get_user_by_telegram_id(user.id)
+        
+        if not db_user:
+            await query.edit_message_text("Please use /start to register first.")
+            return
+        
+        # Get task details
+        task = BotAPIClient.get_task_by_id(task_id)
+        
+        if not task:
+            await query.edit_message_text("❌ Task not found.")
+            return
+        
+        verification_data = task.get('verification_data', {})
+        chat_id = verification_data.get('chat_id')
+        
+        if not chat_id:
+            await query.edit_message_text("❌ Quest configuration error: No chat ID specified.")
+            return
+        
+        # Show checking message
+        await query.edit_message_text("🔍 Checking membership status...")
+        
+        try:
+            # Check if user is a member of the chat
+            chat_member = await self.application.bot.get_chat_member(chat_id, user.id)
+            
+            # Valid member statuses: creator, administrator, member
+            # Exclude: left, kicked, restricted (if can't send messages)
+            is_member = chat_member.status in ['creator', 'administrator', 'member']
+            
+            if is_member:
+                # Complete the task
+                result = BotAPIClient.complete_task(db_user['id'], task_id)
+                
+                if result and 'error' not in result:
+                    message = f"""
+✅ *Verification Successful!*
+
+🎉 You're a member! Quest completed!
+💰 You earned {task['points_reward']} points!
+
+Keep completing quests to earn more! 🚀
+"""
+                    # Create notification
+                    BotAPIClient.create_notification(
+                        db_user['id'],
+                        "Quest Completed!",
+                        f"You earned {task['points_reward']} points for completing '{task['title']}'",
+                        "task_verified"
+                    )
+                else:
+                    message = "❌ Error completing quest. You may have already completed it or there was a server issue."
+            else:
+                message = f"""
+❌ *Not a Member Yet*
+
+You need to join the group/channel first!
+
+Status: {chat_member.status}
+
+Please:
+1. Join the group/channel
+2. Come back and click "Verify Membership" again
+"""
+        
+        except Exception as e:
+            logger.error(f"Error verifying Telegram membership: {e}")
+            message = f"""
+❌ *Verification Failed*
+
+Could not verify membership. This could be because:
+• The bot is not an admin in that group/channel
+• Invalid chat ID configuration
+• The group/channel is private
+
+Please contact an admin or try manual verification.
+
+Error: {str(e)[:100]}
+"""
+        
+        keyboard = [[InlineKeyboardButton("« Back to Tasks", callback_data="view_tasks")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
     
     async def verify_video_code_handler(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle video verification code submissions OR Twitter username"""

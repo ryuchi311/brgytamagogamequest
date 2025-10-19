@@ -250,16 +250,21 @@ async def get_user_task_history(telegram_id: int):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Get all user tasks with task details
-    response = supabase.table("user_tasks").select("*, tasks(*)").eq("user_id", user['id']).order("updated_at", desc=True).execute()
+    # Get all user tasks
+    user_tasks_response = supabase.table("user_tasks").select("*").eq("user_id", user['id']).order("updated_at", desc=True).execute()
     
-    # Format the response
+    # Get all tasks to create a lookup map
+    tasks_response = supabase.table("tasks").select("*").execute()
+    tasks_map = {task['id']: task for task in tasks_response.data}
+    
+    # Format the response by combining user_tasks with task details
     activities = []
-    for user_task in response.data:
-        task = user_task.get('tasks', {})
+    for user_task in user_tasks_response.data:
+        task_id = user_task.get('task_id')
+        task = tasks_map.get(task_id, {})
         activities.append({
             "id": user_task.get('id'),
-            "task_id": user_task.get('task_id'),
+            "task_id": task_id,
             "task_title": task.get('title', 'Unknown Quest'),
             "task_platform": task.get('platform'),
             "status": user_task.get('status'),
@@ -538,6 +543,8 @@ async def get_task(task_id: str):
 @app.post("/api/tasks", response_model=TaskResponse)
 async def create_task(task: TaskCreate, admin=Depends(get_current_admin)):
     """Create a new task (Admin only)"""
+    import json
+    
     # Convert to dict and prepare for insertion
     task_data = {
         "title": task.title,
@@ -550,37 +557,50 @@ async def create_task(task: TaskCreate, admin=Depends(get_current_admin)):
         "verification_required": task.verification_required
     }
     
-    # Add verification_data only if it exists and is not None
+    # CRITICAL FIX: Properly handle verification_data as JSONB
     if task.verification_data is not None:
-        task_data["verification_data"] = task.verification_data
-    # Attempt insert; if PostgREST schema cache complains about verification_data, retry without it
+        # Ensure it's JSON-serializable and convert to proper format
+        try:
+            # Serialize and deserialize to validate and ensure proper JSON format
+            verification_json = json.loads(json.dumps(task.verification_data))
+            task_data["verification_data"] = verification_json
+        except (TypeError, ValueError) as e:
+            print(f"Warning: Could not serialize verification_data: {e}")
+            print(f"verification_data value: {task.verification_data}")
+            # Skip verification_data if it can't be serialized
+            pass
+    
     try:
         response = supabase.table("tasks").insert(task_data).execute()
-    except APIError as e:
-        msg = str(e)
-        # If verification_data column not found in schema cache, remove it and retry
-        if 'verification_data' in msg or 'Could not find the '\
-           "'verification_data' column" in msg:
-            if 'verification_data' in task_data:
-                del task_data['verification_data']
-            response = supabase.table("tasks").insert(task_data).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=400, detail="Failed to create task")
+        
+        # Notify all users about new task
+        users = supabase.table("users").select("id").eq("is_active", True).execute()
+        for user in users.data:
+            DatabaseService.create_notification(
+                user['id'],
+                "New Task Available!",
+                f"A new task '{task.title}' is available. Complete it to earn {task.points_reward} points!",
+                "new_task"
+            )
+        
+        return response.data[0]
+        
+    except Exception as e:
+        error_msg = str(e)
+        print(f"ERROR creating task: {e}")
+        print(f"Task data: {task_data}")
+        
+        # Check if it's a JSONB adaptation error
+        if "can't adapt type 'dict'" in error_msg or "adapt" in error_msg:
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to save quest verification data. Please check all fields are properly filled."
+            )
         else:
-            raise
-    
-    if not response.data:
-        raise HTTPException(status_code=400, detail="Failed to create task")
-    
-    # Notify all users about new task
-    users = supabase.table("users").select("id").eq("is_active", True).execute()
-    for user in users.data:
-        DatabaseService.create_notification(
-            user['id'],
-            "New Task Available!",
-            f"A new task '{task.title}' is available. Complete it to earn {task.points_reward} points!",
-            "new_task"
-        )
-    
-    return response.data[0]
+            raise HTTPException(status_code=500, detail=f"Failed to create task: {str(e)}")
 
 
 @app.put("/api/tasks/{task_id}", response_model=TaskResponse)
@@ -765,29 +785,51 @@ async def get_stats(admin=Depends(get_current_admin)):
 @app.get("/api/admin/user-tasks")
 async def get_user_tasks(status: Optional[str] = None, admin=Depends(get_current_admin)):
     """Get user tasks with filters (Admin only)"""
-    query = supabase.table("user_tasks").select("*, users(*), tasks(*)")
+    query = supabase.table("user_tasks").select("*")
     
     if status:
         query = query.eq("status", status)
     
-    response = query.order("created_at", desc=True).limit(100).execute()
-    return response.data or []
+    user_tasks_response = query.order("created_at", desc=True).limit(100).execute()
+    
+    # Get users and tasks to create lookup maps
+    users_response = supabase.table("users").select("*").execute()
+    tasks_response = supabase.table("tasks").select("*").execute()
+    
+    users_map = {user['id']: user for user in users_response.data}
+    tasks_map = {task['id']: task for task in tasks_response.data}
+    
+    # Combine the data
+    result = []
+    for user_task in user_tasks_response.data:
+        user_task['users'] = users_map.get(user_task.get('user_id'), {})
+        user_task['tasks'] = tasks_map.get(user_task.get('task_id'), {})
+        result.append(user_task)
+    
+    return result
 
 
 @app.put("/api/admin/user-tasks/{user_task_id}/verify")
 async def verify_user_task(user_task_id: str, approved: bool, admin=Depends(get_current_admin)):
     """Verify a user task submission (Admin only)"""
     # Get user task
-    response = supabase.table("user_tasks").select("*, tasks(*)").eq("id", user_task_id).execute()
+    user_task_response = supabase.table("user_tasks").select("*").eq("id", user_task_id).execute()
     
-    if not response.data:
+    if not user_task_response.data:
         raise HTTPException(status_code=404, detail="User task not found")
     
-    user_task = response.data[0]
+    user_task = user_task_response.data[0]
+    
+    # Get task details
+    task_response = supabase.table("tasks").select("*").eq("id", user_task['task_id']).execute()
+    if not task_response.data:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    task = task_response.data[0]
     
     if approved:
         # Award points
-        points = user_task['tasks']['points_reward']
+        points = task['points_reward']
         DatabaseService.update_user_points(user_task['user_id'], points, "earned")
         
         # Update user task
@@ -901,14 +943,20 @@ async def verify_video_code(request: dict):
         raise HTTPException(status_code=400, detail="user_id and code are required")
     
     # Find active video view for this user with matching code
-    view_response = supabase.table("video_views").select("*, tasks(*)").eq("user_id", user_id).eq("verification_code", code).eq("status", "watching").execute()
+    view_response = supabase.table("video_views").select("*").eq("user_id", user_id).eq("verification_code", code).eq("status", "watching").execute()
     
     if not view_response.data:
         # No active view found - could be wrong code or no active quest
         return {"success": False, "error": "no_active_view", "message": "No active video quest found with this code"}
     
     view = view_response.data[0]
-    task = view['tasks']
+    
+    # Get task details
+    task_response = supabase.table("tasks").select("*").eq("id", view['task_id']).execute()
+    if not task_response.data:
+        return {"success": False, "error": "task_not_found", "message": "Task not found"}
+    
+    task = task_response.data[0]
     verification_data = task.get('verification_data', {})
     
     min_watch_time = verification_data.get('min_watch_time_seconds', 120)
@@ -1017,37 +1065,54 @@ async def verify_video_code(request: dict):
 async def get_video_stats(current_admin: dict = Depends(get_current_admin)):
     """Get statistics about video views for admin dashboard"""
     
-    # Get counts by status
-    stats_query = """
-        SELECT 
-            COUNT(*) as total,
-            COUNT(CASE WHEN status = 'watching' THEN 1 END) as watching,
-            COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed,
-            COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed,
-            AVG(CASE 
-                WHEN completed_at IS NOT NULL 
-                THEN EXTRACT(EPOCH FROM (completed_at - started_at))
-                ELSE NULL 
-            END) as avg_watch_time_seconds
-        FROM video_views
-    """
-    
-    # Execute raw SQL query
-    result = supabase.rpc('exec_sql', {'query': stats_query}).execute()
-    
-    # If RPC doesn't exist, fall back to counting separately
-    if not result.data:
-        all_views = supabase.table("video_views").select("status").execute()
+    # Get all video views to calculate stats
+    try:
+        all_views = supabase.table("video_views").select("*").execute()
+        
+        # Calculate stats from the data
+        total = len(all_views.data)
+        watching = len([v for v in all_views.data if v.get('status') == 'watching'])
+        completed = len([v for v in all_views.data if v.get('status') == 'completed'])
+        failed = len([v for v in all_views.data if v.get('status') == 'failed'])
+        
+        # Calculate average watch time for completed videos
+        completed_views = [v for v in all_views.data if v.get('status') == 'completed' and v.get('started_at') and v.get('completed_at')]
+        avg_watch_time = 0
+        if completed_views:
+            from datetime import datetime
+            total_seconds = 0
+            for v in completed_views:
+                try:
+                    started = datetime.fromisoformat(v['started_at'].replace('Z', '+00:00'))
+                    completed = datetime.fromisoformat(v['completed_at'].replace('Z', '+00:00'))
+                    total_seconds += (completed - started).total_seconds()
+                except:
+                    pass
+            avg_watch_time = total_seconds / len(completed_views) if completed_views else 0
         
         stats = {
-            "total": len(all_views.data),
-            "watching": len([v for v in all_views.data if v['status'] == 'watching']),
-            "completed": len([v for v in all_views.data if v['status'] == 'completed']),
-            "failed": len([v for v in all_views.data if v['status'] == 'failed']),
+            "total": total,
+            "watching": watching,
+            "completed": completed,
+            "failed": failed,
+            "avg_watch_time_seconds": round(avg_watch_time, 2)
+        }
+    except Exception as e:
+        error_msg = str(e)
+        if "does not exist" in error_msg or "relation" in error_msg:
+            print(f"⚠️  Video stats unavailable: video_views table not created yet")
+            print(f"   This is normal if you haven't run the video views migration (001_video_views.sql)")
+        else:
+            print(f"Error getting video stats: {e}")
+        
+        # Return zeros when table doesn't exist or any error occurs
+        stats = {
+            "total": 0,
+            "watching": 0,
+            "completed": 0,
+            "failed": 0,
             "avg_watch_time_seconds": 0
         }
-    else:
-        stats = result.data[0]
     
     return stats
 

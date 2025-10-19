@@ -57,6 +57,16 @@ class SimpleTable:
         return self
     
     def execute(self):
+        """Execute the query based on what operations were chained"""
+        # Check if this is an insert operation
+        if hasattr(self, '_insert_data'):
+            return self.execute_insert()
+        
+        # Check if this is an update or delete operation
+        if hasattr(self, '_update_data') or hasattr(self, '_delete'):
+            return self.execute_update()
+        
+        # Otherwise it's a select operation
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -97,14 +107,33 @@ class SimpleTable:
         return Result(data)
     
     def insert(self, data: dict):
-        conn = get_db_connection()
-        cursor = conn.cursor()
+        """Store insert data and return self for method chaining"""
+        self._insert_data = data
+        return self
+    
+    def execute_insert(self):
+        """Execute the insert query"""
+        import json
+        from psycopg2.extras import Json, RealDictCursor
         
-        columns = ", ".join(data.keys())
-        placeholders = ", ".join(["%s"] * len(data))
+        conn = get_db_connection()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        columns = ", ".join(self._insert_data.keys())
+        placeholders = ", ".join(["%s"] * len(self._insert_data))
         query = f"INSERT INTO {self.table_name} ({columns}) VALUES ({placeholders}) RETURNING *"
         
-        cursor.execute(query, list(data.values()))
+        # Convert dict values to PostgreSQL-compatible types
+        # JSONB columns need to be wrapped in psycopg2.extras.Json
+        values = []
+        for key, value in self._insert_data.items():
+            if isinstance(value, dict):
+                # Convert dict to JSON for JSONB columns (like verification_data)
+                values.append(Json(value))
+            else:
+                values.append(value)
+        
+        cursor.execute(query, values)
         result = cursor.fetchone()
         
         conn.commit()
@@ -113,7 +142,7 @@ class SimpleTable:
         
         class Result:
             def __init__(self, data):
-                self.data = data
+                self.data = [data] if data else []  # Wrap in list to match Supabase API
         
         return Result(result)
     
@@ -129,6 +158,9 @@ class SimpleTable:
     
     def execute_update(self):
         """Execute the update query"""
+        import json
+        from psycopg2.extras import Json
+        
         conn = get_db_connection()
         cursor = conn.cursor()
         
@@ -138,7 +170,11 @@ class SimpleTable:
         if hasattr(self, '_update_data'):
             for col, val in self._update_data.items():
                 set_clauses.append(f"{col} = %s")
-                params.append(val)
+                # Convert dict values to JSON for JSONB columns
+                if isinstance(val, dict):
+                    params.append(Json(val))
+                else:
+                    params.append(val)
             
             query = f"UPDATE {self.table_name} SET {', '.join(set_clauses)}"
             

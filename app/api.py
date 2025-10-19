@@ -1061,62 +1061,6 @@ async def verify_video_code(request: dict):
     }
 
 
-@app.get("/api/video-views/stats")
-async def get_video_stats(current_admin: dict = Depends(get_current_admin)):
-    """Get statistics about video views for admin dashboard"""
-    
-    # Get all video views to calculate stats
-    try:
-        all_views = supabase.table("video_views").select("*").execute()
-        
-        # Calculate stats from the data
-        total = len(all_views.data)
-        watching = len([v for v in all_views.data if v.get('status') == 'watching'])
-        completed = len([v for v in all_views.data if v.get('status') == 'completed'])
-        failed = len([v for v in all_views.data if v.get('status') == 'failed'])
-        
-        # Calculate average watch time for completed videos
-        completed_views = [v for v in all_views.data if v.get('status') == 'completed' and v.get('started_at') and v.get('completed_at')]
-        avg_watch_time = 0
-        if completed_views:
-            from datetime import datetime
-            total_seconds = 0
-            for v in completed_views:
-                try:
-                    started = datetime.fromisoformat(v['started_at'].replace('Z', '+00:00'))
-                    completed = datetime.fromisoformat(v['completed_at'].replace('Z', '+00:00'))
-                    total_seconds += (completed - started).total_seconds()
-                except:
-                    pass
-            avg_watch_time = total_seconds / len(completed_views) if completed_views else 0
-        
-        stats = {
-            "total": total,
-            "watching": watching,
-            "completed": completed,
-            "failed": failed,
-            "avg_watch_time_seconds": round(avg_watch_time, 2)
-        }
-    except Exception as e:
-        error_msg = str(e)
-        if "does not exist" in error_msg or "relation" in error_msg:
-            print(f"⚠️  Video stats unavailable: video_views table not created yet")
-            print(f"   This is normal if you haven't run the video views migration (001_video_views.sql)")
-        else:
-            print(f"Error getting video stats: {e}")
-        
-        # Return zeros when table doesn't exist or any error occurs
-        stats = {
-            "total": 0,
-            "watching": 0,
-            "completed": 0,
-            "failed": 0,
-            "avg_watch_time_seconds": 0
-        }
-    
-    return stats
-
-
 # ============================================================================
 # TWITTER VERIFICATION ENDPOINTS
 # ============================================================================

@@ -110,16 +110,6 @@ Successfully implemented a **full-stack gaming community Telegram bot** with adv
 - Ban/unban users
 - Monitor user activity
 
-#### Analytics Dashboard:
-- **Active Quests**: Total quest count
-- **Total Rewards**: Reward catalog size
-- **Active Players**: Registered user count
-- **Video Statistics** (NEW):
-  - 🎬 Total video views
-  - ✅ Completed verifications
-  - ⏱️ Currently watching
-  - ❌ Failed attempts
-
 ### 🎨 Gaming Theme Design
 
 #### Visual Elements:

@@ -594,12 +594,35 @@
         async function loadTasks() {
             try {
                 const response = await fetch(`${API_URL}/tasks`);
-                const tasks = await response.json();
+                const allTasks = await response.json();
+                
+                // Get user's completed tasks
+                let completedTaskIds = new Set();
+                if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+                    try {
+                        const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
+                        const userTasksResponse = await fetch(`${API_URL}/users/${telegramId}/tasks`);
+                        const userTasks = await userTasksResponse.json();
+                        
+                        // Get IDs of completed tasks
+                        completedTaskIds = new Set(
+                            userTasks
+                                .filter(ut => ut.status === 'completed')
+                                .map(ut => ut.task_id)
+                        );
+                    } catch (e) {
+                        console.log('Could not fetch user tasks:', e);
+                    }
+                }
+                
+                // Filter out completed tasks
+                const tasks = allTasks.filter(task => !completedTaskIds.has(task.id));
+                
                 const container = document.getElementById('tasksContainer');
                 document.getElementById('tasksCount').textContent = tasks.length;
                 
                 if (tasks.length === 0) {
-                    container.innerHTML = '<div class="text-center py-12 text-gray-400">No active quests</div>';
+                    container.innerHTML = '<div class="text-center py-12 text-gray-400">🎉 All quests completed! Check back later for new quests.</div>';
                     return;
                 }
 
@@ -934,10 +957,17 @@
                 if (result.success) {
                     alert('🎉 Quest Completed! +' + result.points_earned + ' XP');
                     loadUserData();
-                    loadTasks();
+                    loadTasks(); // Reload to hide completed tasks
                     closeTaskModal();
                 } else {
-                    alert('❌ Verification failed: ' + (result.message || 'Please complete the task and try again'));
+                    // Check if task was already completed
+                    if (result.message === 'Task already completed') {
+                        alert('✅ You already completed this quest!');
+                        loadTasks(); // Reload to hide this task
+                        closeTaskModal();
+                    } else {
+                        alert('❌ Verification failed: ' + (result.message || 'Please complete the task and try again'));
+                    }
                 }
             } catch (error) {
                 console.error(error);

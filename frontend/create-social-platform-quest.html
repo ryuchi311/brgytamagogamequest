@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Social Media Quest - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #2e0a1a 50%, #0a0a0a 100%);
+            min-height: 100vh;
+        }
+        .gaming-title { font-family: 'Orbitron', sans-serif; }
+        .gaming-body { font-family: 'Rajdhani', sans-serif; }
+        .gradient-text {
+            background: linear-gradient(135deg, #ec4899 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gaming-dark text-white">
+    
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <div class="text-5xl mb-3">�</div>
+            <h1 class="text-3xl md:text-4xl font-black gaming-title gradient-text mb-2">
+                CREATE SOCIAL MEDIA QUEST
+            </h1>
+            <p class="text-gray-400 gaming-body">Follow Discord, Instagram, TikTok, Facebook, etc.</p>
+        </div>
+
+        <!-- Alert Container -->
+        <div id="alertContainer" class="mb-4"></div>
+
+        <!-- Form -->
+        <div class="bg-gray-900/60 border-2 border-pink-500/30 rounded-2xl p-6 md:p-8">
+            
+            <!-- Basic Info -->
+            <div class="mb-6">
+                <h2 class="text-xl font-bold gaming-title text-pink-400 mb-4">📋 Basic Information</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Quest Title *</label>
+                        <input type="text" id="questTitle" 
+                               placeholder="e.g., Follow us on Instagram"
+                               class="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:border-pink-500 focus:outline-none">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Description *</label>
+                        <textarea id="questDescription" rows="3"
+                                  placeholder="e.g., Follow our Instagram account @example and like our latest post"
+                                  class="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:border-pink-500 focus:outline-none"></textarea>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Points Reward *</label>
+                            <input type="number" id="questPoints" value="75" min="1"
+                                   class="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:border-pink-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-2">Status *</label>
+                            <select id="questActive"
+                                    class="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:border-pink-500 focus:outline-none">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Platform Settings -->
+            <div class="mb-6">
+                <h2 class="text-xl font-bold gaming-title text-pink-400 mb-4">� Social Platform Settings</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Social Platform *</label>
+                        <select id="socialPlatform"
+                                class="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:border-pink-500 focus:outline-none">
+                            <option value="">Select Platform</option>
+                            <option value="discord">Discord</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="reddit">Reddit</option>
+                            <option value="linkedin">LinkedIn</option>
+                            <option value="pinterest">Pinterest</option>
+                            <option value="snapchat">Snapchat</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Profile/Link URL *</label>
+                        <input type="url" id="socialUrl" 
+                               placeholder="https://instagram.com/yourprofile or Discord invite link"
+                               class="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:border-pink-500 focus:outline-none">
+                        <p class="text-xs text-gray-500 mt-1">Link to your social media profile or invite</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Action Required</label>
+                        <select id="actionType"
+                                class="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:border-pink-500 focus:outline-none">
+                            <option value="follow">Follow/Subscribe</option>
+                            <option value="join">Join/Enter</option>
+                            <option value="like">Like/React</option>
+                            <option value="share">Share/Repost</option>
+                            <option value="comment">Comment</option>
+                            <option value="custom">Custom Action</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Username/Handle (Optional)</label>
+                        <input type="text" id="socialHandle" 
+                               placeholder="@yourhandle or username"
+                               class="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:border-pink-500 focus:outline-none">
+                        <p class="text-xs text-gray-500 mt-1">Your social media username for reference</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Important Notes -->
+            <div class="bg-pink-500/10 border-2 border-pink-500/30 rounded-lg p-4 mb-6">
+                <h3 class="font-bold text-pink-400 mb-2">ℹ️ Social Media Quest Info:</h3>
+                <ul class="text-sm text-gray-300 space-y-1">
+                    <li>📱 Perfect for: Discord servers, Instagram, TikTok, Facebook pages</li>
+                    <li>✅ Manual verification: Admin reviews screenshots/proof</li>
+                    <li>⏱️ Users submit proof, then wait for approval</li>
+                    <li>⚠️ No automatic verification (except Telegram - use Telegram Quest)</li>
+                </ul>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="submitQuest()" 
+                        class="flex-1 px-6 py-3 bg-pink-600 hover:bg-pink-500 border-2 border-pink-400 rounded-xl gaming-title text-lg transition-all">
+                    🚀 CREATE SOCIAL QUEST
+                </button>
+                <button onclick="window.location.href='quest-select.html'" 
+                        class="px-6 py-3 bg-gray-700 hover:bg-gray-600 border-2 border-gray-500 rounded-xl gaming-title transition-all">
+                    ⬅️ BACK
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // API Configuration (compatible with Codespaces)
+        let API_BASE = window.location.origin;
+        if (API_BASE.includes('-8080.')) {
+            API_BASE = window.location.origin.replace('-8080.', '-8000.');
+        } else if (API_BASE.includes(':8080')) {
+            API_BASE = API_BASE.replace(':8080', ':8000');
+        }
+        const API_URL = `${API_BASE}/api`;
+        
+        const authToken = localStorage.getItem('authToken');
+        
+        console.log('Social Platform Quest - API_URL:', API_URL);
+        console.log('Social Platform Quest - Has Token:', !!authToken);
+
+        // Check authentication
+        window.addEventListener('DOMContentLoaded', function() {
+            if (!authToken) {
+                alert('⚠️ Not authenticated! Redirecting to login...');
+                window.location.href = '/admin.html';
+            } else {
+                console.log('✅ Authenticated - Token found');
+            }
+        });
+
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const colors = {
+                success: 'bg-green-500/20 border-green-500 text-green-300',
+                error: 'bg-red-500/20 border-red-500 text-red-300',
+                warning: 'bg-yellow-500/20 border-yellow-500 text-yellow-300',
+                info: 'bg-blue-500/20 border-blue-500 text-blue-300'
+            };
+            
+            alertContainer.innerHTML = `
+                <div class="border-2 ${colors[type]} rounded-lg p-4 mb-4">
+                    <p class="font-bold">${message}</p>
+                </div>
+            `;
+            
+            setTimeout(() => alertContainer.innerHTML = '', 5000);
+        }
+
+        async function submitQuest() {
+            // Get form values
+            const title = document.getElementById('questTitle').value.trim();
+            const description = document.getElementById('questDescription').value.trim();
+            const points = parseInt(document.getElementById('questPoints').value) || 75;
+            const isActive = document.getElementById('questActive').value === 'true';
+            const platform = document.getElementById('socialPlatform').value;
+            const url = document.getElementById('socialUrl').value.trim();
+            const actionType = document.getElementById('actionType').value;
+            const handle = document.getElementById('socialHandle').value.trim();
+
+            // Validation
+            if (!title || !description) {
+                showAlert('Please fill in title and description', 'error');
+                return;
+            }
+            
+            if (!platform) {
+                showAlert('Please select a social platform', 'error');
+                return;
+            }
+            
+            if (!url) {
+                showAlert('Please enter the social media URL/link', 'error');
+                return;
+            }
+
+            // Prepare quest data
+            const questData = {
+                title,
+                description,
+                points_reward: points,
+                is_active: isActive,
+                task_type: 'social',
+                platform: platform,
+                url: url,
+                verification_required: true, // Always manual for social media
+                verification_data: {
+                    platform: platform,
+                    action_type: actionType,
+                    handle: handle || null,
+                    method: 'manual'
+                }
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(questData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to create quest');
+                }
+
+                showAlert('✅ Social media quest created successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = '/admin.html#quests';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error: ' + error.message, 'error');
+            }
+        }
+    </script>
+
+</body>
+</html>

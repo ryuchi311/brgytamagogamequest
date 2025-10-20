@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Quest Type - Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
+            min-height: 100vh;
+        }
+        .gaming-title { font-family: 'Orbitron', sans-serif; }
+        .gaming-body { font-family: 'Rajdhani', sans-serif; }
+        
+        .quest-card {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .quest-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(139, 92, 246, 0.4);
+        }
+        .quest-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+        .quest-card:hover::before {
+            left: 100%;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #a78bfa 0%, #ec4899 50%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gaming-dark text-white">
+    
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <div class="float-animation inline-block text-6xl mb-4">⚔️</div>
+            <h1 class="text-4xl md:text-5xl font-black gaming-title gradient-text mb-4">
+                SELECT QUEST TYPE
+            </h1>
+            <p class="text-gray-400 text-lg gaming-body">
+                Choose the type of quest you want to create
+            </p>
+        </div>
+
+        <!-- Quest Type Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- Telegram Quest -->
+            <div class="quest-card bg-gradient-to-br from-blue-500/20 to-purple-500/20 border-2 border-blue-400/30 rounded-2xl p-8 cursor-pointer"
+                 onclick="window.location.href='create-telegram-quest.html'">
+                <div class="text-center">
+                    <div class="text-6xl mb-4">✈️</div>
+                    <h2 class="text-3xl font-black gaming-title text-blue-400 mb-3">
+                        TELEGRAM QUEST
+                    </h2>
+                    <p class="text-gray-300 gaming-body mb-4">
+                        Join group/channel verification
+                    </p>
+                    <div class="flex flex-wrap gap-2 justify-center mb-4">
+                        <span class="px-3 py-1 bg-blue-500/20 border border-blue-400/50 rounded-lg text-sm text-blue-300">Auto-Verify</span>
+                        <span class="px-3 py-1 bg-green-500/20 border border-green-400/50 rounded-lg text-sm text-green-300">Instant</span>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        ✅ Join Group<br>
+                        ✅ Join Channel<br>
+                        ✅ Bot auto-checks membership
+                    </div>
+                </div>
+            </div>
+
+            <!-- Twitter Quest -->
+            <div class="quest-card bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border-2 border-cyan-400/30 rounded-2xl p-8 cursor-pointer"
+                 onclick="window.location.href='create-twitter-quest.html'">
+                <div class="text-center">
+                    <div class="text-6xl mb-4">🐦</div>
+                    <h2 class="text-3xl font-black gaming-title text-cyan-400 mb-3">
+                        TWITTER QUEST
+                    </h2>
+                    <p class="text-gray-300 gaming-body mb-4">
+                        Follow, like, retweet verification
+                    </p>
+                    <div class="flex flex-wrap gap-2 justify-center mb-4">
+                        <span class="px-3 py-1 bg-cyan-500/20 border border-cyan-400/50 rounded-lg text-sm text-cyan-300">Auto-Verify</span>
+                        <span class="px-3 py-1 bg-yellow-500/20 border border-yellow-400/50 rounded-lg text-sm text-yellow-300">API Check</span>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        ✅ Follow Account<br>
+                        ✅ Like Tweet<br>
+                        ✅ Retweet Post
+                    </div>
+                </div>
+            </div>
+
+            <!-- YouTube Quest -->
+            <div class="quest-card bg-gradient-to-br from-red-500/20 to-pink-500/20 border-2 border-red-400/30 rounded-2xl p-8 cursor-pointer"
+                 onclick="window.location.href='create-youtube-quest.html'">
+                <div class="text-center">
+                    <div class="text-6xl mb-4">🎬</div>
+                    <h2 class="text-3xl font-black gaming-title text-red-400 mb-3">
+                        YOUTUBE QUEST
+                    </h2>
+                    <p class="text-gray-300 gaming-body mb-4">
+                        Watch video with time delay & code
+                    </p>
+                    <div class="flex flex-wrap gap-2 justify-center mb-4">
+                        <span class="px-3 py-1 bg-red-500/20 border border-red-400/50 rounded-lg text-sm text-red-300">Code Verify</span>
+                        <span class="px-3 py-1 bg-purple-500/20 border border-purple-400/50 rounded-lg text-sm text-purple-300">Time Delay</span>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        ✅ Watch Video<br>
+                        ✅ Time Tracking<br>
+                        ✅ Secret Code Entry
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media Quest -->
+            <div class="quest-card bg-gradient-to-br from-pink-500/20 to-purple-500/20 border-2 border-pink-400/30 rounded-2xl p-8 cursor-pointer"
+                 onclick="window.location.href='create-social-platform-quest.html'">
+                <div class="text-center">
+                    <div class="text-6xl mb-4">�</div>
+                    <h2 class="text-3xl font-black gaming-title text-pink-400 mb-3">
+                        SOCIAL MEDIA
+                    </h2>
+                    <p class="text-gray-300 gaming-body mb-4">
+                        Follow social media platforms
+                    </p>
+                    <div class="flex flex-wrap gap-2 justify-center mb-4">
+                        <span class="px-3 py-1 bg-pink-500/20 border border-pink-400/50 rounded-lg text-sm text-pink-300">Manual</span>
+                        <span class="px-3 py-1 bg-purple-500/20 border border-purple-400/50 rounded-lg text-sm text-purple-300">Social</span>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        ✅ Discord<br>
+                        ✅ Instagram<br>
+                        ✅ TikTok, FB, etc.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Website Link Quest -->
+            <div class="quest-card bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-2 border-green-400/30 rounded-2xl p-8 cursor-pointer"
+                 onclick="window.location.href='create-website-quest.html'">
+                <div class="text-center">
+                    <div class="text-6xl mb-4">🔗</div>
+                    <h2 class="text-3xl font-black gaming-title text-green-400 mb-3">
+                        WEBSITE LINK
+                    </h2>
+                    <p class="text-gray-300 gaming-body mb-4">
+                        Visit a website or web page
+                    </p>
+                    <div class="flex flex-wrap gap-2 justify-center mb-4">
+                        <span class="px-3 py-1 bg-green-500/20 border border-green-400/50 rounded-lg text-sm text-green-300">Auto/Manual</span>
+                        <span class="px-3 py-1 bg-gray-500/20 border border-gray-400/50 rounded-lg text-sm text-gray-300">Simple</span>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        ✅ Visit URL<br>
+                        ✅ Read Article<br>
+                        ✅ Check Website
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Back Button -->
+        <div class="text-center">
+            <button onclick="window.location.href='admin.html#quests'" 
+                    class="px-8 py-3 bg-gray-700 hover:bg-gray-600 border-2 border-gray-500 rounded-xl gaming-title text-lg transition-all">
+                ⬅️ BACK TO ADMIN
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Check authentication
+        const authToken = localStorage.getItem('authToken');
+        
+        if (!authToken) {
+            alert('⚠️ Not authenticated! Redirecting to login...');
+            window.location.href = '/admin.html';
+        }
+    </script>
+
+</body>
+</html>

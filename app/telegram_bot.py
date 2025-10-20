@@ -295,6 +295,9 @@ Keep completing tasks to earn more points! 🚀
         elif data.startswith("task_"):
             task_id = data.split("_")[1]
             await self.show_task_details(query, task_id)
+        elif data.startswith("claim_auto_"):
+            task_id = data.split("_")[2]
+            await self.claim_auto_quest_points(query, task_id)
         elif data.startswith("telegram_verify_"):
             task_id = data.split("_")[2]
             await self.verify_telegram_membership(query, task_id)
@@ -423,6 +426,15 @@ Keep earning! 🚀
         
         if is_telegram_quest:
             await self.start_telegram_quest(query, task)
+            return
+        
+        # Check if this is an auto-complete website link quest (no verification needed)
+        is_auto_link_quest = (task.get('task_type') == 'link' and 
+                              task.get('platform') == 'website' and 
+                              not task.get('verification_required'))
+        
+        if is_auto_link_quest:
+            await self.start_auto_link_quest(query, task)
             return
         
         # Check if this is a Twitter quest that can be auto-verified
@@ -679,6 +691,87 @@ Please contact an admin or try manual verification.
 
 Error: {str(e)[:100]}
 """
+        
+        keyboard = [[InlineKeyboardButton("« Back to Tasks", callback_data="view_tasks")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+    
+    async def start_auto_link_quest(self, query, task):
+        """Handle auto-complete website link quests - instant reward!"""
+        user = query.from_user
+        db_user = BotAPIClient.get_user_by_telegram_id(user.id)
+        
+        if not db_user:
+            await query.edit_message_text("Please use /start to register first.")
+            return
+        
+        url = task.get('url', 'No URL provided')
+        
+        bonus_tag = "🌟 BONUS TASK\n" if task.get('is_bonus', False) else ""
+        message = f"""
+{bonus_tag}🔗 *{task['title']}*
+
+**Description:** {task['description']}
+**Reward:** {task['points_reward']} points 💰
+
+🚀 *INSTANT REWARD QUEST!*
+
+Simply click the button below to visit the website.
+You'll get your points automatically! 🎁
+
+No verification needed - just click and earn! 💸
+"""
+        
+        keyboard = [
+            [InlineKeyboardButton("🌐 Visit Website & Get Points!", url=url, callback_data=f"auto_complete_{task['id']}")],
+            [InlineKeyboardButton("✅ I Visited - Claim Points", callback_data=f"claim_auto_{task['id']}")],
+            [InlineKeyboardButton("« Back to Tasks", callback_data="view_tasks")]
+        ]
+        
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+    
+    async def claim_auto_quest_points(self, query, task_id: str):
+        """Claim points for auto-complete quest (instant reward, no verification)"""
+        user = query.from_user
+        db_user = BotAPIClient.get_user_by_telegram_id(user.id)
+        
+        if not db_user:
+            await query.edit_message_text("Please use /start to register first.")
+            return
+        
+        task = BotAPIClient.get_task_by_id(task_id)
+        
+        if not task:
+            await query.edit_message_text("Task not found.")
+            return
+        
+        # Complete the task instantly (no verification needed)
+        result = BotAPIClient.complete_task(db_user['id'], task_id)
+        
+        if result and 'error' not in result:
+            message = f"""
+🎉 *Quest Completed!*
+
+💰 You earned {task['points_reward']} points!
+
+Thank you for visiting! Keep completing quests! 🚀
+"""
+            # Create notification
+            BotAPIClient.create_notification(
+                db_user['id'],
+                "Quest Completed!",
+                f"You earned {task['points_reward']} points for visiting '{task['title']}'",
+                "task_completed"
+            )
+        else:
+            error_msg = result.get('error', 'Unknown error') if result else 'Server error'
+            if 'already completed' in error_msg.lower():
+                message = "ℹ️ You've already completed this quest!"
+            else:
+                message = f"❌ Error completing quest: {error_msg}"
         
         keyboard = [[InlineKeyboardButton("« Back to Tasks", callback_data="view_tasks")]]
         reply_markup = InlineKeyboardMarkup(keyboard)

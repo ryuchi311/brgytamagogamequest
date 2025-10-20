@@ -3,50 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create New Quest - BrgyTamago</title>
+    <title>Redirecting to Quest Selector...</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'gaming-dark': '#1f1f20',
-                        'neon-purple': '#f22524',
-                        'neon-pink': '#ef6d1f',
-                        'neon-blue': '#fdbd16',
-                        'neon-green': '#fdbd16',
-                        'neon-yellow': '#ffd03a',
-                        'brand-gold': '#fdbd16',
-                        'brand-black': '#1f1f20',
-                        'brand-gray': '#585858',
-                        'brand-red': '#f22524',
-                        'brand-beige': '#e3c293',
-                        'brand-orange': '#ef6d1f',
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
-        
         body {
             font-family: 'Rajdhani', sans-serif;
-            background: linear-gradient(135deg, #0a0118 0%, #1a0a2e 50%, #0a0118 100%);
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0a2e 50%, #0a0a0a 100%);
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        .gaming-title { font-family: 'Orbitron', sans-serif; }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="text-white">
+    
+    <div class="text-center">
+        <div class="text-6xl mb-6 spinner">⚔️</div>
+        <h1 class="text-3xl font-black gaming-title mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Redirecting to New Quest System...
+        </h1>
+        <p class="text-gray-400 text-lg">
+            We've improved the quest creation experience!
+        </p>
+        <p class="text-gray-500 text-sm mt-2">
+            You'll be redirected in 2 seconds...
+        </p>
+    </div>
+
+    <script>
+        // Redirect to new quest selector after 2 seconds
+        setTimeout(() => {
+            window.location.href = '/quest-select.html';
+        }, 2000);
         
-        /* Alert animations */
-        @keyframes slideInDown {
-            from {
-                transform: translateY(-100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        // Immediate redirect if user has been here before
+        if (localStorage.getItem('seenQuestRedirect')) {
+            window.location.href = '/quest-select.html';
+        } else {
+            localStorage.setItem('seenQuestRedirect', 'true');
         }
+    </script>
+
+</body>
+</html>
         
         @keyframes slideOutUp {
             from {
@@ -926,6 +934,18 @@
                 showAlert('Error: ' + error.message, 'error');
             }
         }
+
+        // Check authentication on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            if (!authToken) {
+                showAlert('⚠️ Not authenticated! Redirecting to admin login...', 'warning', 3000);
+                setTimeout(() => {
+                    window.location.href = '/admin.html';
+                }, 3000);
+            } else {
+                console.log('✅ Authenticated - Token found');
+            }
+        });
     </script>
 
 </body>

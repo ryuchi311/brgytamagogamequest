@@ -78,6 +78,7 @@ class TaskCreate(BaseModel):
     url: Optional[str] = None
     points_reward: int = 0
     is_bonus: bool = False
+    is_active: bool = True
     verification_required: bool = False
     verification_data: Optional[dict] = None
 
@@ -188,6 +189,16 @@ async def login(login_request: LoginRequest):
     )
     
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/api/auth/verify")
+async def verify_token(admin=Depends(get_current_admin)):
+    """Verify admin token is valid"""
+    return {
+        "valid": True,
+        "username": admin["username"],
+        "message": "Token is valid"
+    }
 
 
 # User Endpoints
@@ -554,6 +565,7 @@ async def create_task(task: TaskCreate, admin=Depends(get_current_admin)):
         "url": task.url,
         "points_reward": task.points_reward,
         "is_bonus": task.is_bonus,
+        "is_active": task.is_active,
         "verification_required": task.verification_required
     }
     

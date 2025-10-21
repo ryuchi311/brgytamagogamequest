@@ -94,13 +94,28 @@
                     <div>
                         <label class="block text-sm font-bold mb-2">Verification Type</label>
                         <select id="verificationType"
+                                onchange="toggleTimerInput()"
                                 class="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:border-green-500 focus:outline-none">
-                            <option value="manual">Manual Verification (Admin reviews)</option>
-                            <option value="auto">Auto-Complete (Instant)</option>
+                            <option value="auto_complete">Auto-Complete (Instant)</option>
+                            <option value="timer_based">Timer-Based (Configurable)</option>
                         </select>
                         <p class="text-xs text-gray-500 mt-1">
-                            <strong>Manual:</strong> User submits, admin approves<br>
-                            <strong>Auto:</strong> User gets points immediately after clicking
+                            <strong>Auto-Complete:</strong> Instant XP after clicking (recommended)<br>
+                            <strong>Timer-Based:</strong> User must wait X seconds before claiming
+                        </p>
+                    </div>
+
+                    <!-- Timer Configuration (only for timer_based) -->
+                    <div id="timerConfig" style="display: none;">
+                        <label class="block text-sm font-bold mb-2">⏱️ Timer Duration (seconds)</label>
+                        <input type="number" 
+                               id="timerSeconds"
+                               value="30"
+                               min="5"
+                               max="300"
+                               class="w-full px-4 py-3 bg-gray-800 border-2 border-gray-700 rounded-lg focus:border-green-500 focus:outline-none">
+                        <p class="text-xs text-gray-500 mt-1">
+                            User must wait this many seconds after clicking the link (5-300 seconds)
                         </p>
                     </div>
                 </div>
@@ -108,13 +123,13 @@
 
             <!-- Important Notes -->
             <div class="bg-green-500/10 border-2 border-green-500/30 rounded-lg p-4 mb-6">
-                <h3 class="font-bold text-green-400 mb-2">ℹ️ Website Quest Info:</h3>
+                <h3 class="font-bold text-green-400 mb-2">ℹ️ Website Quest Info (WebsiteLinkQuestHandler):</h3>
                 <ul class="text-sm text-gray-300 space-y-1">
                     <li>🔗 Perfect for: Driving traffic to your website</li>
-                    <li>✅ <strong>Auto-complete:</strong> User clicks link → Opens in new tab → Gets instant points (no verification needed!)</li>
-                    <li>✅ <strong>Manual:</strong> User submits → Admin reviews → Admin approves</li>
-                    <li>💡 <strong>Auto is RECOMMENDED</strong> for simple traffic generation</li>
-                    <li>⚡ Auto requires NO API calls - just click and reward!</li>
+                    <li>⚡ <strong>Auto-Complete (RECOMMENDED):</strong> Instant XP - no verification needed!</li>
+                    <li>⏱️ <strong>Timer-Based:</strong> User must wait X seconds (configurable) before claiming</li>
+                    <li>💡 <strong>Auto-Complete is BEST</strong> for traffic generation and user experience</li>
+                    <li>🎯 Uses: WebsiteLinkQuestHandler from backend</li>
                 </ul>
             </div>
 
@@ -145,6 +160,22 @@
         const API_URL = `${API_BASE}/api`;
         
         const authToken = localStorage.getItem('authToken');
+
+        // Toggle timer input based on verification type
+        function toggleTimerInput() {
+            const verificationType = document.getElementById('verificationType').value;
+            const timerConfig = document.getElementById('timerConfig');
+            
+            // Show/hide timer config
+            if (verificationType === 'timer_based') {
+                timerConfig.style.display = 'block';
+            } else {
+                timerConfig.style.display = 'none';
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', toggleTimerInput);
         
         console.log('Website Quest - API_URL:', API_URL);
         console.log('Website Quest - Has Token:', !!authToken);
@@ -185,6 +216,7 @@
             const isActive = document.getElementById('questActive').value === 'true';
             const url = document.getElementById('questUrl').value.trim();
             const verificationType = document.getElementById('verificationType').value;
+            const timerSeconds = parseInt(document.getElementById('timerSeconds').value) || 30;
 
             // Validation
             if (!title || !description) {
@@ -196,6 +228,26 @@
                 showAlert('Please enter a website URL', 'error');
                 return;
             }
+            
+            if (verificationType === 'timer_based' && (timerSeconds < 5 || timerSeconds > 300)) {
+                showAlert('Timer duration must be between 5 and 300 seconds', 'error');
+                return;
+            }
+            
+            if (!authToken) {
+                showAlert('❌ Not authenticated! Please login first.', 'error');
+                window.location.href = '/admin.html';
+                return;
+            }
+
+            // Prepare verification data based on type
+            let verificationData = {
+                method: verificationType
+            };
+            
+            if (verificationType === 'timer_based') {
+                verificationData.timer_seconds = timerSeconds;
+            }
 
             // Prepare quest data
             const questData = {
@@ -203,15 +255,17 @@
                 description,
                 points_reward: points,
                 is_active: isActive,
-                task_type: 'link',
+                task_type: 'visit',
                 platform: 'website',
                 url: url,
-                verification_required: verificationType === 'manual',
-                verification_data: {
-                    type: 'website_visit',
-                    method: verificationType
-                }
+                verification_required: false, // Website quests don't use manual verification
+                verification_data: verificationData
             };
+            
+            console.log('📝 Submitting Website Quest:', questData);
+            console.log('🔑 Auth Token:', authToken ? 'Present' : 'Missing');
+            console.log('🌐 API URL:', `${API_URL}/tasks`);
+
 
             try {
                 const response = await fetch(`${API_URL}/tasks`, {
@@ -222,19 +276,34 @@
                     },
                     body: JSON.stringify(questData)
                 });
+                
+                console.log('📡 Response Status:', response.status);
 
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        showAlert('❌ Unauthorized! Please login again.', 'error');
+                        localStorage.removeItem('authToken');
+                        setTimeout(() => {
+                            window.location.href = '/admin.html';
+                        }, 2000);
+                        return;
+                    }
+                    
                     const error = await response.json();
+                    console.error('❌ Error Response:', error);
                     throw new Error(error.detail || 'Failed to create quest');
                 }
 
+                const result = await response.json();
+                console.log('✅ Quest Created:', result);
+                
                 showAlert('✅ Website quest created successfully!', 'success');
                 setTimeout(() => {
                     window.location.href = '/admin.html#quests';
                 }, 1500);
                 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('❌ Error:', error);
                 showAlert('Error: ' + error.message, 'error');
             }
         }

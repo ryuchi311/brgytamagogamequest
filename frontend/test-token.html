@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .result {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .error {
+            background: #d32f2f;
+            color: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #4CAF50;
+            color: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔑 Token Test Tool</h1>
+    
+    <div class="result">
+        <strong>Current Token:</strong>
+        <div id="currentToken">Loading...</div>
+    </div>
+
+    <button onclick="testTokenVerify()">Test Token Verification</button>
+    <button onclick="testCreateTask()">Test Create Task</button>
+    <button onclick="clearToken()">Clear Token</button>
+    <button onclick="goToLogin()">Go to Login</button>
+
+    <div id="output"></div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:8000/api'
+            : `${window.location.protocol}//${window.location.hostname}/api`;
+
+        const authToken = localStorage.getItem('authToken');
+
+        // Display current token
+        document.getElementById('currentToken').textContent = authToken 
+            ? `${authToken.substring(0, 50)}... (${authToken.length} chars)` 
+            : '❌ No token found';
+
+        function showResult(title, data, isError = false) {
+            const output = document.getElementById('output');
+            const div = document.createElement('div');
+            div.className = isError ? 'error' : 'success';
+            div.innerHTML = `
+                <h3>${title}</h3>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            output.appendChild(div);
+        }
+
+        async function testTokenVerify() {
+            console.log('🔍 Testing token verification...');
+            console.log('Token:', authToken);
+            
+            if (!authToken) {
+                showResult('❌ No Token', { error: 'Please login first' }, true);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/verify`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (response.ok) {
+                    showResult('✅ Token Valid', data);
+                } else {
+                    showResult('❌ Token Invalid', data, true);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showResult('❌ Request Failed', { error: error.message }, true);
+            }
+        }
+
+        async function testCreateTask() {
+            console.log('🧪 Testing create task...');
+            console.log('Token:', authToken);
+            
+            if (!authToken) {
+                showResult('❌ No Token', { error: 'Please login first' }, true);
+                return;
+            }
+
+            const testTask = {
+                title: "Test Website Quest",
+                description: "Test quest created by token test tool",
+                points_reward: 10,
+                is_active: true,
+                task_type: 'visit',
+                platform: 'website',
+                url: 'https://example.com',
+                verification_required: false,
+                verification_data: {
+                    method: 'auto_complete'
+                }
+            };
+
+            console.log('Task data:', testTask);
+
+            try {
+                const response = await fetch(`${API_URL}/tasks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(testTask)
+                });
+
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (response.ok) {
+                    showResult('✅ Task Created', data);
+                } else {
+                    showResult('❌ Task Creation Failed', { 
+                        status: response.status,
+                        data: data 
+                    }, true);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showResult('❌ Request Failed', { error: error.message }, true);
+            }
+        }
+
+        function clearToken() {
+            localStorage.removeItem('authToken');
+            showResult('🗑️ Token Cleared', { message: 'Please refresh page' });
+            setTimeout(() => location.reload(), 1000);
+        }
+
+        function goToLogin() {
+            window.location.href = '/admin.html';
+        }
+    </script>
+</body>
+</html>

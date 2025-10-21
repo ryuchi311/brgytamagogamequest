@@ -160,7 +160,10 @@
                         <h2 class="text-xl font-black gaming-title gradient-text">🏆 Top Players</h2>
                     </div>
                     <div id="leaderboardContainer" class="space-y-3">
-                        <div class="text-center py-12 text-neon-blue">Loading rankings...</div>
+                        <div class="text-center py-8 text-gray-400">
+                            <div class="animate-spin text-4xl mb-2">⚡</div>
+                            <div>Loading rankings...</div>
+                        </div>
                     </div>
                 </section>
 
@@ -174,48 +177,48 @@
                 </section>
 
                 <section id="profile" class="tab-content hidden">
-                    <div class="mb-3">
-                        <h2 class="text-xl font-black gaming-title gradient-text">👤 Your Profile</h2>
+                    <div class="mb-2">
+                        <h2 class="text-lg font-black gaming-title gradient-text">👤 Your Profile</h2>
                     </div>
-                    <div class="space-y-3">
+                    <div class="space-y-2">
                         <!-- User Stats Card -->
-                        <div class="bg-gaming-dark/80 backdrop-blur-md rounded-2xl p-4 border border-neon-blue/30">
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="w-16 h-16 bg-gradient-to-br from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-3xl">👤</div>
+                        <div class="bg-gaming-dark/80 backdrop-blur-md rounded-xl p-3 border border-neon-blue/30">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-12 h-12 bg-gradient-to-br from-neon-blue to-neon-purple rounded-full flex items-center justify-center text-2xl">👤</div>
                                 <div class="flex-1">
-                                    <div class="text-lg font-bold gaming-title" id="profileUsername">Player</div>
+                                    <div class="text-base font-bold gaming-title" id="profileUsername">Player</div>
                                     <div class="text-xs text-gray-400">Level <span id="profileLevel">1</span></div>
                                 </div>
                             </div>
                             <div class="grid grid-cols-3 gap-2">
-                                <div class="bg-gaming-darker/50 rounded-xl p-3 text-center">
-                                    <div class="text-2xl font-black gaming-title text-neon-blue" id="profileQuests">0</div>
+                                <div class="bg-gaming-darker/50 rounded-lg p-2 text-center">
+                                    <div class="text-xl font-black gaming-title text-neon-blue" id="profileQuests">0</div>
                                     <div class="text-xs text-gray-400">Quests</div>
                                 </div>
-                                <div class="bg-gaming-darker/50 rounded-xl p-3 text-center">
-                                    <div class="text-2xl font-black gaming-title text-neon-purple" id="profileRank">-</div>
+                                <div class="bg-gaming-darker/50 rounded-lg p-2 text-center">
+                                    <div class="text-xl font-black gaming-title text-neon-purple" id="profileRank">-</div>
                                     <div class="text-xs text-gray-400">Rank</div>
                                 </div>
-                                <div class="bg-gaming-darker/50 rounded-xl p-3 text-center">
-                                    <div class="text-2xl font-black gaming-title text-neon-pink" id="profileXP">0</div>
+                                <div class="bg-gaming-darker/50 rounded-lg p-2 text-center">
+                                    <div class="text-xl font-black gaming-title text-neon-pink" id="profileXP">0</div>
                                     <div class="text-xs text-gray-400">XP</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Quest Activity Log -->
-                        <div class="bg-gaming-dark/80 backdrop-blur-md rounded-2xl p-4 border border-brand-gold/30">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-black gaming-title text-brand-gold">📜 Quest Activity</h3>
-                                <div class="flex gap-2 text-xs">
-                                    <button onclick="filterActivity('all')" id="filterAll" class="activity-filter active px-3 py-1 rounded-full bg-brand-gold/20 text-brand-gold">All</button>
-                                    <button onclick="filterActivity('success')" id="filterSuccess" class="activity-filter px-3 py-1 rounded-full bg-gray-700/50 text-gray-400">✓</button>
-                                    <button onclick="filterActivity('failed')" id="filterFailed" class="activity-filter px-3 py-1 rounded-full bg-gray-700/50 text-gray-400">✗</button>
+                        <div class="bg-gaming-dark/80 backdrop-blur-md rounded-xl p-3 border border-brand-gold/30">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-base font-black gaming-title text-brand-gold">📜 Quest Activity</h3>
+                                <div class="flex gap-1 text-xs">
+                                    <button onclick="filterActivity('all')" id="filterAll" class="activity-filter active px-2 py-1 rounded-full bg-brand-gold/20 text-brand-gold text-xs">All</button>
+                                    <button onclick="filterActivity('success')" id="filterSuccess" class="activity-filter px-2 py-1 rounded-full bg-gray-700/50 text-gray-400 text-xs">✓</button>
+                                    <button onclick="filterActivity('failed')" id="filterFailed" class="activity-filter px-2 py-1 rounded-full bg-gray-700/50 text-gray-400 text-xs">✗</button>
                                 </div>
                             </div>
                             
                             <!-- Activity Stats -->
-                            <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div class="grid grid-cols-3 gap-2 mb-3">
                                 <div class="bg-gaming-darker/50 rounded-lg p-2 text-center border border-gray-700/30">
                                     <div class="text-sm font-bold text-green-400" id="successCount">0</div>
                                     <div class="text-xs text-gray-500">Success</div>
@@ -231,9 +234,9 @@
                             </div>
 
                             <!-- Activity List -->
-                            <div id="activityContainer" class="space-y-2 max-h-96 overflow-y-auto">
-                                <div class="text-center py-8 text-gray-500 text-sm">
-                                    <div class="text-4xl mb-2">🎯</div>
+                            <div id="activityContainer" class="space-y-2 max-h-80 overflow-y-auto">
+                                <div class="text-center py-6 text-gray-500 text-sm">
+                                    <div class="text-3xl mb-2">🎯</div>
                                     <div>Complete quests to see your activity!</div>
                                 </div>
                             </div>
@@ -662,25 +665,92 @@
             }
         }
 
-        async function loadLeaderboard() {
+        async function loadLeaderboard(forceRefresh = false) {
+            const container = document.getElementById('leaderboardContainer');
+            
             try {
-                const response = await fetch(`${API_URL}/leaderboard`);
-                const leaders = await response.json();
-                const container = document.getElementById('leaderboardContainer');
+                // Check cache (unless force refresh)
+                const now = Date.now();
+                if (!forceRefresh && leaderboardCache && (now - leaderboardCacheTime) < LEADERBOARD_CACHE_DURATION) {
+                    console.log('Using cached leaderboard data');
+                    displayLeaderboard(leaderboardCache);
+                    return;
+                }
                 
-                container.innerHTML = leaders.map((user, i) => `
-                    <div class="bg-gaming-darker/50 rounded-xl p-4 border border-neon-blue/30 flex items-center gap-4">
-                        <div class="text-2xl font-black w-12 text-center">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}</div>
-                        <div class="flex-1">
-                            <div class="font-bold">${user.username || 'Player'}</div>
-                            <div class="text-xs text-gray-400">${user.completed_tasks || 0} quests</div>
-                        </div>
-                        <div class="text-xl font-black text-neon-green">${user.points}</div>
+                // Show loading state
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <div class="animate-spin text-4xl mb-2">⚡</div>
+                        <div>Loading rankings...</div>
                     </div>
-                `).join('');
+                `;
+                
+                const response = await fetch(`${API_URL}/leaderboard?limit=20`);
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const leaders = await response.json();
+                
+                // Update cache
+                leaderboardCache = leaders;
+                leaderboardCacheTime = now;
+                
+                // Display leaderboard
+                displayLeaderboard(leaders);
+                
             } catch (error) {
-                console.error(error);
+                console.error('Error loading leaderboard:', error);
+                container.innerHTML = `
+                    <div class="text-center py-12 text-red-400">
+                        <div class="text-5xl mb-3">⚠️</div>
+                        <div class="text-lg font-bold mb-1">Failed to Load Rankings</div>
+                        <div class="text-sm mb-4">${error.message || 'Please try again later'}</div>
+                        <button onclick="loadLeaderboard(true)" class="px-4 py-2 bg-neon-blue/20 hover:bg-neon-blue/30 border border-neon-blue rounded-lg transition-all">
+                            🔄 Retry
+                        </button>
+                    </div>
+                `;
             }
+        }
+        
+        function displayLeaderboard(leaders) {
+            const container = document.getElementById('leaderboardContainer');
+            
+            // Check if leaderboard is empty
+            if (!leaders || leaders.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-gray-500">
+                        <div class="text-5xl mb-3">🏆</div>
+                        <div class="text-lg font-bold mb-1">No Players Yet</div>
+                        <div class="text-sm">Complete quests to be the first on the leaderboard!</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Display leaderboard
+            container.innerHTML = leaders.map((user, i) => {
+                const rank = i + 1;
+                const rankDisplay = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${rank}`;
+                const isCurrentUser = user.telegram_id === TELEGRAM_ID;
+                const highlightClass = isCurrentUser ? 'border-brand-gold/50 bg-brand-gold/5' : 'border-neon-blue/30';
+                
+                return `
+                    <div class="bg-gaming-darker/50 rounded-xl p-3 border ${highlightClass} flex items-center gap-3 hover:bg-gaming-darker/70 transition-all">
+                        <div class="text-xl font-black w-10 text-center ${i < 3 ? 'text-2xl' : ''}">${rankDisplay}</div>
+                        <div class="flex-1">
+                            <div class="font-bold text-sm ${isCurrentUser ? 'text-brand-gold' : ''}">${user.username || 'Player'} ${isCurrentUser ? '(You)' : ''}</div>
+                            <div class="text-xs text-gray-400">${user.completed_tasks || 0} quests completed</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-black text-neon-green">${user.points}</div>
+                            <div class="text-xs text-gray-500">XP</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function loadRewards() {
@@ -712,6 +782,11 @@
         // Store user activities globally
         let userActivities = [];
         let currentActivityFilter = 'all';
+        
+        // Cache leaderboard data to avoid repeated API calls
+        let leaderboardCache = null;
+        let leaderboardCacheTime = 0;
+        const LEADERBOARD_CACHE_DURATION = 30000; // 30 seconds
 
         async function loadProfile() {
             try {
@@ -722,12 +797,44 @@
                 document.getElementById('profileUsername').textContent = user.username || 'Player';
                 document.getElementById('profileLevel').textContent = level;
                 document.getElementById('profileXP').textContent = user.points;
-                document.getElementById('profileQuests').textContent = user.completed_tasks || 0;
                 
-                // Load quest activity
+                // Load quest activity first to get completed count
                 await loadUserActivity();
+                
+                // Calculate completed quests from activity
+                const completedCount = userActivities.filter(t => t.status === 'completed').length;
+                document.getElementById('profileQuests').textContent = completedCount;
+                
+                // Load and calculate rank from leaderboard
+                await loadUserRank(user.telegram_id, user.points);
             } catch (error) {
                 console.error(error);
+            }
+        }
+
+        async function loadUserRank(telegramId, userPoints) {
+            try {
+                // Fetch leaderboard (top 100 to find user rank)
+                const response = await fetch(`${API_URL}/leaderboard?limit=100`);
+                const leaderboard = await response.json();
+                
+                // Find user's rank
+                const userRank = leaderboard.findIndex(u => u.telegram_id === telegramId) + 1;
+                
+                if (userRank > 0) {
+                    document.getElementById('profileRank').textContent = `#${userRank}`;
+                } else {
+                    // User not in top 100, estimate rank
+                    const usersAbove = leaderboard.filter(u => u.points > userPoints).length;
+                    if (usersAbove === 100) {
+                        document.getElementById('profileRank').textContent = '100+';
+                    } else {
+                        document.getElementById('profileRank').textContent = `#${usersAbove + 1}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading rank:', error);
+                document.getElementById('profileRank').textContent = '-';
             }
         }
 
@@ -800,12 +907,14 @@
                 const date = new Date(activity.completed_at || activity.updated_at);
                 const timeAgo = getTimeAgo(date);
                 
-                const points = isSuccess ? `+${activity.points_earned || 0} XP` : isFailed ? '0 XP' : '...';
+                // Get XP - use points_earned if available, otherwise 0
+                const xpEarned = activity.points_earned || 0;
+                const points = isSuccess ? `+${xpEarned} XP` : isFailed ? '0 XP' : '...';
                 
                 return `
-                    <div class="bg-gaming-darker/50 rounded-lg p-3 border-l-4 border-${statusColor}-500/50 hover:bg-gaming-darker/70 transition-all">
-                        <div class="flex items-start gap-3">
-                            <div class="text-2xl">${statusIcon}</div>
+                    <div class="bg-gaming-darker/50 rounded-lg p-2.5 border-l-4 border-${statusColor}-500/50 hover:bg-gaming-darker/70 transition-all">
+                        <div class="flex items-start gap-2">
+                            <div class="text-xl">${statusIcon}</div>
                             <div class="flex-1">
                                 <div class="flex items-center justify-between mb-1">
                                     <div class="text-sm font-bold">${activity.task_title || 'Quest'}</div>

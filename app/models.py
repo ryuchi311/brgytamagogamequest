@@ -437,9 +437,40 @@ class DatabaseService:
     
     @staticmethod
     def get_leaderboard(limit: int = 10) -> List[dict]:
-        """Get top users by points"""
-        response = supabase.table("users").select("*").eq("is_active", True).eq("is_banned", False).order("points", desc=True).limit(limit).execute()
-        return response.data or []
+        """Get top users by points with completed tasks count - simplified approach"""
+        try:
+            # Get top users by points
+            response = supabase.table("users")\
+                .select("*")\
+                .eq("is_active", True)\
+                .eq("is_banned", False)\
+                .order("points", desc=True)\
+                .limit(limit)\
+                .execute()
+            
+            users = response.data or []
+            
+            # Add completed tasks count for each user - simplified query
+            for user in users:
+                try:
+                    # Get all completed tasks for this user
+                    tasks = supabase.table("user_tasks")\
+                        .select("id")\
+                        .eq("user_id", user['id'])\
+                        .eq("status", "completed")\
+                        .execute()
+                    
+                    # Count manually from returned data
+                    user['completed_tasks'] = len(tasks.data) if tasks.data else 0
+                except Exception as e:
+                    print(f"Error counting tasks for user {user.get('id')}: {e}")
+                    user['completed_tasks'] = 0
+            
+            return users
+            
+        except Exception as e:
+            print(f"Error getting leaderboard: {e}")
+            return []
     
     @staticmethod
     def get_active_rewards() -> List[dict]:

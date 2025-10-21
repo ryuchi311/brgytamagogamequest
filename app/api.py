@@ -493,10 +493,15 @@ async def verify_task_completion(request: dict):
         if pending_task.data:
             # Update existing
             user_task_id = pending_task.data[0]['id']
-            supabase.table("user_tasks").update({
+            update_data = {
                 "status": "pending" if needs_pending else "completed",
                 "completed_at": None if needs_pending else datetime.now(timezone.utc).isoformat()
-            }).eq("id", user_task_id).execute()
+            }
+            # Add points_earned for completed tasks
+            if not needs_pending:
+                update_data["points_earned"] = task.get('points_reward', 0)
+            
+            supabase.table("user_tasks").update(update_data).eq("id", user_task_id).execute()
         else:
             # Create new
             user_task_data = {
@@ -505,6 +510,10 @@ async def verify_task_completion(request: dict):
                 "status": "pending" if needs_pending else "completed",
                 "completed_at": None if needs_pending else datetime.now(timezone.utc).isoformat()
             }
+            # Add points_earned for completed tasks
+            if not needs_pending:
+                user_task_data["points_earned"] = task.get('points_reward', 0)
+            
             supabase.table("user_tasks").insert(user_task_data).execute()
         
         # Award points immediately for completed tasks (not YouTube or manual pending)
@@ -1043,7 +1052,9 @@ async def verify_video_code(request: dict):
     user_task_data = {
         "user_id": user_id,
         "task_id": task['id'],
-        "status": "verified"
+        "status": "verified",
+        "points_earned": task['points_reward'],
+        "completed_at": now.isoformat()
     }
     supabase.table("user_tasks").insert(user_task_data).execute()
     
@@ -1217,6 +1228,7 @@ async def verify_twitter_action(request: dict):
         "user_id": user_id,
         "task_id": task_id,
         "status": "verified",
+        "points_earned": task['points_reward'],
         "completed_at": now.isoformat(),
         "verified_at": now.isoformat()
     }

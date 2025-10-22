@@ -1,8 +1,12 @@
 <!DOCTYPE html>
+<!-- VERSION: 2.0.1 - Telegram Verification Update -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title>Gaming Quest Hub | Earn XP & Rewards</title>
@@ -315,31 +319,31 @@
 
                 <!-- UNIFIED QUEST DETAIL PAGE (Dynamic based on task_type) -->
                 <section id="questDetailPage" class="tab-content hidden">
-                    <div class="min-h-screen pb-24">
+                    <div class="min-h-screen pb-20">
                         <!-- Back Button -->
-                        <button onclick="backToQuestList()" class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 p-2">
-                            <span class="text-2xl">←</span>
+                        <button onclick="backToQuestList()" class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4 p-2">
+                            <span class="text-xl">←</span>
                         </button>
                         
-                        <!-- Quest Title Section -->
-                        <div class="text-center mb-8">
-                            <h1 class="text-2xl font-black mb-3" id="questTitle">Quest Title</h1>
-                            <p class="text-gray-400 text-sm mb-6" id="questDescription">Complete this quest to earn rewards</p>
+                        <!-- Quest Title Section - Compact -->
+                        <div class="text-center mb-4">
+                            <h1 class="text-xl font-bold mb-2" id="questTitle">Quest Title</h1>
+                            <p class="text-gray-400 text-xs mb-4" id="questDescription">Complete this quest to earn rewards</p>
                             
-                            <!-- Reward Display -->
-                            <div class="inline-flex items-center gap-2 bg-gaming-dark/60 rounded-2xl px-6 py-3 border border-neon-blue/30">
-                                <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
-                                    <span class="text-2xl">●</span>
+                            <!-- Reward Display - Compact -->
+                            <div class="inline-flex items-center gap-2 bg-gaming-dark/60 rounded-xl px-4 py-2 border border-yellow-500/30">
+                                <div class="w-8 h-8 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+                                    <span class="text-lg">●</span>
                                 </div>
                                 <div class="text-left">
-                                    <div class="text-xs text-gray-400">Reward</div>
-                                    <div class="text-lg font-black text-yellow-400" id="questPoints">0</div>
+                                    <div class="text-[10px] text-gray-400 uppercase tracking-wide">Reward</div>
+                                    <div class="text-base font-black text-yellow-400" id="questPoints">0</div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Instructions Section (Different per task type) -->
-                        <div id="questInstructions" class="mb-6"></div>
+                        <div id="questInstructions" class="mb-4"></div>
 
                         <!-- Dynamic Content Area (Changes based on task_type) -->
                         <div id="questDynamicContent"></div>
@@ -1820,20 +1824,18 @@
         function generateInstructions(task, taskType, verificationData) {
             let instructions = '';
             
-            // YouTube Watch Quest
+            // YouTube Watch Quest - Compact
             if (taskType === 'youtube' || taskType === 'youtube_watch') {
                 instructions = `
-                    <div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 mb-4">
-                        <div class="flex items-start gap-3">
-                            <div class="text-2xl">📺</div>
+                    <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-3">
+                        <div class="flex items-start gap-2">
+                            <div class="text-xl">📺</div>
                             <div class="flex-1">
-                                <h4 class="font-bold text-red-400 mb-2">How to complete this quest:</h4>
-                                <ol class="space-y-2 text-sm text-gray-300">
-                                    <li class="flex gap-2"><span class="text-red-400 font-bold">1.</span> Click "Start mission" to open the YouTube video</li>
-                                    <li class="flex gap-2"><span class="text-red-400 font-bold">2.</span> Watch the entire video carefully</li>
-                                    <li class="flex gap-2"><span class="text-red-400 font-bold">3.</span> Look for the verification code shown in the video</li>
-                                    <li class="flex gap-2"><span class="text-red-400 font-bold">4.</span> Wait for the timer to complete (${task.min_watch_time_seconds || verificationData.min_watch_time || 30} seconds)</li>
-                                    <li class="flex gap-2"><span class="text-red-400 font-bold">5.</span> Enter the code and click "Claim" to get your reward</li>
+                                <h4 class="font-bold text-red-400 text-sm mb-1.5">How to complete:</h4>
+                                <ol class="space-y-1 text-xs text-gray-300">
+                                    <li class="flex gap-1.5"><span class="text-red-400 font-bold">1.</span> Watch the video at 0:${String(task.min_watch_time_seconds || verificationData.min_watch_time || 30).padStart(2, '0')}</li>
+                                    <li class="flex gap-1.5"><span class="text-red-400 font-bold">2.</span> Find the verification code</li>
+                                    <li class="flex gap-1.5"><span class="text-red-400 font-bold">3.</span> Enter code & claim reward</li>
                                 </ol>
                             </div>
                         </div>
@@ -1844,17 +1846,15 @@
             // Twitter Follow
             else if (taskType === 'twitter_follow') {
                 instructions = `
-                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 mb-4">
-                        <div class="flex items-start gap-3">
-                            <div class="text-2xl">🐦</div>
+                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 mb-3">
+                        <div class="flex items-start gap-2">
+                            <div class="text-xl">🐦</div>
                             <div class="flex-1">
-                                <h4 class="font-bold text-blue-400 mb-2">How to complete this quest:</h4>
-                                <ol class="space-y-2 text-sm text-gray-300">
-                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">1.</span> Click "Start mission" to open Twitter</li>
-                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">2.</span> Follow @${verificationData.username || 'BRGYTamago'} on Twitter</li>
-                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">3.</span> Return here and click "Claim" to verify and get your reward</li>
+                                <h4 class="font-bold text-blue-400 text-sm mb-1.5">How to complete:</h4>
+                                <ol class="space-y-1 text-xs text-gray-300">
+                                    <li class="flex gap-1.5"><span class="text-blue-400 font-bold">1.</span> Follow @${verificationData.username || 'BRGYTamago'}</li>
+                                    <li class="flex gap-1.5"><span class="text-blue-400 font-bold">2.</span> Return & claim reward</li>
                                 </ol>
-                                <p class="text-xs text-yellow-400 mt-3">⚠️ Make sure you're logged into Twitter before clicking Start mission</p>
                             </div>
                         </div>
                     </div>
@@ -1864,15 +1864,14 @@
             // Twitter Like
             else if (taskType === 'twitter_like') {
                 instructions = `
-                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 mb-4">
-                        <div class="flex items-start gap-3">
-                            <div class="text-2xl">❤️</div>
+                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 mb-3">
+                        <div class="flex items-start gap-2">
+                            <div class="text-xl">❤️</div>
                             <div class="flex-1">
-                                <h4 class="font-bold text-blue-400 mb-2">How to complete this quest:</h4>
-                                <ol class="space-y-2 text-sm text-gray-300">
-                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">1.</span> Click "Start mission" to open the tweet</li>
-                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">2.</span> Click the ❤️ (Like) button on the tweet</li>
-                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">3.</span> Return here and click "Claim" to get your reward</li>
+                                <h4 class="font-bold text-blue-400 text-sm mb-1.5">How to complete:</h4>
+                                <ol class="space-y-1 text-xs text-gray-300">
+                                    <li class="flex gap-1.5"><span class="text-blue-400 font-bold">1.</span> Like the tweet</li>
+                                    <li class="flex gap-1.5"><span class="text-blue-400 font-bold">2.</span> Return & claim reward</li>
                                 </ol>
                             </div>
                         </div>
@@ -1883,16 +1882,14 @@
             // Twitter Retweet
             else if (taskType === 'twitter_retweet') {
                 instructions = `
-                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 mb-4">
-                        <div class="flex items-start gap-3">
-                            <div class="text-2xl">🔄</div>
+                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 mb-3">
+                        <div class="flex items-start gap-2">
+                            <div class="text-xl">🔄</div>
                             <div class="flex-1">
-                                <h4 class="font-bold text-blue-400 mb-2">How to complete this quest:</h4>
-                                <ol class="space-y-2 text-sm text-gray-300">
-                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">1.</span> Click "Start mission" to open the tweet</li>
-                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">2.</span> Click the 🔄 (Retweet) button</li>
-                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">3.</span> Confirm the retweet</li>
-                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">4.</span> Return here and click "Claim" to get your reward</li>
+                                <h4 class="font-bold text-blue-400 text-sm mb-1.5">How to complete:</h4>
+                                <ol class="space-y-1 text-xs text-gray-300">
+                                    <li class="flex gap-1.5"><span class="text-blue-400 font-bold">1.</span> Retweet the post</li>
+                                    <li class="flex gap-1.5"><span class="text-blue-400 font-bold">2.</span> Return & claim reward</li>
                                 </ol>
                             </div>
                         </div>
@@ -1901,19 +1898,17 @@
             }
             
             // Telegram Join
-            else if (taskType.startsWith('telegram_')) {
+            else if (taskType.startsWith('telegram_') || taskType === 'telegram' || task.platform === 'telegram') {
                 instructions = `
-                    <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-2xl p-4 mb-4">
-                        <div class="flex items-start gap-3">
-                            <div class="text-2xl">✈️</div>
+                    <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-3 mb-3">
+                        <div class="flex items-start gap-2">
+                            <div class="text-xl">✈️</div>
                             <div class="flex-1">
-                                <h4 class="font-bold text-cyan-400 mb-2">How to complete this quest:</h4>
-                                <ol class="space-y-2 text-sm text-gray-300">
-                                    <li class="flex gap-2"><span class="text-cyan-400 font-bold">1.</span> Click "Start mission" to open Telegram</li>
-                                    <li class="flex gap-2"><span class="text-cyan-400 font-bold">2.</span> Join the channel/group</li>
-                                    <li class="flex gap-2"><span class="text-cyan-400 font-bold">3.</span> Return here and click "Claim" to verify and get your reward</li>
+                                <h4 class="font-bold text-cyan-400 text-sm mb-1.5">How to complete:</h4>
+                                <ol class="space-y-1 text-xs text-gray-300">
+                                    <li class="flex gap-1.5"><span class="text-cyan-400 font-bold">1.</span> Join the channel/group</li>
+                                    <li class="flex gap-1.5"><span class="text-cyan-400 font-bold">2.</span> Return & claim reward</li>
                                 </ol>
-                                <p class="text-xs text-yellow-400 mt-3">⚠️ Make sure Telegram is installed on your device</p>
                             </div>
                         </div>
                     </div>
@@ -1923,15 +1918,14 @@
             // Instagram Follow
             else if (task.platform === 'instagram' || taskType.includes('instagram')) {
                 instructions = `
-                    <div class="bg-pink-500/10 border border-pink-500/30 rounded-2xl p-4 mb-4">
-                        <div class="flex items-start gap-3">
-                            <div class="text-2xl">📷</div>
+                    <div class="bg-pink-500/10 border border-pink-500/30 rounded-xl p-3 mb-3">
+                        <div class="flex items-start gap-2">
+                            <div class="text-xl">📷</div>
                             <div class="flex-1">
-                                <h4 class="font-bold text-pink-400 mb-2">How to complete this quest:</h4>
-                                <ol class="space-y-2 text-sm text-gray-300">
-                                    <li class="flex gap-2"><span class="text-pink-400 font-bold">1.</span> Click "Start mission" to open Instagram</li>
-                                    <li class="flex gap-2"><span class="text-pink-400 font-bold">2.</span> Follow our Instagram account</li>
-                                    <li class="flex gap-2"><span class="text-pink-400 font-bold">3.</span> Return here and click "Claim" to get your reward</li>
+                                <h4 class="font-bold text-pink-400 text-sm mb-1.5">How to complete:</h4>
+                                <ol class="space-y-1 text-xs text-gray-300">
+                                    <li class="flex gap-1.5"><span class="text-pink-400 font-bold">1.</span> Follow our Instagram</li>
+                                    <li class="flex gap-1.5"><span class="text-pink-400 font-bold">2.</span> Return & claim reward</li>
                                 </ol>
                             </div>
                         </div>
@@ -1942,16 +1936,15 @@
             // Discord Join
             else if (task.platform === 'discord' || taskType.includes('discord')) {
                 instructions = `
-                    <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-2xl p-4 mb-4">
-                        <div class="flex items-start gap-3">
-                            <div class="text-2xl">💬</div>
+                    <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-3 mb-3">
+                        <div class="flex items-start gap-2">
+                            <div class="text-xl">💬</div>
                             <div class="flex-1">
-                                <h4 class="font-bold text-indigo-400 mb-2">How to complete this quest:</h4>
-                                <ol class="space-y-2 text-sm text-gray-300">
-                                    <li class="flex gap-2"><span class="text-indigo-400 font-bold">1.</span> Click "Start mission" to get the Discord invite link</li>
-                                    <li class="flex gap-2"><span class="text-indigo-400 font-bold">2.</span> Join our Discord server</li>
-                                    <li class="flex gap-2"><span class="text-indigo-400 font-bold">3.</span> Say "Hi" in the general channel</li>
-                                    <li class="flex gap-2"><span class="text-indigo-400 font-bold">4.</span> Return here and click "Claim" to get your reward</li>
+                                <h4 class="font-bold text-indigo-400 text-sm mb-1.5">How to complete:</h4>
+                                <ol class="space-y-1 text-xs text-gray-300">
+                                    <li class="flex gap-1.5"><span class="text-indigo-400 font-bold">1.</span> Join Discord server</li>
+                                    <li class="flex gap-1.5"><span class="text-indigo-400 font-bold">2.</span> Say "Hi" in general</li>
+                                    <li class="flex gap-1.5"><span class="text-indigo-400 font-bold">3.</span> Return & claim reward</li>
                                 </ol>
                             </div>
                         </div>
@@ -1962,16 +1955,14 @@
             // Daily Check-in
             else if (taskType === 'daily_checkin') {
                 instructions = `
-                    <div class="bg-green-500/10 border border-green-500/30 rounded-2xl p-4 mb-4">
-                        <div class="flex items-start gap-3">
-                            <div class="text-2xl">📅</div>
+                    <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-3 mb-3">
+                        <div class="flex items-start gap-2">
+                            <div class="text-xl">📅</div>
                             <div class="flex-1">
-                                <h4 class="font-bold text-green-400 mb-2">Daily Check-in Reward:</h4>
-                                <p class="text-sm text-gray-300 mb-2">Come back every day to collect your daily reward!</p>
-                                <ol class="space-y-2 text-sm text-gray-300">
-                                    <li class="flex gap-2"><span class="text-green-400 font-bold">1.</span> Click "Start mission" to begin</li>
-                                    <li class="flex gap-2"><span class="text-green-400 font-bold">2.</span> Click "Claim" to get your daily reward</li>
-                                    <li class="flex gap-2"><span class="text-green-400 font-bold">3.</span> Come back tomorrow for more rewards!</li>
+                                <h4 class="font-bold text-green-400 text-sm mb-1.5">Daily Check-in:</h4>
+                                <ol class="space-y-1 text-xs text-gray-300">
+                                    <li class="flex gap-1.5"><span class="text-green-400 font-bold">1.</span> Click to claim daily reward</li>
+                                    <li class="flex gap-1.5"><span class="text-green-400 font-bold">2.</span> Come back tomorrow!</li>
                                 </ol>
                             </div>
                         </div>
@@ -1982,15 +1973,14 @@
             // Default
             else {
                 instructions = `
-                    <div class="bg-purple-500/10 border border-purple-500/30 rounded-2xl p-4 mb-4">
-                        <div class="flex items-start gap-3">
-                            <div class="text-2xl">🎯</div>
+                    <div class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3 mb-3">
+                        <div class="flex items-start gap-2">
+                            <div class="text-xl">🎯</div>
                             <div class="flex-1">
-                                <h4 class="font-bold text-purple-400 mb-2">How to complete this quest:</h4>
-                                <ol class="space-y-2 text-sm text-gray-300">
-                                    <li class="flex gap-2"><span class="text-purple-400 font-bold">1.</span> Click "Start mission" to begin</li>
-                                    <li class="flex gap-2"><span class="text-purple-400 font-bold">2.</span> Complete the required action</li>
-                                    <li class="flex gap-2"><span class="text-purple-400 font-bold">3.</span> Return here and click "Claim" to get your reward</li>
+                                <h4 class="font-bold text-purple-400 text-sm mb-1.5">How to complete:</h4>
+                                <ol class="space-y-1 text-xs text-gray-300">
+                                    <li class="flex gap-1.5"><span class="text-purple-400 font-bold">1.</span> Complete required action</li>
+                                    <li class="flex gap-1.5"><span class="text-purple-400 font-bold">2.</span> Return & claim reward</li>
                                 </ol>
                             </div>
                         </div>
@@ -2346,11 +2336,25 @@
             }
             
             // Telegram Quests
-            else if (taskType.startsWith('telegram_')) {
+            else if (taskType.startsWith('telegram_') || taskType === 'telegram' || platform === 'telegram') {
                 return {
                     html: `
-                        <button onclick="submitQuest()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
-                            Join Telegram
+                        <!-- Join Telegram Button -->
+                        <button id="telegramJoinBtn" onclick="openTelegramAndPrepareVerification()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 rounded-2xl p-4 font-bold text-lg mb-4 active:scale-95 transition-all shadow-lg">
+                            ✈️ Join Now
+                        </button>
+                        
+                        <!-- Verify Membership Button (Hidden Initially) -->
+                        <button id="telegramVerifyBtn" onclick="verifyTelegramMembership()" class="hidden w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 rounded-2xl p-4 font-bold text-lg mb-4 active:scale-95 transition-all shadow-lg">
+                            🔍 Verify Me
+                        </button>
+                        
+                        <!-- Verification Status -->
+                        <div id="telegramVerificationStatus" class="hidden mb-4"></div>
+                        
+                        <!-- Claim Button (Hidden Initially) -->
+                        <button id="telegramClaimBtn" onclick="handleTelegramClaim()" class="hidden w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 font-bold text-lg active:scale-95 transition-all shadow-lg">
+                            ✅ Claim Reward
                         </button>
                     `
                 };
@@ -2526,7 +2530,7 @@
             }
             
             // Telegram Join
-            else if (taskType.startsWith('telegram_')) {
+            else if (taskType.startsWith('telegram_') || taskType === 'telegram' || task.platform === 'telegram') {
                 tasks.push({
                     id: 'join',
                     text: 'Join the Telegram chat',
@@ -3113,6 +3117,441 @@
             }
         }
 
+        // Telegram Quest Functions
+        function openTelegramAndPrepareVerification() {
+            console.log('✈️ OPEN TELEGRAM GROUP');
+            console.log('Task URL:', currentTaskUrl);
+            
+            // Update button state
+            const joinBtn = document.getElementById('telegramJoinBtn');
+            if (joinBtn) {
+                joinBtn.style.display = 'none';
+            }
+            
+            // Show instructions
+            const statusDiv = document.getElementById('telegramVerificationStatus');
+            if (statusDiv) {
+                statusDiv.classList.remove('hidden');
+                statusDiv.innerHTML = `
+                    <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4 mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">👉</div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-cyan-400">Join the group, then come back here</p>
+                                <p class="text-xs text-gray-400 mt-1">After joining, click "Verify Membership"</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Show verify button immediately
+            const verifyBtn = document.getElementById('telegramVerifyBtn');
+            if (verifyBtn) {
+                verifyBtn.classList.remove('hidden');
+            }
+            
+            // Mark task as in progress
+            const telegramTask = document.querySelector('[data-task-id="join"]');
+            if (telegramTask) {
+                telegramTask.querySelector('.task-status').innerHTML = '<span class="text-yellow-400 text-xl">⏳</span>';
+            }
+            
+            // Open Telegram using the proper method for Telegram Web Apps
+            if (currentTaskUrl) {
+                try {
+                    // Check if Telegram WebApp is available
+                    if (window.Telegram?.WebApp) {
+                        // Use Telegram WebApp's openTelegramLink to open the group
+                        // This keeps the mini app alive in the background
+                        window.Telegram.WebApp.openTelegramLink(currentTaskUrl);
+                        console.log('✅ Opened Telegram link using WebApp API');
+                    } else {
+                        // Fallback: open in new window (for testing in browser)
+                        window.open(currentTaskUrl, '_blank');
+                        console.log('✅ Opened in new window (testing mode)');
+                    }
+                } catch (error) {
+                    console.error('Error opening Telegram link:', error);
+                    // Final fallback
+                    window.open(currentTaskUrl, '_blank');
+                }
+            }
+        }
+        
+        function verifyTelegramMembership() {
+            console.log('🔍 Verifying Telegram membership...');
+            
+            const statusDiv = document.getElementById('telegramVerificationStatus');
+            const verifyBtn = document.getElementById('telegramVerifyBtn');
+            
+            // Show loading state
+            if (statusDiv) {
+                statusDiv.innerHTML = `
+                    <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="animate-spin">
+                                <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-cyan-400">Verifying membership...</p>
+                                <p class="text-xs text-gray-400 mt-1">Checking with Telegram Bot API</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (verifyBtn) {
+                verifyBtn.disabled = true;
+                verifyBtn.innerHTML = '⏳ Checking...';
+            }
+            
+            // Get Telegram user ID
+            const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('telegram_id');
+            
+            if (!telegramId) {
+                console.error('❌ No Telegram ID found');
+                showVerificationError('Could not get your Telegram ID. Please reload the app.');
+                return;
+            }
+            
+            console.log('Using Telegram ID:', telegramId);
+            console.log('Task ID:', currentTaskId);
+            
+            // Call backend to verify membership via Telegram Bot API
+            fetch(`${API_URL}/tasks/${currentTaskId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    telegram_id: telegramId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Verification result:', result);
+                
+                if (result.success) {
+                    // Membership verified!
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `
+                            <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-2xl">✅</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-bold text-green-400">Membership Verified!</p>
+                                        <p class="text-xs text-gray-400 mt-1">You have successfully joined the group</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Mark task as complete
+                    const telegramTask = document.querySelector('[data-task-id="join"]');
+                    if (telegramTask) {
+                        telegramTask.querySelector('.task-status').innerHTML = '<span class="text-green-400 text-xl">✓</span>';
+                    }
+                    
+                    // Hide verify button, show claim button
+                    if (verifyBtn) {
+                        verifyBtn.style.display = 'none';
+                    }
+                    
+                    const claimBtn = document.getElementById('telegramClaimBtn');
+                    if (claimBtn) {
+                        claimBtn.classList.remove('hidden');
+                        // Store the result for claiming
+                        window.telegramVerificationResult = result;
+                    }
+                    
+                    console.log('✅ Telegram membership verified!');
+                } else {
+                    // Verification failed - user hasn't joined yet
+                    const errorMessage = result.message || 'Please join the group first, then verify again';
+                    
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `
+                            <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-2xl">❌</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-bold text-red-400">Not a Member Yet</p>
+                                        <p class="text-xs text-gray-400 mt-1">${errorMessage}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (verifyBtn) {
+                        verifyBtn.disabled = false;
+                        verifyBtn.innerHTML = '🔍 Verify Again';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('❌ Verification error:', error);
+                showVerificationError('Connection error. Please try again.');
+            });
+        }
+        
+        function showVerificationError(message) {
+            const statusDiv = document.getElementById('telegramVerificationStatus');
+            const verifyBtn = document.getElementById('telegramVerifyBtn');
+            
+            if (statusDiv) {
+                statusDiv.innerHTML = `
+                    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">⚠️</div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-yellow-400">Error</p>
+                                <p class="text-xs text-gray-400 mt-1">${message}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (verifyBtn) {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '🔄 Try Again';
+            }
+        }
+        
+        function handleTelegramClaim() {
+            console.log('🎁 Claiming Telegram reward...');
+            
+            const claimBtn = document.getElementById('telegramClaimBtn');
+            if (claimBtn) {
+                claimBtn.innerHTML = '🎉 Claiming...';
+                claimBtn.disabled = true;
+            }
+            
+            // Get the verification result
+            const result = window.telegramVerificationResult || {};
+            const pointsEarned = result.points_earned || result.new_total || currentTask?.points_reward || 0;
+            
+            // Show success animation
+            setTimeout(() => {
+                const successMsg = document.createElement('div');
+                successMsg.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50';
+                successMsg.innerHTML = `
+                    <div class="bg-gradient-to-br from-green-500 to-emerald-600 text-white px-8 py-6 rounded-2xl shadow-2xl text-center max-w-sm mx-4 animate-bounce">
+                        <div class="text-5xl mb-3">🎉</div>
+                        <div class="text-2xl font-bold mb-2">Quest Complete!</div>
+                        <div class="text-xl mb-2">+${pointsEarned} Points</div>
+                        <div class="text-sm opacity-90 mt-3">Returning to quests...</div>
+                    </div>
+                `;
+                document.body.appendChild(successMsg);
+                
+                // Return to quest list
+                setTimeout(() => {
+                    successMsg.remove();
+                    backToQuestList();
+                    // Reload tasks to show updated status
+                    if (typeof loadTasks === 'function') {
+                        loadTasks();
+                    }
+                }, 2000);
+            }, 500);
+        }
+        
+        function verifyTelegramMembership() {
+            console.log('🔍 Verifying Telegram membership...');
+            
+            const statusDiv = document.getElementById('telegramVerificationStatus');
+            const verifyBtn = document.getElementById('telegramVerifyBtn');
+            
+            // Show loading state
+            if (statusDiv) {
+                statusDiv.innerHTML = `
+                    <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="animate-spin">
+                                <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-cyan-400">Verifying membership...</p>
+                                <p class="text-xs text-gray-400 mt-1">Checking with Telegram Bot API</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (verifyBtn) {
+                verifyBtn.disabled = true;
+                verifyBtn.innerHTML = '⏳ Checking...';
+            }
+            
+            // Get Telegram user ID
+            const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('telegram_id');
+            
+            if (!telegramId) {
+                console.error('❌ No Telegram ID found');
+                showVerificationError('Could not get your Telegram ID. Please reload the app.');
+                return;
+            }
+            
+            // Call backend to verify membership via Telegram Bot API
+            fetch(`${API_URL}/tasks/${currentTaskId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    telegram_id: telegramId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Verification result:', result);
+                
+                if (result.success) {
+                    // Membership verified!
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `
+                            <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-2xl">✅</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-bold text-green-400">Membership Verified!</p>
+                                        <p class="text-xs text-gray-400 mt-1">You have successfully joined the group</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Mark task as complete
+                    const telegramTask = document.querySelector('[data-task-id="join"]');
+                    if (telegramTask) {
+                        telegramTask.querySelector('.task-status').innerHTML = '<span class="text-green-400 text-xl">✓</span>';
+                    }
+                    
+                    // Hide verify button, show claim button
+                    if (verifyBtn) {
+                        verifyBtn.style.display = 'none';
+                    }
+                    
+                    const claimBtn = document.getElementById('telegramClaimBtn');
+                    if (claimBtn) {
+                        claimBtn.classList.remove('hidden');
+                        // Store the result for claiming
+                        window.telegramVerificationResult = result;
+                    }
+                    
+                    // Hide join button
+                    const joinBtn = document.getElementById('telegramJoinBtn');
+                    if (joinBtn) {
+                        joinBtn.style.display = 'none';
+                    }
+                    
+                    console.log('✅ Telegram membership verified!');
+                } else {
+                    // Verification failed - user hasn't joined yet
+                    const errorMessage = result.message || 'Please join the group first, then verify again';
+                    
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `
+                            <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-2xl">❌</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-bold text-red-400">Not a Member Yet</p>
+                                        <p class="text-xs text-gray-400 mt-1">${errorMessage}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (verifyBtn) {
+                        verifyBtn.disabled = false;
+                        verifyBtn.innerHTML = '🔍 Verify Again';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('❌ Verification error:', error);
+                showVerificationError('Connection error. Please try again.');
+            });
+        }
+        
+        function showVerificationError(message) {
+            const statusDiv = document.getElementById('telegramVerificationStatus');
+            const verifyBtn = document.getElementById('telegramVerifyBtn');
+            
+            if (statusDiv) {
+                statusDiv.innerHTML = `
+                    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">⚠️</div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-yellow-400">Error</p>
+                                <p class="text-xs text-gray-400 mt-1">${message}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (verifyBtn) {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '🔄 Try Again';
+            }
+        }
+        
+        function handleTelegramClaim() {
+            console.log('🎁 Claiming Telegram reward...');
+            
+            const claimBtn = document.getElementById('telegramClaimBtn');
+            if (claimBtn) {
+                claimBtn.innerHTML = '🎉 Claiming...';
+                claimBtn.disabled = true;
+            }
+            
+            // Get the verification result
+            const result = window.telegramVerificationResult || {};
+            const pointsEarned = result.points_earned || result.new_total || currentTask?.points_reward || 0;
+            
+            // Show success animation
+            setTimeout(() => {
+                const successMsg = document.createElement('div');
+                successMsg.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50';
+                successMsg.innerHTML = `
+                    <div class="bg-gradient-to-br from-green-500 to-emerald-600 text-white px-8 py-6 rounded-2xl shadow-2xl text-center max-w-sm mx-4 animate-bounce">
+                        <div class="text-5xl mb-3">🎉</div>
+                        <div class="text-2xl font-bold mb-2">Quest Complete!</div>
+                        <div class="text-xl mb-2">+${pointsEarned} Points</div>
+                        <div class="text-sm opacity-90 mt-3">Returning to quests...</div>
+                    </div>
+                `;
+                document.body.appendChild(successMsg);
+                
+                // Return to quest list
+                setTimeout(() => {
+                    successMsg.remove();
+                    backToQuestList();
+                    // Reload tasks to show updated status
+                    if (typeof loadTasks === 'function') {
+                        loadTasks();
+                    }
+                }, 2000);
+            }, 500);
+        }
+
         function submitQuest() {
             // Open the quest URL
             if (currentTaskUrl) {
@@ -3193,7 +3632,7 @@
             // Set button text
             const platformButtons = {
                 'twitter': 'Follow on Twitter',
-                'telegram': 'Join Telegram',
+                'telegram': 'Join Now',
                 'discord': 'Join Discord',
                 'instagram': 'Follow on Instagram'
             };
@@ -3393,14 +3832,36 @@
         }
 
         async function submitRegularQuest() {
-            // Open quest URL
+            const submitButton = document.getElementById('regQuestButton');
+            const buttonText = document.getElementById('regQuestButtonText');
+            
+            // Special handling for Telegram quests
+            if (currentTask.platform === 'telegram') {
+                // Open Telegram link using WebApp API
+                if (currentTaskUrl) {
+                    if (window.Telegram?.WebApp) {
+                        window.Telegram.WebApp.openTelegramLink(currentTaskUrl);
+                        console.log('✅ Opened Telegram link using WebApp API');
+                    } else {
+                        window.open(currentTaskUrl, '_blank');
+                        console.log('✅ Opened in new window (testing mode)');
+                    }
+                }
+                
+                // Change button to "Verify Me"
+                buttonText.textContent = '🔍 Verify Me';
+                submitButton.onclick = verifyTelegramMembership;
+                console.log('✅ Button changed to "Verify Me"');
+                return;
+            }
+            
+            // For non-Telegram quests, proceed as normal
             if (currentTaskUrl) {
                 window.open(currentTaskUrl, '_blank');
             }
             
-            const submitButton = document.getElementById('regQuestButton');
             submitButton.disabled = true;
-            submitButton.innerHTML = '<span class="text-2xl">⏳</span><span>VERIFYING...</span>';
+            buttonText.textContent = '⏳ VERIFYING...';
             
             try {
                 const response = await fetch(`${API_URL}/complete-task`, {
@@ -3419,7 +3880,7 @@
                 
                 if (response.ok && data.status === 'success') {
                     // Success!
-                    submitButton.innerHTML = '<span class="text-2xl">✅</span><span>QUEST COMPLETED!</span>';
+                    buttonText.textContent = '✅ QUEST COMPLETED!';
                     
                     // Show success message
                     alert(`🎉 Quest Completed!\n\n+${currentTask.points_reward || 0} XP earned!`);
@@ -3435,16 +3896,51 @@
                 console.error('Error submitting quest:', error);
                 alert(`❌ ${error.message || 'Failed to complete quest. Please try again.'}`);
                 submitButton.disabled = false;
+                buttonText.textContent = 'Start mission';
+            }
+        }
+        
+        async function verifyTelegramMembership() {
+            const submitButton = document.getElementById('regQuestButton');
+            const buttonText = document.getElementById('regQuestButtonText');
+            
+            submitButton.disabled = true;
+            buttonText.textContent = '⏳ Verifying...';
+            
+            try {
+                const response = await fetch(`${API_URL}/complete-task`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        telegram_id: TELEGRAM_ID,
+                        task_id: currentTaskId
+                    })
+                });
                 
-                // Restore original button text
-                const platformButtons = {
-                    'twitter': { icon: '🐦', text: 'OPEN TWITTER QUEST' },
-                    'telegram': { icon: '✈️', text: 'OPEN TELEGRAM QUEST' },
-                    'discord': { icon: '💬', text: 'OPEN DISCORD QUEST' },
-                    'instagram': { icon: '📷', text: 'OPEN INSTAGRAM QUEST' }
-                };
-                const buttonConfig = platformButtons[currentTask.platform] || { icon: '🚀', text: 'START QUEST' };
-                submitButton.innerHTML = `<span class="text-4xl">${buttonConfig.icon}</span><span>${buttonConfig.text}</span>`;
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    // Success! User is verified as a member
+                    buttonText.textContent = '✅ VERIFIED!';
+                    
+                    // Show success message
+                    alert(`🎉 Membership Verified!\n\n+${currentTask.points_reward || 0} XP earned!`);
+                    
+                    // Reload data and go back to quest list
+                    await loadTasks();
+                    await loadProfile();
+                    backToQuestList();
+                } else {
+                    throw new Error(data.message || 'Not a member yet. Please join the group first!');
+                }
+            } catch (error) {
+                console.error('Error verifying membership:', error);
+                alert(`❌ ${error.message || 'Verification failed. Please make sure you joined the group!'}`);
+                submitButton.disabled = false;
+                buttonText.textContent = '🔍 Verify Me';
             }
         }
 

@@ -384,8 +384,8 @@ async def verify_task_completion(request: dict):
         except Exception as e:
             verification_message = f"Twitter verification error: {str(e)}"
     
-    # Telegram membership verification (telegram_join_group, telegram_join_channel)
-    elif task_type.startswith('telegram_'):
+    # Telegram membership verification (telegram_join_group, telegram_join_channel, telegram)
+    elif task_type.startswith('telegram_') or task_type == 'telegram' or task.get('platform') == 'telegram':
         try:
             import requests
             

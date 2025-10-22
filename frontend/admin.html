@@ -340,26 +340,6 @@
                         </button>
                     </div>
                     
-                    <!-- YouTube Verification Stats -->
-                    <div id="youtubeStats" class="mb-4 sm:mb-6 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-                        <div class="bg-gradient-to-br from-purple-900/40 to-black/40 border border-neon-purple/30 rounded-xl p-3 sm:p-4">
-                            <div class="text-neon-purple gaming-title text-xs sm:text-sm mb-1">🎬 VIDEO VIEWS</div>
-                            <div id="totalViews" class="text-2xl sm:text-3xl font-black text-white">0</div>
-                        </div>
-                        <div class="bg-gradient-to-br from-green-900/40 to-black/40 border border-neon-green/30 rounded-xl p-3 sm:p-4">
-                            <div class="text-neon-green gaming-title text-xs sm:text-sm mb-1">✅ COMPLETED</div>
-                            <div id="completedViews" class="text-2xl sm:text-3xl font-black text-white">0</div>
-                        </div>
-                        <div class="bg-gradient-to-br from-yellow-900/40 to-black/40 border border-neon-yellow/30 rounded-xl p-3 sm:p-4">
-                            <div class="text-neon-yellow gaming-title text-xs sm:text-sm mb-1">⏱️ WATCHING</div>
-                            <div id="watchingViews" class="text-2xl sm:text-3xl font-black text-white">0</div>
-                        </div>
-                        <div class="bg-gradient-to-br from-red-900/40 to-black/40 border border-red-500/30 rounded-xl p-3 sm:p-4">
-                            <div class="text-red-400 gaming-title text-xs sm:text-sm mb-1">❌ FAILED</div>
-                            <div id="failedViews" class="text-2xl sm:text-3xl font-black text-white">0</div>
-                        </div>
-                    </div>
-                    
                     <!-- Desktop Table View -->
                     <div class="hidden lg:block overflow-x-auto">
                         <table class="w-full">
@@ -1091,37 +1071,8 @@
                     </div>
                 `;
                 }).join('');
-                
-                // Load video stats after tasks are loaded
-                loadVideoStats();
             } catch (error) {
                 console.error('Error loading tasks:', error);
-            }
-        }
-        
-        // Load YouTube video verification stats
-        async function loadVideoStats() {
-            try {
-                const response = await fetch(`${API_URL}/video-views/stats`, {
-                    headers: { 'Authorization': `Bearer ${authToken}` }
-                });
-                
-                if (response.ok) {
-                    const stats = await response.json();
-                    document.getElementById('totalViews').textContent = stats.total || 0;
-                    document.getElementById('completedViews').textContent = stats.completed || 0;
-                    document.getElementById('watchingViews').textContent = stats.watching || 0;
-                    document.getElementById('failedViews').textContent = stats.failed || 0;
-                } else {
-                    // If endpoint doesn't exist yet, show zeros
-                    document.getElementById('totalViews').textContent = '0';
-                    document.getElementById('completedViews').textContent = '0';
-                    document.getElementById('watchingViews').textContent = '0';
-                    document.getElementById('failedViews').textContent = '0';
-                }
-            } catch (error) {
-                console.error('Error loading video stats:', error);
-                // Silently fail - stats are optional
             }
         }
 

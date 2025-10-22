@@ -1799,15 +1799,8 @@
                 console.log('   Code input section exists:', !!codeInputCheck);
             }, 100);
             
-            // Generate action button (hide for YouTube - they use Watch Video button instead)
-            if (taskType === 'youtube' || taskType === 'youtube_watch') {
-                document.getElementById('questActionButton').innerHTML = '';
-                console.log('   ✅ Action button hidden for YouTube');
-            } else {
-                const actionButton = generateActionButton(task, taskType);
-                document.getElementById('questActionButton').innerHTML = actionButton;
-                console.log('   ✅ Action button generated');
-            }
+            // Action button is now generated in generateQuestContent(), no need for separate generation
+            document.getElementById('questActionButton').innerHTML = '';
             
             // Generate tasks list
             const tasksList = generateTasksList(task, taskType, verificationData);
@@ -2396,6 +2389,79 @@
                 };
             }
             
+            // Website Visit Quest with Timer
+            else if (taskType === 'visit' || platform === 'website') {
+                const isTimerBased = verificationData.method === 'timer_based';
+                const timerSeconds = verificationData.timer_seconds || 60;
+                
+                if (isTimerBased) {
+                    return {
+                        html: `
+                            <!-- Visit Website Button -->
+                            <button id="visitWebsiteBtn" onclick="startWebsiteVisit()" class="w-full bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 rounded-2xl p-4 font-bold text-lg mb-4 active:scale-95 transition-all shadow-lg">
+                                🔗 Visit Website
+                            </button>
+                            
+                            <!-- Timer Display -->
+                            <div id="websiteTimer" class="hidden mb-6">
+                                <div id="websiteTimerContainer" class="bg-gradient-to-br from-gaming-dark/80 to-gaming-darker/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl transition-all duration-300">
+                                    <!-- Timer Value -->
+                                    <div class="flex items-center justify-center gap-4 mb-4">
+                                        <div id="websiteTimerIconContainer" class="w-12 h-12 rounded-full bg-green-500/10 border-2 border-green-500/30 flex items-center justify-center transition-all duration-500">
+                                            <svg id="websiteTimerIcon" class="w-6 h-6 text-green-400 transition-all duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <div class="text-4xl font-bold text-white tracking-tight transition-all duration-500" id="websiteTimerCountdown">0:00</div>
+                                            <div class="text-xs text-gray-400 uppercase tracking-wider mt-1" id="websiteTimerLabel">Time on site</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Progress Bar -->
+                                    <div class="relative">
+                                        <div class="w-full h-1.5 bg-gray-800/50 rounded-full overflow-hidden">
+                                            <div id="websiteTimerProgress" class="h-full bg-gradient-to-r from-green-400 via-green-500 to-emerald-500 transition-all duration-500 ease-out" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Status Text -->
+                                    <div class="text-center mt-3">
+                                        <span class="text-xs text-gray-400 font-medium" id="websiteTimerStatus">Stay on the website...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Claim Button (Initially Hidden) -->
+                            <button id="websiteClaimBtn" onclick="submitQuest()" disabled class="hidden w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 font-bold text-lg active:scale-95 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                                Claim Reward
+                            </button>
+                        `,
+                        onRender: () => {
+                            console.log('✅ Website timer-based quest rendered, timer:', timerSeconds, 'seconds');
+                            window.websiteTimerSeconds = timerSeconds;
+                            
+                            // Set initial timer display
+                            const timerCountdown = document.getElementById('websiteTimerCountdown');
+                            if (timerCountdown) {
+                                const minutes = Math.floor(timerSeconds / 60);
+                                const seconds = timerSeconds % 60;
+                                timerCountdown.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                            }
+                        }
+                    };
+                } else {
+                    // Auto-complete (instant) - no timer
+                    return {
+                        html: `
+                            <button onclick="submitQuest()" class="w-full bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
+                                🔗 Visit Website
+                            </button>
+                        `
+                    };
+                }
+            }
+            
             // Default/Generic Quest
             else {
                 return {
@@ -2499,11 +2565,27 @@
                 });
             }
             
+            // Website Visit Quest
+            else if (taskType === 'visit' || task.platform === 'website') {
+                const timerSeconds = verificationData.timer_seconds || 60;
+                const timerMinutes = Math.floor(timerSeconds / 60);
+                const timerText = timerMinutes > 0 
+                    ? `${timerMinutes} minute${timerMinutes > 1 ? 's' : ''}`
+                    : `${timerSeconds} seconds`;
+                
+                tasks.push({
+                    id: 'visit',
+                    text: `Visit the website - Spend ${timerText}`,
+                    status: 'pending',
+                    locked: false
+                });
+            }
+            
             // Default - single task
             else {
                 tasks.push({
                     id: 'complete',
-                    text: task.description || 'Complete the required action',
+                    text: 'Complete the required action',
                     status: 'pending',
                     locked: false
                 });
@@ -2850,6 +2932,185 @@
         function submitYouTubeCode() {
             // Alias for backward compatibility
             handleYouTubeCodeSubmit();
+        }
+
+        // Website Visit Quest Timer Functions
+        let websiteTimerInterval = null;
+        
+        function startWebsiteVisit() {
+            console.log('🔗 START WEBSITE VISIT');
+            console.log('Current task URL:', currentTaskUrl);
+            console.log('Required time:', window.websiteTimerSeconds);
+            
+            if (currentTaskUrl) {
+                window.open(currentTaskUrl, '_blank');
+                console.log('✅ Opened website in new tab');
+            }
+            
+            // Hide visit button
+            const visitBtn = document.getElementById('visitWebsiteBtn');
+            if (visitBtn) {
+                visitBtn.disabled = true;
+                visitBtn.textContent = '⏳ Visiting...';
+            }
+            
+            // Show timer
+            const timerElement = document.getElementById('websiteTimer');
+            if (timerElement) {
+                timerElement.classList.remove('hidden');
+                console.log('✅ Timer displayed');
+            }
+            
+            // Mark visit task as in progress
+            const visitTask = document.querySelector('[data-task-id="visit"]');
+            if (visitTask) {
+                visitTask.querySelector('.task-status').innerHTML = '<span class="text-yellow-400 text-xl">⏳</span>';
+            }
+            
+            // Start timer
+            console.log('🚀 Starting website timer...');
+            startWebsiteTimer();
+        }
+        
+        function startWebsiteTimer() {
+            console.log('⏱️ START WEBSITE TIMER - Required time:', window.websiteTimerSeconds);
+            const totalTime = window.websiteTimerSeconds || 60;
+            let remaining = totalTime;
+            
+            console.log('📊 Timer config: Starting at', totalTime, 'seconds, counting down to 0');
+            
+            // Set initial display
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            const timerCountdown = document.getElementById('websiteTimerCountdown');
+            if (timerCountdown) {
+                timerCountdown.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            // Clear any existing interval
+            if (websiteTimerInterval) {
+                clearInterval(websiteTimerInterval);
+            }
+            
+            websiteTimerInterval = setInterval(() => {
+                remaining--;
+                
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                const progressPercent = ((totalTime - remaining) / totalTime) * 100;
+                
+                // Update countdown display
+                if (timerCountdown) {
+                    timerCountdown.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }
+                
+                // Update progress bar
+                const progressBar = document.getElementById('websiteTimerProgress');
+                if (progressBar) {
+                    progressBar.style.width = `${progressPercent}%`;
+                }
+                
+                // Update status text based on time remaining
+                const statusElement = document.getElementById('websiteTimerStatus');
+                if (statusElement) {
+                    if (remaining > 30) {
+                        statusElement.textContent = 'Stay on the website...';
+                    } else if (remaining > 10) {
+                        statusElement.textContent = 'Almost there...';
+                    } else if (remaining > 0) {
+                        statusElement.textContent = 'Few seconds left...';
+                    }
+                }
+                
+                // Timer complete
+                if (remaining <= 0) {
+                    clearInterval(websiteTimerInterval);
+                    websiteTimerInterval = null;
+                    console.log('✅ Website timer complete!');
+                    triggerWebsiteTimerComplete();
+                }
+            }, 1000);
+        }
+        
+        function triggerWebsiteTimerComplete() {
+            console.log('🎉 WEBSITE TIMER COMPLETE');
+            
+            // Get timer elements
+            const timerCountdown = document.getElementById('websiteTimerCountdown');
+            const timerContainer = document.getElementById('websiteTimerContainer');
+            const timerIconContainer = document.getElementById('websiteTimerIconContainer');
+            const timerIcon = document.getElementById('websiteTimerIcon');
+            const timerLabel = document.getElementById('websiteTimerLabel');
+            const progressBar = document.getElementById('websiteTimerProgress');
+            const statusElement = document.getElementById('websiteTimerStatus');
+            
+            // Animate countdown number
+            if (timerCountdown) {
+                timerCountdown.classList.add('timer-complete-animation');
+                timerCountdown.style.color = '#22c55e'; // green-500
+            }
+            
+            // Animate and change icon to checkmark
+            if (timerIconContainer) {
+                timerIconContainer.style.background = 'rgba(34, 197, 94, 0.2)';
+                timerIconContainer.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                timerIconContainer.classList.add('timer-complete-animation');
+            }
+            
+            if (timerIcon) {
+                setTimeout(() => {
+                    timerIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+                    timerIcon.style.color = '#22c55e';
+                }, 200);
+            }
+            
+            // Update label with animation
+            if (timerLabel) {
+                setTimeout(() => {
+                    timerLabel.textContent = 'Complete!';
+                    timerLabel.style.color = '#22c55e';
+                    timerLabel.classList.add('slide-up-animation');
+                }, 300);
+            }
+            
+            // Add glow effect to container
+            if (timerContainer) {
+                timerContainer.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                timerContainer.classList.add('success-glow-animation');
+            }
+            
+            // Ensure progress bar is at 100%
+            if (progressBar) {
+                progressBar.style.width = '100%';
+                progressBar.style.background = 'linear-gradient(to right, #22c55e, #16a34a)';
+            }
+            
+            // Update status
+            if (statusElement) {
+                statusElement.innerHTML = '<span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Time complete!</span>';
+                statusElement.className = 'text-xs text-green-400 font-semibold';
+            }
+            
+            // Mark visit task as complete
+            const visitTask = document.querySelector('[data-task-id="visit"]');
+            if (visitTask) {
+                visitTask.querySelector('.task-status').innerHTML = '<span class="text-green-400 text-xl">✓</span>';
+            }
+            
+            // Show and enable claim button
+            const claimBtn = document.getElementById('websiteClaimBtn');
+            if (claimBtn) {
+                claimBtn.classList.remove('hidden');
+                claimBtn.disabled = false;
+                claimBtn.removeAttribute('disabled');
+                console.log('✅ Claim button enabled');
+            }
+            
+            // Hide visit button
+            const visitBtn = document.getElementById('visitWebsiteBtn');
+            if (visitBtn) {
+                visitBtn.style.display = 'none';
+            }
         }
 
         function submitQuest() {

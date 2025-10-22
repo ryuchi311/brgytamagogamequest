@@ -338,6 +338,7 @@ async def verify_task_completion(request: dict):
     # Perform verification based on task_type
     verification_success = False
     verification_message = "Verification pending"
+    needs_pending = False  # Initialize here - will be set to True only for tasks requiring review
     
     task_type = task.get('task_type', '').lower()
     verification_data = task.get('verification_data') or {}

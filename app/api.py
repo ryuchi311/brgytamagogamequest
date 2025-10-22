@@ -57,6 +57,15 @@ class TaskResponse(BaseModel):
     points_reward: int
     is_bonus: bool
     is_active: bool
+    
+    # YouTube Settings Columns
+    youtube_video_id: Optional[str] = None
+    min_watch_time_seconds: Optional[int] = None
+    video_duration_seconds: Optional[int] = None
+    verification_code: Optional[str] = None
+    code_display_time_seconds: Optional[int] = None
+    
+    verification_data: Optional[dict] = None  # Added for YouTube/quest settings
 
 
 class RewardResponse(BaseModel):
@@ -80,6 +89,14 @@ class TaskCreate(BaseModel):
     is_bonus: bool = False
     is_active: bool = True
     verification_required: bool = False
+    
+    # YouTube Settings Columns
+    youtube_video_id: Optional[str] = None
+    min_watch_time_seconds: Optional[int] = None
+    video_duration_seconds: Optional[int] = None
+    verification_code: Optional[str] = None
+    code_display_time_seconds: Optional[int] = None
+    
     verification_data: Optional[dict] = None
 
 
@@ -405,59 +422,121 @@ async def verify_task_completion(request: dict):
         except Exception as e:
             verification_message = f"Telegram verification error: {str(e)}"
             
-    # YouTube video watch verification
-    elif task_type == 'youtube_watch':
+    # YouTube video watch verification - supports both 'youtube' and 'youtube_watch' task types
+    elif task_type in ['youtube', 'youtube_watch']:
         video_id = extract_youtube_video_id(task.get('url', ''))
         if not video_id:
             return {"success": False, "message": "Invalid YouTube URL"}
         
-        try:
-            # Check if user already has an active watch session
-            existing_view = supabase.table("video_views").select("*").eq("user_id", user['id']).eq("task_id", task_id).eq("status", "watching").execute()
+        # Get verification method
+        method = verification_data.get('method', 'video_code')
+        
+        # For video_code method, require code verification
+        if method == 'video_code' or method == 'youtube_code':
+            # Accept both 'verification_code' and 'code' field names
+            verification_code = request.get('verification_code', request.get('code', '')).strip()
             
-            if existing_view.data:
+            # Get expected code from task columns first, then fall back to verification_data
+            expected_code = task.get('verification_code', '').strip()
+            if not expected_code:
+                expected_code = verification_data.get('verification_code', verification_data.get('code', '')).strip()
+            
+            if not verification_code:
                 return {
-                    "success": True,
-                    "message": "Continue watching and enter the code shown in the video",
-                    "requires_code": True,
-                    "video_id": video_id,
-                    "view_id": existing_view.data[0]['id']
+                    "success": False, 
+                    "message": "Please watch the video and enter the verification code shown in it",
+                    "requires_code": True
                 }
             
-            # Create new video view session
-            secret_code = verification_data.get('code', 'SECRET')
-            min_watch_time = verification_data.get('min_watch_time_seconds', 120)
-            
-            view_data = {
-                "user_id": user['id'],
-                "task_id": task_id,
-                "video_id": video_id,
-                "verification_code": secret_code,
-                "status": "watching",
-                "started_at": datetime.now(timezone.utc).isoformat(),
-                "code_attempts": 0
-            }
-            
-            view_response = supabase.table("video_views").insert(view_data).execute()
-            
-            if view_response.data:
+            # Check if code matches (case-insensitive)
+            if verification_code.upper() != expected_code.upper():
                 return {
-                    "success": True,
-                    "message": f"Watch the video for at least {min_watch_time} seconds and enter the code",
-                    "requires_code": True,
-                    "video_id": video_id,
-                    "view_id": view_response.data[0]['id'],
-                    "min_watch_time": min_watch_time
+                    "success": False,
+                    "message": "❌ Incorrect verification code. Watch the video carefully!",
+                    "requires_code": True
+                }
+            
+            # Code is correct, check if already completed
+            existing_completion = supabase.table("user_tasks").select("*").eq("user_id", user['id']).eq("task_id", task_id).eq("status", "completed").execute()
+            if existing_completion.data:
+                return {"success": False, "message": "You have already completed this task"}
+            
+            # Mark as completed immediately (code verified)
+            verification_success = True
+            verification_message = "✅ Video quest completed! Code verified."
+            needs_pending = False  # Code is correct, complete the quest immediately
+        
+        # For time_delay_code method, use video_views tracking (if available)
+        elif method == 'time_delay_code':
+            # Check if code was provided
+            submitted_code = request.get('code', '').strip()
+            expected_code = verification_data.get('code', '').strip()
+            
+            if not submitted_code:
+                # No code submitted yet - return instructions
+                verification_success = False
+                verification_message = "Watch the video and enter the verification code shown"
+                needs_pending = True
+            elif submitted_code.upper() != expected_code.upper():
+                # Wrong code
+                return {
+                    "success": False,
+                    "message": "❌ Invalid verification code. Please watch the video carefully and try again."
                 }
             else:
-                return {"success": False, "message": "Failed to start video session"}
-        except APIError as e:
-            # If video_views table doesn't exist, create pending task for manual completion
-            if 'video_views' in str(e):
+                # Correct code!
                 verification_success = True
-                verification_message = f"YouTube quest started! Watch the video and remember the code: {verification_data.get('code', 'See video')}"
-            else:
-                raise
+                verification_message = "✅ Video quest completed! Code verified."
+                needs_pending = False  # Code is correct, complete the quest
+            
+            # Optional: Use video_views tracking if table exists
+            try:
+                # Check if user already has an active watch session
+                existing_view = supabase.table("video_views").select("*").eq("user_id", user['id']).eq("task_id", task_id).eq("status", "watching").execute()
+                
+                if existing_view.data and not submitted_code:
+                    return {
+                        "success": True,
+                        "message": "Continue watching and enter the code shown in the video",
+                        "requires_code": True,
+                        "video_id": video_id,
+                        "view_id": existing_view.data[0]['id']
+                    }
+                
+                # Create new video view session (only if no code submitted yet)
+                if not submitted_code:
+                    secret_code = verification_data.get('verification_code', verification_data.get('code', 'SECRET'))
+                    min_watch_time = verification_data.get('min_watch_time', verification_data.get('min_watch_time_seconds', 120))
+                    
+                    view_data = {
+                        "user_id": user['id'],
+                        "task_id": task_id,
+                        "video_id": video_id,
+                        "verification_code": secret_code,
+                        "status": "watching",
+                        "started_at": datetime.now(timezone.utc).isoformat(),
+                        "code_attempts": 0
+                    }
+                    
+                    view_response = supabase.table("video_views").insert(view_data).execute()
+                    
+                    if view_response.data:
+                        return {
+                            "success": True,
+                            "message": f"Watch the video for at least {min_watch_time} seconds and enter the code",
+                            "requires_code": True,
+                            "video_id": video_id,
+                            "view_id": view_response.data[0]['id'],
+                            "min_watch_time": min_watch_time
+                        }
+            except Exception as video_tracking_error:
+                # Video tracking is optional - continue without it if table doesn't exist
+                print(f"Video tracking disabled: {video_tracking_error}")
+                pass
+        else:
+            # Unknown YouTube method
+            verification_success = False
+            verification_message = "YouTube quest verification method not properly configured"
     
     # Daily check-in
     elif task_type == 'daily_checkin':
@@ -485,7 +564,15 @@ async def verify_task_completion(request: dict):
     # Create or update user_task record
     if verification_success:
         # Determine if task needs pending status (YouTube watch, manual review)
-        needs_pending = task_type in ['youtube_watch', 'manual_review']
+        # YouTube tasks are only pending if code wasn't submitted yet
+        # Manual review tasks always need pending status
+        if task_type == 'youtube_watch':
+            # If code was submitted and verified, don't keep it pending
+            submitted_code = request.get('code', '').strip()
+            needs_pending = not bool(submitted_code)  # Only pending if no code submitted
+        elif task_type == 'manual_review':
+            needs_pending = True
+        # For all other task types, needs_pending should already be set correctly above
         
         # Check if pending task exists
         pending_task = supabase.table("user_tasks").select("*").eq("user_id", user['id']).eq("task_id", task_id).execute()
@@ -560,10 +647,53 @@ async def get_task(task_id: str):
     return task
 
 
+@app.post("/api/tasks/{task_id}/complete")
+async def complete_task(task_id: str, request: dict):
+    """Complete a task for a user - Frontend-friendly endpoint"""
+    # This endpoint wraps the /api/verify endpoint for easier frontend integration
+    telegram_id = request.get('telegram_id')
+    
+    if not telegram_id:
+        raise HTTPException(status_code=400, detail="telegram_id is required")
+    
+    # Build request for verify endpoint
+    verify_request = {
+        'telegram_id': telegram_id,
+        'task_id': task_id
+    }
+    
+    # Pass through any additional data (like code for YouTube quests)
+    for key, value in request.items():
+        if key != 'telegram_id':
+            verify_request[key] = value
+    
+    # Call the existing verify endpoint
+    result = await verify_task_completion(verify_request)
+    return result
+
+
 @app.post("/api/tasks", response_model=TaskResponse)
 async def create_task(task: TaskCreate, admin=Depends(get_current_admin)):
     """Create a new task (Admin only)"""
     import json
+    import re
+    
+    # Auto-extract YouTube video ID from URL
+    youtube_video_id = task.youtube_video_id
+    if task.url and not youtube_video_id:
+        # Extract video ID from various YouTube URL formats
+        # https://www.youtube.com/watch?v=VIDEO_ID
+        # https://youtu.be/VIDEO_ID
+        # https://www.youtube.com/embed/VIDEO_ID
+        patterns = [
+            r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})',
+            r'[?&]v=([a-zA-Z0-9_-]{11})'
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, task.url)
+            if match:
+                youtube_video_id = match.group(1)
+                break
     
     # Convert to dict and prepare for insertion
     task_data = {
@@ -575,7 +705,14 @@ async def create_task(task: TaskCreate, admin=Depends(get_current_admin)):
         "points_reward": task.points_reward,
         "is_bonus": task.is_bonus,
         "is_active": task.is_active,
-        "verification_required": task.verification_required
+        "verification_required": task.verification_required,
+        
+        # YouTube Settings Columns
+        "youtube_video_id": youtube_video_id,
+        "min_watch_time_seconds": task.min_watch_time_seconds,
+        "video_duration_seconds": task.video_duration_seconds,
+        "verification_code": task.verification_code,
+        "code_display_time_seconds": task.code_display_time_seconds
     }
     
     # CRITICAL FIX: Properly handle verification_data as JSONB
@@ -628,22 +765,55 @@ async def create_task(task: TaskCreate, admin=Depends(get_current_admin)):
 async def update_task(task_id: str, task: TaskCreate, admin=Depends(get_current_admin)):
     """Update a task (Admin only)"""
     import json
+    import re
     
     existing_task = DatabaseService.get_task_by_id(task_id)
     if not existing_task:
         raise HTTPException(status_code=404, detail="Task not found")
     
-    task_data = task.dict()
+    # Auto-extract YouTube video ID from URL
+    youtube_video_id = task.youtube_video_id
+    if task.url and not youtube_video_id:
+        # Extract video ID from various YouTube URL formats
+        patterns = [
+            r'(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})',
+            r'[?&]v=([a-zA-Z0-9_-]{11})'
+        ]
+        for pattern in patterns:
+            match = re.search(pattern, task.url)
+            if match:
+                youtube_video_id = match.group(1)
+                break
+    
+    task_data = {
+        "title": task.title,
+        "description": task.description,
+        "task_type": task.task_type,
+        "platform": task.platform,
+        "url": task.url,
+        "points_reward": task.points_reward,
+        "is_bonus": task.is_bonus,
+        "is_active": task.is_active,
+        "verification_required": task.verification_required,
+        
+        # YouTube Settings Columns
+        "youtube_video_id": youtube_video_id,
+        "min_watch_time_seconds": task.min_watch_time_seconds,
+        "video_duration_seconds": task.video_duration_seconds,
+        "verification_code": task.verification_code,
+        "code_display_time_seconds": task.code_display_time_seconds
+    }
     
     # CRITICAL FIX: Properly handle verification_data as JSONB
     # Supabase/PostgREST requires JSONB to be sent as a JSON string or proper dict
-    if 'verification_data' in task_data and task_data['verification_data']:
+    if task.verification_data:
         # Ensure it's a proper dict for JSONB column
-        vd = task_data['verification_data']
+        vd = task.verification_data
         if not isinstance(vd, dict):
             task_data['verification_data'] = dict(vd)
-        # Ensure all values are JSON-serializable
-        task_data['verification_data'] = json.loads(json.dumps(vd))
+        else:
+            # Ensure all values are JSON-serializable
+            task_data['verification_data'] = json.loads(json.dumps(vd))
     
     try:
         response = supabase.table("tasks").update(task_data).eq("id", task_id).execute()

@@ -176,12 +176,34 @@
         console.log('YouTube Quest - Has Token:', !!authToken);
 
         // Check authentication
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', async function() {
             if (!authToken) {
                 alert('⚠️ Not authenticated! Redirecting to login...');
                 window.location.href = '/admin.html';
-            } else {
-                console.log('✅ Authenticated - Token found');
+                return;
+            }
+            
+            // Verify token is still valid
+            try {
+                const response = await fetch(`${API_URL}/auth/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.error('❌ Token validation failed');
+                    alert('⚠️ Session expired! Please login again.');
+                    localStorage.removeItem('authToken');
+                    window.location.href = '/admin.html';
+                    return;
+                }
+                
+                console.log('✅ Authenticated - Token verified');
+            } catch (error) {
+                console.error('❌ Token verification error:', error);
+                // Continue anyway, let the submit handle it
+                console.log('⚠️ Could not verify token, will try on submit');
             }
         });
 
@@ -260,7 +282,7 @@
                 return;
             }
 
-            // Prepare quest data
+            // Prepare quest data - Use top-level columns for YouTube settings
             const questData = {
                 title,
                 description,
@@ -270,6 +292,15 @@
                 platform: 'youtube',
                 url: videoUrl,
                 verification_required: false, // Auto-verification via code
+                
+                // YouTube Settings - Top-level columns (NEW structure)
+                youtube_video_id: videoId,
+                min_watch_time_seconds: minWatchTime,
+                video_duration_seconds: videoDuration,
+                verification_code: verificationCode,
+                code_display_time_seconds: codeDisplayTime,
+                
+                // Also keep in verification_data for backward compatibility
                 verification_data: {
                     method: 'video_code',
                     video_id: videoId,
@@ -283,6 +314,9 @@
             };
 
             try {
+                console.log('🚀 Submitting quest with token:', authToken ? 'Token exists' : 'NO TOKEN');
+                console.log('📦 Quest data:', questData);
+                
                 const response = await fetch(`${API_URL}/tasks`, {
                     method: 'POST',
                     headers: {
@@ -292,18 +326,34 @@
                     body: JSON.stringify(questData)
                 });
 
+                console.log('📡 Response status:', response.status);
+                
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        console.error('❌ Authentication failed - Token might be expired');
+                        showAlert('Authentication failed! Token expired. Please login again.', 'error');
+                        setTimeout(() => {
+                            localStorage.removeItem('authToken');
+                            window.location.href = '/admin.html';
+                        }, 2000);
+                        return;
+                    }
+                    
                     const error = await response.json();
+                    console.error('❌ Server error:', error);
                     throw new Error(error.detail || 'Failed to create quest');
                 }
 
+                const result = await response.json();
+                console.log('✅ Success response:', result);
+                
                 showAlert('✅ YouTube quest created successfully!', 'success');
                 setTimeout(() => {
                     window.location.href = '/admin.html#quests';
                 }, 1500);
                 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('❌ Error creating quest:', error);
                 showAlert('Error: ' + error.message, 'error');
             }
         }

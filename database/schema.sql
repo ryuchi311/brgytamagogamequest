@@ -34,8 +34,29 @@ CREATE TABLE tasks (
     is_active BOOLEAN DEFAULT true,
     start_date TIMESTAMP WITH TIME ZONE,
     end_date TIMESTAMP WITH TIME ZONE,
+    
+    -- YouTube Settings Columns
+    youtube_video_id VARCHAR(20), -- Auto-extracted from YouTube URL (e.g., dQw4w9WgXcQ)
+    min_watch_time_seconds INTEGER, -- Minimum watch time before code input appears
+    video_duration_seconds INTEGER, -- Total video duration
+    verification_code VARCHAR(100), -- Code shown in video for verification
+    code_display_time_seconds INTEGER, -- When code appears in video (seconds from start)
+    
+    -- Generic verification data (JSONB for flexibility)
+    verification_data JSONB,
+    
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraints for YouTube settings
+    CONSTRAINT check_min_watch_time_positive CHECK (min_watch_time_seconds IS NULL OR min_watch_time_seconds >= 0),
+    CONSTRAINT check_video_duration_positive CHECK (video_duration_seconds IS NULL OR video_duration_seconds > 0),
+    CONSTRAINT check_code_display_time_positive CHECK (code_display_time_seconds IS NULL OR code_display_time_seconds >= 0),
+    CONSTRAINT check_code_display_before_duration CHECK (
+        code_display_time_seconds IS NULL 
+        OR video_duration_seconds IS NULL 
+        OR code_display_time_seconds <= video_duration_seconds
+    )
 );
 
 -- User Tasks (Task Completion Tracking)

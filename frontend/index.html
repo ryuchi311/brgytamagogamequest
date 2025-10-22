@@ -95,6 +95,22 @@
             }
         }
         
+        /* Slow pulse animation for code input */
+        @keyframes pulse-slow {
+            0%, 100% { 
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.8;
+                transform: scale(1.02);
+            }
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse-slow 2s ease-in-out infinite;
+        }
+        
         /* Activity filter buttons */
         .activity-filter {
             transition: all 0.3s ease;
@@ -109,6 +125,67 @@
             transform: scale(1.05);
         }
         
+        /* Quest category tabs */
+        .quest-category-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 20px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+            min-width: 80px;
+        }
+        .quest-category-tab:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .quest-category-tab.active {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(181, 55, 242, 0.3));
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        /* Quest status badges */
+        .quest-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .quest-status-available {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.5);
+        }
+        .quest-status-in-progress {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.5);
+        }
+        .quest-status-completed {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            border: 1px solid rgba(0, 212, 255, 0.5);
+        }
+        
+        /* Hide scrollbar */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
         .content-wrapper { padding-bottom: env(safe-area-inset-bottom, 80px); }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 50; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 -4px 20px rgba(0, 212, 255, 0.3); padding-bottom: env(safe-area-inset-bottom, 0); }
         .bottom-nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 8px 0; transition: all 0.3s ease; position: relative; }
@@ -116,6 +193,43 @@
         .bottom-nav-item.active::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 40px; height: 3px; background: linear-gradient(90deg, #00d4ff, #b537f2); border-radius: 0 0 10px 10px; }
         .bottom-nav-icon { font-size: 24px; line-height: 1; margin-bottom: 4px; }
         .bottom-nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Timer completion animation */
+        @keyframes timer-complete {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes success-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(34, 197, 94, 0.6), 0 0 60px rgba(34, 197, 94, 0.3); }
+        }
+        
+        @keyframes slide-up {
+            from { 
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .timer-complete-animation {
+            animation: timer-complete 0.8s ease-out;
+        }
+        
+        .success-glow-animation {
+            animation: success-glow 2s ease-in-out infinite;
+        }
+        
+        .slide-up-animation {
+            animation: slide-up 0.5s ease-out;
+        }
     </style>
 </head>
 <body class="bg-gaming-darker text-white">
@@ -144,14 +258,241 @@
                 </div>
             </header>
 
-            <main class="px-4 pb-4">
-                <section id="tasks" class="tab-content">
-                    <div class="mb-3 flex items-center justify-between">
-                        <h2 class="text-xl font-black gaming-title gradient-text">⚔️ Active Quests</h2>
-                        <span id="tasksCount" class="text-xs bg-neon-blue/20 px-2 py-1 rounded-full">0</span>
+            <!-- ON-SCREEN DEBUG PANEL (for Telegram Mini App) -->
+            <div id="debugPanel" class="fixed bottom-20 right-2 w-80 max-h-96 bg-black/95 border-2 border-yellow-400 rounded-lg overflow-hidden shadow-2xl z-50 hidden">
+                <div class="bg-yellow-400 text-black px-3 py-2 flex items-center justify-between">
+                    <span class="font-bold text-sm">🔍 Debug Log</span>
+                    <div class="flex gap-2">
+                        <button onclick="testCodeInput()" class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600" title="Test Code Input">Test</button>
+                        <button onclick="clearDebugLog()" class="text-xs bg-black/20 px-2 py-1 rounded hover:bg-black/40">Clear</button>
+                        <button onclick="toggleDebugPanel()" class="text-xs bg-black/20 px-2 py-1 rounded hover:bg-black/40">×</button>
                     </div>
+                </div>
+                <div id="debugLog" class="p-2 overflow-y-auto max-h-80 text-xs font-mono">
+                    <div class="text-green-400">Debug panel ready...</div>
+                </div>
+            </div>
+            
+            <!-- Debug Toggle Button -->
+            <button onclick="toggleDebugPanel()" class="fixed bottom-24 right-2 w-12 h-12 bg-yellow-400 text-black rounded-full shadow-lg z-50 font-bold text-xl hover:bg-yellow-300 active:scale-95 transition-all">
+                🐛
+            </button>
+
+            <main class="px-4 pb-4">
+                <!-- QUEST LIST VIEW -->
+                <section id="tasks" class="tab-content">
+                    <div class="mb-3">
+                        <div class="flex items-center justify-between mb-3">
+                            <h2 class="text-xl font-black gaming-title gradient-text">⚔️ Quests</h2>
+                            <span id="tasksCount" class="text-xs bg-neon-blue/20 px-2 py-1 rounded-full">0</span>
+                        </div>
+                        
+                        <!-- Quest Category Tabs -->
+                        <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                            <button onclick="filterQuestsByCategory('all')" class="quest-category-tab active" data-category="all">
+                                <span class="text-base">🎯</span>
+                                <span class="text-xs font-bold">All</span>
+                            </button>
+                            <button onclick="filterQuestsByCategory('daily')" class="quest-category-tab" data-category="daily">
+                                <span class="text-base">📅</span>
+                                <span class="text-xs font-bold">Daily</span>
+                            </button>
+                            <button onclick="filterQuestsByCategory('special')" class="quest-category-tab" data-category="special">
+                                <span class="text-base">⭐</span>
+                                <span class="text-xs font-bold">Special</span>
+                            </button>
+                            <button onclick="filterQuestsByCategory('partner')" class="quest-category-tab" data-category="partner">
+                                <span class="text-base">🤝</span>
+                                <span class="text-xs font-bold">Partner</span>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div id="tasksContainer" class="space-y-3">
                         <div class="text-center py-12 text-neon-blue">⚡ Loading Quests...</div>
+                    </div>
+                </section>
+
+                <!-- UNIFIED QUEST DETAIL PAGE (Dynamic based on task_type) -->
+                <section id="questDetailPage" class="tab-content hidden">
+                    <div class="min-h-screen pb-24">
+                        <!-- Back Button -->
+                        <button onclick="backToQuestList()" class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 p-2">
+                            <span class="text-2xl">←</span>
+                        </button>
+                        
+                        <!-- Quest Title Section -->
+                        <div class="text-center mb-8">
+                            <h1 class="text-2xl font-black mb-3" id="questTitle">Quest Title</h1>
+                            <p class="text-gray-400 text-sm mb-6" id="questDescription">Complete this quest to earn rewards</p>
+                            
+                            <!-- Reward Display -->
+                            <div class="inline-flex items-center gap-2 bg-gaming-dark/60 rounded-2xl px-6 py-3 border border-neon-blue/30">
+                                <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+                                    <span class="text-2xl">●</span>
+                                </div>
+                                <div class="text-left">
+                                    <div class="text-xs text-gray-400">Reward</div>
+                                    <div class="text-lg font-black text-yellow-400" id="questPoints">0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Instructions Section (Different per task type) -->
+                        <div id="questInstructions" class="mb-6"></div>
+
+                        <!-- Dynamic Content Area (Changes based on task_type) -->
+                        <div id="questDynamicContent"></div>
+
+                        <!-- Action Button (Start Mission / Claim) -->
+                        <div id="questActionButton" class="mb-6"></div>
+
+                        <!-- Your Tasks Section -->
+                        <div id="questTasksSection">
+                            <h3 class="text-lg font-bold mb-4">Your tasks</h3>
+                            <div id="questTasksList" class="space-y-3">
+                                <!-- Tasks will be dynamically inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- LEGACY: Keep for backward compatibility, hide by default -->
+                <section id="youtubeQuestPage" class="tab-content hidden" style="display: none !important;">
+                    <div class="min-h-screen pb-24">
+                        <!-- Back Button -->
+                        <button onclick="backToQuestList()" class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 p-2">
+                            <span class="text-2xl">←</span>
+                        </button>
+                        
+                        <!-- Quest Title Section -->
+                        <div class="text-center mb-8">
+                            <h1 class="text-2xl font-black mb-3" id="ytQuestTitle">Watch Our YouTube Video</h1>
+                            <p class="text-gray-400 text-sm mb-6" id="ytQuestDescription">Watch the video and find the secret code</p>
+                            
+                            <!-- Reward Display -->
+                            <div class="inline-flex items-center gap-2 bg-gaming-dark/60 rounded-2xl px-6 py-3 border border-neon-blue/30">
+                                <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+                                    <span class="text-2xl">●</span>
+                                </div>
+                                <div class="text-left">
+                                    <div class="text-xs text-gray-400">Reward</div>
+                                    <div class="text-lg font-black text-yellow-400" id="ytQuestPoints">5 000</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Watch Video Button -->
+                        <button onclick="openYouTubeVideo()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-2xl p-4 font-bold text-lg mb-4 active:scale-95 transition-all shadow-lg">
+                            📺 Watch Video
+                        </button>
+
+                        <!-- Timer Display (hidden initially) -->
+                        <div id="ytTimerDisplay" class="hidden mb-4 bg-gaming-dark/60 rounded-2xl p-4 border border-yellow-500/30">
+                            <div class="text-center">
+                                <p class="text-xs text-gray-400 mb-2">⏱️ Watch Timer</p>
+                                <div class="text-3xl font-black text-yellow-400 mb-2" id="ytTimerCountdown">--:--</div>
+                                <div class="w-full bg-gaming-darker rounded-full h-2 overflow-hidden mb-2">
+                                    <div id="ytTimerProgress" class="h-full bg-gradient-to-r from-yellow-500 to-green-500 transition-all duration-1000" style="width: 0%"></div>
+                                </div>
+                                <span class="text-xs text-gray-400" id="ytTimerStatus">⏳ Keep watching...</span>
+                            </div>
+                        </div>
+
+                        <!-- Your Tasks Section -->
+                        <div>
+                            <h3 class="text-lg font-bold mb-4">Your tasks</h3>
+                            
+                            <div class="space-y-3">
+                                <!-- Task 1: Watch Video -->
+                                <div class="bg-gaming-dark/60 rounded-xl p-4 border border-neon-blue/20">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <p class="text-sm text-gray-300">Watch the video completely</p>
+                                        </div>
+                                        <div class="ml-3 text-gray-500">
+                                            <span class="text-xl">›</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Task 2: Enter Code (Initially Locked) -->
+                                <div class="bg-gaming-dark/60 rounded-xl p-4 border border-neon-blue/20">
+                                    <div class="relative">
+                                        <!-- Lock Overlay -->
+                                        <div id="ytCodeLockOverlay" class="absolute inset-0 bg-gaming-dark/95 backdrop-blur-sm rounded-xl z-10 flex items-center justify-center">
+                                            <div class="text-center">
+                                                <div class="text-3xl mb-2">🔒</div>
+                                                <p class="text-sm font-bold text-gray-400">Watch video first</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Code Input -->
+                                        <div>
+                                            <p class="text-sm text-gray-300 mb-3">Enter verification code</p>
+                                            <input type="text" id="ytVerificationCode" disabled placeholder="Watch the video first" class="w-full bg-gaming-darker/80 border-2 border-yellow-500/50 rounded-xl px-4 py-3 text-center font-bold tracking-wider placeholder-gray-600 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/30 transition-all disabled:opacity-50 mb-3">
+                                            <p class="text-xs text-gray-400 text-center" id="ytCodeInputHint">⏱️ Watch the video to unlock code input</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button id="ytSubmitButton" onclick="submitYouTubeQuest()" disabled class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 font-bold text-lg mt-6 active:scale-95 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span id="ytSubmitButtonText">Submit Code</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- REGULAR QUEST DETAIL PAGE (Twitter, Telegram, Discord, Instagram) -->
+                <section id="regularQuestPage" class="tab-content hidden" style="display: none !important;">
+                    <div class="min-h-screen pb-24">
+                        <!-- Back Button -->
+                        <button onclick="backToQuestList()" class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6 p-2">
+                            <span class="text-2xl">←</span>
+                        </button>
+                        
+                        <!-- Quest Title Section -->
+                        <div class="text-center mb-8">
+                            <h1 class="text-2xl font-black mb-3" id="regQuestTitle">Be a part of crypto degen club!</h1>
+                            <p class="text-gray-400 text-sm mb-6" id="regQuestDescription">Subscribe to the crypto news channel!</p>
+                            
+                            <!-- Reward Display -->
+                            <div class="inline-flex items-center gap-2 bg-gaming-dark/60 rounded-2xl px-6 py-3 border border-neon-blue/30">
+                                <div class="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center">
+                                    <span class="text-2xl">●</span>
+                                </div>
+                                <div class="text-left">
+                                    <div class="text-xs text-gray-400">Reward</div>
+                                    <div class="text-lg font-black text-yellow-400" id="regQuestPoints">1 000</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Start Mission Button -->
+                        <button id="regQuestButton" onclick="submitRegularQuest()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
+                            <span id="regQuestButtonText">Start mission</span>
+                        </button>
+
+                        <!-- Your Tasks Section -->
+                        <div>
+                            <h3 class="text-lg font-bold mb-4">Your tasks</h3>
+                            
+                            <div class="space-y-3">
+                                <!-- Task Item -->
+                                <div class="bg-gaming-dark/60 rounded-xl p-4 border border-neon-blue/20">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <p class="text-sm text-gray-300" id="regTaskDescription">Join the Telegram chat</p>
+                                        </div>
+                                        <div class="ml-3 text-gray-500" id="regTaskStatus">
+                                            <span class="text-xl">›</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -288,36 +629,155 @@
                 <h3 class="text-xl font-black gaming-title gradient-text" id="modalTitle">Quest Details</h3>
                 <button onclick="closeTaskModal()" class="text-3xl text-gray-400 hover:text-white transition-colors">&times;</button>
             </div>
-            <div class="p-6 space-y-4">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="text-5xl" id="modalEmoji">🎯</div>
-                    <div>
-                        <div class="text-sm text-gray-400 uppercase tracking-wide" id="modalPlatform">Platform</div>
-                        <div class="text-3xl font-black gaming-title text-neon-green" id="modalPoints">+0 XP</div>
+            <div class="p-6 space-y-5">
+                <!-- Quest Header with Platform Badge -->
+                <div class="relative">
+                    <div class="absolute inset-0 bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 rounded-2xl blur-xl"></div>
+                    <div class="relative flex items-center gap-5 bg-gradient-to-r from-gaming-darker to-gaming-dark rounded-2xl p-5 border-2 border-neon-blue/40">
+                        <div class="text-6xl drop-shadow-[0_0_20px_rgba(0,212,255,0.5)]" id="modalEmoji">🎯</div>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="px-3 py-1 bg-neon-blue/20 border border-neon-blue/50 rounded-full text-xs font-bold text-neon-blue uppercase tracking-wider" id="modalPlatform">Platform</span>
+                            </div>
+                            <div class="text-3xl font-black gaming-title text-neon-green drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]" id="modalPoints">+0 XP</div>
+                        </div>
                     </div>
                 </div>
-                <div class="bg-gaming-darker/50 rounded-xl p-4">
-                    <p class="text-sm text-gray-300 leading-relaxed" id="modalDescription">Quest description goes here</p>
+                
+                <!-- Quest Description -->
+                <div class="bg-gradient-to-br from-gaming-darker/80 to-gaming-dark/80 rounded-xl p-5 border border-neon-blue/20">
+                    <h4 class="text-sm font-bold text-neon-blue mb-2 uppercase tracking-wide">📋 Quest Objective</h4>
+                    <p class="text-base text-gray-200 leading-relaxed" id="modalDescription">Quest description goes here</p>
                 </div>
                 
-                <!-- Code Input for YouTube/Time-delay quests -->
-                <div id="codeInputSection" class="hidden space-y-3">
-                    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
-                        <p class="text-sm text-yellow-300">
-                            ⏱️ Watch the video and enter the code shown at <span id="codeTime" class="font-bold">0:00</span>
+                <!-- Regular Quest Instructions (for non-YouTube quests) -->
+                <div id="regularQuestSection" class="hidden space-y-4">
+                    <!-- How It Works -->
+                    <div class="bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-2 border-purple-500/50 rounded-xl p-5">
+                        <h4 class="text-lg font-black text-purple-300 mb-3 flex items-center gap-2">
+                            <span>⚡</span>
+                            <span>HOW IT WORKS</span>
+                        </h4>
+                        <ol class="space-y-2 text-sm text-gray-200">
+                            <li class="flex items-start gap-3">
+                                <span class="flex-shrink-0 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                                <span>Click the button below to open the quest</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="flex-shrink-0 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                                <span>Complete the required action on the platform</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="flex-shrink-0 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                                <span>Quest will auto-verify and reward you XP!</span>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <!-- YouTube Quest Flow: Watch First, Then Enter Code -->
+                <div id="youtubeWatchSection" class="hidden space-y-4">
+                    <!-- Large Step 1 Header -->
+                    <div class="text-center py-3 bg-gradient-to-r from-red-500/30 to-pink-500/30 rounded-xl border-2 border-red-500">
+                        <p class="text-2xl font-black gaming-title text-red-300 mb-1">📺 STEP 1</p>
+                        <p class="text-sm font-bold text-white">WATCH THE VIDEO</p>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-red-500/20 to-pink-500/20 border-2 border-red-500/50 rounded-xl p-5 text-center">
+                        <p class="text-base font-bold text-white mb-2">🎥 Click below to watch the video</p>
+                        <p class="text-sm text-gray-300">👀 Look for the SECRET CODE in the video</p>
+                        <p class="text-xs text-red-300 mt-2">⚡ You'll enter it after watching!</p>
+                    </div>
+                    
+                    <button onclick="openVideoAndShowCodeInput()" class="w-full bg-gradient-to-r from-red-600 to-pink-600 text-white font-black py-5 px-6 rounded-xl text-lg hover:shadow-[0_0_40px_rgba(255,0,100,0.6)] transition-all active:scale-95 border-2 border-red-400">
+                        <span class="text-2xl">📺</span>
+                        <span class="ml-2">WATCH VIDEO NOW</span>
+                    </button>
+                </div>
+                
+                <!-- Code Input for YouTube/Time-delay quests (Shows AFTER watching) -->
+                <!-- OLD VERSION - HIDDEN - Using dynamic version now -->
+                <div id="oldStaticCodeInputSection" style="display: none !important;" class="hidden space-y-4">
+                    <!-- Large Step 2 Header -->
+                    <div class="text-center py-3 bg-gradient-to-r from-yellow-500/30 to-orange-500/30 rounded-xl border-2 border-yellow-500 animate-pulse-slow">
+                        <p class="text-2xl font-black gaming-title text-yellow-300 mb-1">🔑 STEP 2</p>
+                        <p class="text-sm font-bold text-white">ENTER THE CODE</p>
+                    </div>
+                    
+                    <!-- Timer Display -->
+                    <div id="timerDisplay" class="bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-2 border-blue-500/50 rounded-xl p-4 text-center hidden">
+                        <p class="text-xs text-gray-400 mb-2">⏱️ Watch Timer</p>
+                        <div class="text-4xl font-black gaming-title text-neon-blue mb-2" id="timerCountdown">--:--</div>
+                        <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                            <div id="timerProgress" class="bg-gradient-to-r from-neon-blue to-neon-purple h-full transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">
+                            <span id="timerStatus">⏳ Keep watching...</span>
                         </p>
                     </div>
-                    <input 
-                        type="text" 
-                        id="verificationCode" 
-                        placeholder="Enter verification code"
-                        class="w-full bg-gaming-darker border-2 border-neon-blue/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-neon-blue transition-colors"
-                    >
+                    
+                    <!-- Code Input Instructions -->
+                    <div class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-2 border-yellow-500/50 rounded-xl p-5 text-center">
+                        <p class="text-lg font-bold text-yellow-300 mb-2">� Type the code you found!</p>
+                        <p class="text-sm text-gray-300">
+                            The verification code was shown at <span id="codeTime" class="font-bold text-yellow-400">during the video</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Large Prominent Code Input (LOCKED until timer ends) -->
+                    <div class="relative" id="codeInputContainer">
+                        <!-- Lock Overlay (shows when timer is running) -->
+                        <div id="codeLockOverlay" class="absolute inset-0 bg-gaming-dark/90 backdrop-blur-sm rounded-xl flex items-center justify-center z-10 hidden">
+                            <div class="text-center">
+                                <div class="text-5xl mb-3 animate-pulse">🔒</div>
+                                <p class="text-lg font-bold text-red-400">INPUT LOCKED</p>
+                                <p class="text-sm text-gray-400 mt-1">Complete watch timer first</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Glowing halo effect -->
+                        <div class="absolute -inset-1 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl blur opacity-50 animate-pulse-slow"></div>
+                        
+                        <!-- Code input field -->
+                        <input 
+                            type="text" 
+                            id="verificationCode" 
+                            placeholder="ENTER CODE HERE"
+                            disabled
+                            class="relative w-full bg-gaming-darker border-4 border-yellow-500 rounded-xl px-6 py-5 text-white placeholder-yellow-600/50 focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_30px_rgba(234,179,8,0.5)] transition-all text-center text-2xl font-black tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                    </div>
+                    
+                    <div class="text-center text-xs text-gray-400">
+                        <p id="codeInputHint">🔒 Complete the watch timer to unlock code input</p>
+                    </div>
                 </div>
-                
-                <button onclick="completeTask()" class="w-full bg-gradient-to-r from-neon-blue to-neon-purple text-white font-bold py-4 rounded-xl hover:shadow-[0_0_30px_rgba(0,149,255,0.5)] transition-all active:scale-95">
-                    🚀 START QUEST
-                </button>
+                <!-- END OF OLD SECTION - NOW HIDDEN -->
+
+                <!-- Action Button Section -->
+                <div class="space-y-3">
+                    <!-- Regular quest button (non-YouTube) OR Submit code button (YouTube after watching) -->
+                    <div class="relative">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-neon-blue to-neon-purple rounded-xl blur-lg opacity-50"></div>
+                        <button id="questActionButton" onclick="completeTask()" class="relative w-full bg-gradient-to-r from-neon-blue to-neon-purple text-white font-black py-6 px-8 rounded-xl text-xl hover:shadow-[0_0_50px_rgba(0,149,255,0.8)] transition-all active:scale-95 border-2 border-blue-300 flex items-center justify-center gap-3">
+                            <span class="text-3xl">🚀</span>
+                            <span>START QUEST</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Quest Info Footer -->
+                    <div class="flex items-center justify-center gap-4 text-xs text-gray-400">
+                        <div class="flex items-center gap-1">
+                            <span>⚡</span>
+                            <span>Instant Verification</span>
+                        </div>
+                        <div class="w-1 h-1 bg-gray-600 rounded-full"></div>
+                        <div class="flex items-center gap-1">
+                            <span>🎁</span>
+                            <span>Auto Rewards</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -336,22 +796,164 @@
         const API_URL = `${API_BASE}/api`;
         
         // Telegram Mini App Integration
-        let TELEGRAM_ID = null;
-        let TELEGRAM_USER = null;
+        // ⚠️ TELEGRAM LOGIN DISABLED - Using default test user
+        let TELEGRAM_ID = 1271737596; // Default test user ID
+        let TELEGRAM_USER = {
+            id: 1271737596,
+            first_name: 'Test',
+            last_name: 'User',
+            username: 'testuser'
+        };
+        console.log('⚠️ Telegram login disabled - Using test user:', TELEGRAM_USER);
         
-        // Initialize Telegram WebApp
+        // Initialize Telegram WebApp (if available, will override test user)
         if (window.Telegram && window.Telegram.WebApp) {
             const tg = window.Telegram.WebApp;
             tg.ready();
             tg.expand();
             
-            // Get user data from Telegram
+            // Get user data from Telegram (will override test user if available)
             if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
                 TELEGRAM_USER = tg.initDataUnsafe.user;
                 TELEGRAM_ID = TELEGRAM_USER.id;
-                console.log('Telegram user authenticated:', TELEGRAM_USER);
+                console.log('✅ Telegram user authenticated (overriding test user):', TELEGRAM_USER);
             }
         }
+
+        // ============================================
+        // ON-SCREEN DEBUG PANEL (for Telegram Mini App)
+        // ============================================
+        
+        let debugLogs = [];
+        let isDebugPanelVisible = false;
+        
+        // Override console.log to capture all logs
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+        
+        function addDebugLog(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                log: '#00ff00',
+                error: '#ff0000',
+                warn: '#ffaa00',
+                info: '#00aaff'
+            };
+            
+            debugLogs.push({
+                time: timestamp,
+                message: String(message),
+                type: type,
+                color: colors[type]
+            });
+            
+            // Keep only last 100 logs
+            if (debugLogs.length > 100) {
+                debugLogs.shift();
+            }
+            
+            // Update debug panel if it exists
+            updateDebugPanel();
+        }
+        
+        function updateDebugPanel() {
+            const debugLog = document.getElementById('debugLog');
+            if (!debugLog) return;
+            
+            debugLog.innerHTML = debugLogs.map(log => 
+                `<div style="color: ${log.color}; margin-bottom: 4px;">
+                    <span style="color: #666;">[${log.time}]</span> ${log.message}
+                </div>`
+            ).join('');
+            
+            // Auto-scroll to bottom
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+        
+        function toggleDebugPanel() {
+            const panel = document.getElementById('debugPanel');
+            if (panel) {
+                isDebugPanelVisible = !isDebugPanelVisible;
+                panel.classList.toggle('hidden', !isDebugPanelVisible);
+            }
+        }
+        
+        function clearDebugLog() {
+            debugLogs = [];
+            updateDebugPanel();
+            addDebugLog('Debug log cleared', 'info');
+        }
+        
+        // Override console methods
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            addDebugLog(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            addDebugLog('❌ ' + args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            originalConsoleWarn.apply(console, args);
+            addDebugLog('⚠️ ' + args.join(' '), 'warn');
+        };
+        
+        // Add initial log
+        addDebugLog('🐛 Debug system initialized', 'info');
+        addDebugLog('Click 🐛 button to toggle debug panel', 'info');
+        
+        // ============================================
+        // TEST MODE - Set to true for 5 second timer
+        // ============================================
+        const TEST_MODE = true; // Set to false for production (30 second timer)
+        
+        if (TEST_MODE) {
+            addDebugLog('⚡ TEST MODE ACTIVE - Timer is 5 seconds!', 'warn');
+        }
+        
+        // Test function for code input
+        function testCodeInput() {
+            addDebugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+            addDebugLog('🧪 TESTING CODE INPUT', 'info');
+            
+            const el = document.getElementById('codeInputSection');
+            addDebugLog('Element: ' + (el ? 'FOUND ✅' : 'NOT FOUND ❌'), el ? 'log' : 'error');
+            
+            if (el) {
+                addDebugLog('Parent: ' + (el.parentElement ? el.parentElement.id || 'no ID' : 'none'), 'log');
+                addDebugLog('Classes: ' + el.className, 'log');
+                addDebugLog('Display: ' + window.getComputedStyle(el).display, 'log');
+                
+                addDebugLog('Attempting to show...', 'info');
+                el.classList.remove('hidden');
+                el.style.display = 'block';
+                el.style.visibility = 'visible';
+                el.style.border = '3px solid red';
+                
+                setTimeout(() => {
+                    const newDisplay = window.getComputedStyle(el).display;
+                    addDebugLog('New display: ' + newDisplay, newDisplay === 'block' ? 'log' : 'error');
+                    addDebugLog(newDisplay === 'block' ? '✅ Should be visible now with RED BORDER' : '❌ Still hidden!', newDisplay === 'block' ? 'log' : 'error');
+                }, 100);
+            } else {
+                addDebugLog('Searching for similar elements...', 'warn');
+                const similar = document.querySelectorAll('[id*="codeInput"]');
+                addDebugLog('Found ' + similar.length + ' elements with "codeInput"', 'info');
+                similar.forEach((elem, i) => {
+                    addDebugLog(`  ${i+1}. id="${elem.id}"`, 'log');
+                });
+            }
+            
+            addDebugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+        }
+        
+        // ============================================
+        // END DEBUG PANEL
+        // ============================================
+
         
         // Track if user has started participating
         let userHasParticipated = false;
@@ -594,13 +1196,152 @@
             }
         }
 
+        // Track current category filter
+        let currentQuestCategory = 'all';
+        let allTasksData = [];
+        let completedTaskIds = new Set();
+
+        // Filter quests by category
+        function filterQuestsByCategory(category) {
+            currentQuestCategory = category;
+            
+            // Update tab active states
+            document.querySelectorAll('.quest-category-tab').forEach(tab => {
+                if (tab.dataset.category === category) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Re-render quest list with filter
+            displayFilteredQuests();
+        }
+
+        // Get quest status based on state
+        function getQuestStatus(task) {
+            // Check if completed
+            if (completedTaskIds.has(task.id)) {
+                return { status: 'completed', emoji: '✅', label: 'Completed' };
+            }
+            
+            // Check if in progress (has start time in localStorage)
+            const startTime = localStorage.getItem(`quest_start_${task.id}`);
+            if (startTime) {
+                return { status: 'in-progress', emoji: '🟡', label: 'In Progress' };
+            }
+            
+            // Default: available
+            return { status: 'available', emoji: '🟢', label: 'Available' };
+        }
+
+        // Get quest category
+        function getQuestCategory(task) {
+            // Check if task has category field
+            if (task.category) return task.category;
+            
+            // Auto-categorize based on platform/type
+            if (task.platform === 'telegram' || task.platform === 'twitter' || task.platform === 'instagram') {
+                return 'partner';
+            }
+            
+            // Check if daily quest (has daily_reset flag or description mentions daily)
+            if (task.daily_reset || task.title?.toLowerCase().includes('daily')) {
+                return 'daily';
+            }
+            
+            // Check if special (limited time or high rewards)
+            if (task.limited_time || (task.points_reward && task.points_reward >= 1000)) {
+                return 'special';
+            }
+            
+            // Default to general
+            return 'general';
+        }
+
+        // Display filtered quests
+        function displayFilteredQuests() {
+            const container = document.getElementById('tasksContainer');
+            
+            // Filter by category
+            let filtered = currentQuestCategory === 'all' 
+                ? allTasksData 
+                : allTasksData.filter(task => getQuestCategory(task) === currentQuestCategory);
+            
+            // Update count
+            document.getElementById('tasksCount').textContent = filtered.length;
+            
+            if (filtered.length === 0) {
+                const categoryName = currentQuestCategory === 'all' ? 'quests' : `${currentQuestCategory} quests`;
+                container.innerHTML = `<div class="text-center py-12 text-gray-400">No ${categoryName} available right now. Check back later! 🎯</div>`;
+                return;
+            }
+            
+            // Render quest cards
+            container.innerHTML = filtered.map((task, index) => {
+                const platformEmoji = {
+                    'youtube': '📺',
+                    'twitter': '🐦',
+                    'telegram': '✈️',
+                    'discord': '💬',
+                    'instagram': '📷'
+                }[task.platform] || '🎯';
+                
+                const platformName = task.platform || 'general';
+                const points = task.points_reward || 0;
+                const category = getQuestCategory(task);
+                const statusInfo = getQuestStatus(task);
+                
+                // Determine if quest is clickable and get indicator icon
+                const isCompleted = statusInfo.status === 'completed';
+                const isClickable = !isCompleted;
+                
+                // TapSwap-style indicator: Green checkmark for completed, Arrow for available
+                let indicatorIcon = '';
+                let indicatorClass = '';
+                if (isCompleted) {
+                    indicatorIcon = '✓';
+                    indicatorClass = 'text-neon-green text-2xl font-bold';
+                } else {
+                    indicatorIcon = '›';
+                    indicatorClass = 'text-neon-blue text-2xl font-bold';
+                }
+                
+                const cursorClass = isClickable ? 'cursor-pointer' : 'cursor-default';
+                const opacityClass = isCompleted ? 'opacity-70' : '';
+                const hoverClass = isClickable ? 'hover:border-neon-purple/50 active:scale-95' : '';
+                const clickHandler = isClickable ? `onclick="showTaskDetail(${allTasksData.indexOf(task)})"` : '';
+                
+                return `
+                    <div class="bg-gaming-dark/80 rounded-xl p-4 border border-neon-blue/30 ${hoverClass} transition-all ${cursorClass} ${opacityClass}" ${clickHandler}>
+                        <div class="flex items-center gap-3">
+                            <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-neon-blue/10 rounded-xl border border-neon-blue/20">
+                                <span class="text-2xl">${platformEmoji}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-bold text-sm mb-1 truncate">${task.title}</h3>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-sm font-black text-neon-green flex items-center">
+                                        <span class="text-yellow-400 mr-1">●</span> ${points}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0 ${indicatorClass}">
+                                ${indicatorIcon}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         async function loadTasks() {
             try {
                 const response = await fetch(`${API_URL}/tasks`);
                 const allTasks = await response.json();
                 
                 // Get user's completed tasks
-                let completedTaskIds = new Set();
+                completedTaskIds = new Set();
                 if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
                     try {
                         const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
@@ -618,50 +1359,20 @@
                     }
                 }
                 
-                // Filter out completed tasks
-                const tasks = allTasks.filter(task => !completedTaskIds.has(task.id));
+                // DON'T filter out completed tasks - show ALL tasks
+                // Completed tasks will show with checkmark, available tasks with arrow
+                allTasksData = allTasks;
                 
-                const container = document.getElementById('tasksContainer');
-                document.getElementById('tasksCount').textContent = tasks.length;
-                
-                if (tasks.length === 0) {
-                    container.innerHTML = '<div class="text-center py-12 text-gray-400">🎉 All quests completed! Check back later for new quests.</div>';
-                    return;
-                }
-
                 // Store tasks globally for access
-                window.tasksData = tasks;
+                window.tasksData = allTasksData;
                 
-                container.innerHTML = tasks.map((task, index) => {
-                    const platformEmoji = {
-                        'youtube': '📺',
-                        'twitter': '🐦',
-                        'telegram': '✈️',
-                        'discord': '💬',
-                        'instagram': '📷'
-                    }[task.platform] || '🎯';
-                    
-                    const platformName = task.platform || 'general';
-                    const points = task.points_reward || 0;
-                    
-                    return `
-                        <div class="bg-gaming-dark/80 rounded-xl p-4 border border-neon-blue/30 active:scale-95 transition-all cursor-pointer hover:border-neon-purple/50" onclick="showTaskDetail(${index})">
-                            <div class="flex items-start gap-3">
-                                <div class="text-3xl">${platformEmoji}</div>
-                                <div class="flex-1">
-                                    <h3 class="font-bold text-sm mb-1">${task.title}</h3>
-                                    <p class="text-xs text-gray-400 mb-2">${task.description || 'Complete this quest to earn points!'}</p>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-xs px-2 py-1 bg-neon-blue/20 text-neon-blue rounded-full uppercase">${platformName}</span>
-                                        <span class="text-sm font-black text-neon-green">+${points} XP</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                // Display with current filter
+                displayFilteredQuests();
+                
             } catch (error) {
                 console.error(error);
+                const container = document.getElementById('tasksContainer');
+                container.innerHTML = '<div class="text-center py-12 text-red-400">⚠️ Failed to load quests. Please try again.</div>';
             }
         }
 
@@ -971,66 +1682,1702 @@
         let currentTaskId = null;
         let currentTaskUrl = null;
         let currentTask = null;
+        let videoWatchTimer = null;
+        let watchTimerInterval = null;
+        let videoStartTime = null;
+        let requiredWatchTime = 0;
+
+        // Navigation: Back to quest list
+        function backToQuestList() {
+            // Hide all quest detail pages
+            document.getElementById('youtubeQuestPage').classList.add('hidden');
+            document.getElementById('regularQuestPage').classList.add('hidden');
+            document.getElementById('questDetailPage').classList.add('hidden');
+            
+            // Show quest list
+            document.getElementById('tasks').classList.remove('hidden');
+            
+            // Clean up any running timers
+            if (videoWatchTimer) {
+                clearInterval(videoWatchTimer);
+                videoWatchTimer = null;
+            }
+            if (watchTimerInterval) {
+                clearInterval(watchTimerInterval);
+                watchTimerInterval = null;
+            }
+            
+            // Reset state
+            currentTask = null;
+            currentTaskId = null;
+            currentTaskUrl = null;
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Quest state management
+        let questState = 'not_started'; // not_started, in_progress, ready_to_claim, completed
 
         function showTaskDetail(taskIndex) {
             const task = window.tasksData[taskIndex];
             if (!task) return;
             
+            // Check if quest is already completed - prevent reopening
+            const statusInfo = getQuestStatus(task);
+            if (statusInfo.status === 'completed') {
+                console.log('⚠️ Quest already completed - cannot reopen');
+                
+                // Show a toast message
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gaming-darker/95 border-2 border-neon-green text-white px-6 py-4 rounded-xl shadow-2xl z-50 text-center';
+                toast.innerHTML = `
+                    <div class="text-3xl mb-2">✅</div>
+                    <div class="text-lg font-bold">Quest Already Completed!</div>
+                    <div class="text-sm text-gray-400 mt-1">You've already earned the rewards</div>
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+                
+                return; // Don't open the quest
+            }
+            
             currentTask = task;
             currentTaskId = task.id;
             currentTaskUrl = task.url;
+            questState = 'not_started';
             
-            const platformEmoji = {
-                'youtube': '📺',
-                'twitter': '🐦',
-                'telegram': '✈️',
-                'discord': '💬',
-                'instagram': '📷'
-            }[task.platform] || '🎯';
+            // Hide quest list
+            document.getElementById('tasks').classList.add('hidden');
             
-            const platformName = task.platform || 'general';
+            // Show new dynamic quest detail page
+            showQuestDetailPage(task);
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function showQuestDetailPage(task) {
+            console.log('📄 SHOW QUEST DETAIL PAGE');
+            console.log('   Task:', task);
+            
             const points = task.points_reward || 0;
-            
-            document.getElementById('modalTitle').textContent = task.title;
-            document.getElementById('modalDescription').textContent = task.description || 'Complete this quest to earn points!';
-            document.getElementById('modalEmoji').textContent = platformEmoji;
-            document.getElementById('modalPlatform').textContent = platformName.toUpperCase();
-            document.getElementById('modalPoints').textContent = `+${points} XP`;
-            
-            // Show/hide code input based on task type
-            const codeInputSection = document.getElementById('codeInputSection');
+            const taskType = task.task_type || '';
             const verificationData = task.verification_data || {};
             
-            if (task.task_type === 'youtube_watch' && verificationData.method === 'time_delay_code') {
-                codeInputSection.classList.remove('hidden');
-                const delaySeconds = verificationData.delay_seconds || 0;
-                const minutes = Math.floor(delaySeconds / 60);
-                const seconds = delaySeconds % 60;
-                document.getElementById('codeTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                document.getElementById('verificationCode').value = '';
+            console.log('   Points:', points);
+            console.log('   Task type:', taskType);
+            console.log('   Verification data:', verificationData);
+            
+            // Set basic quest info
+            document.getElementById('questTitle').textContent = task.title;
+            document.getElementById('questDescription').textContent = task.description || 'Complete this quest to earn rewards';
+            
+            // Format points with space (TapSwap style)
+            const formattedPoints = points.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            document.getElementById('questPoints').textContent = formattedPoints;
+            
+            // Generate instructions based on task type
+            const instructions = generateInstructions(task, taskType, verificationData);
+            document.getElementById('questInstructions').innerHTML = instructions;
+            
+            // Generate dynamic content based on task_type
+            console.log('   🔧 Generating dynamic content...');
+            const dynamicContent = generateQuestContent(task, taskType, verificationData);
+            console.log('   Dynamic content generated:', dynamicContent);
+            
+            const dynamicContentElement = document.getElementById('questDynamicContent');
+            console.log('   Dynamic content container:', dynamicContentElement);
+            
+            dynamicContentElement.innerHTML = dynamicContent.html;
+            console.log('   ✅ Dynamic content HTML inserted');
+            
+            // Verify the code input section was inserted
+            setTimeout(() => {
+                const codeInputCheck = document.getElementById('codeInputSection');
+                console.log('   🔍 Code input section verification:', codeInputCheck);
+                console.log('   Code input section exists:', !!codeInputCheck);
+            }, 100);
+            
+            // Generate action button (hide for YouTube - they use Watch Video button instead)
+            if (taskType === 'youtube' || taskType === 'youtube_watch') {
+                document.getElementById('questActionButton').innerHTML = '';
+                console.log('   ✅ Action button hidden for YouTube');
             } else {
-                codeInputSection.classList.add('hidden');
+                const actionButton = generateActionButton(task, taskType);
+                document.getElementById('questActionButton').innerHTML = actionButton;
+                console.log('   ✅ Action button generated');
             }
             
-            document.getElementById('taskModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+            // Generate tasks list
+            const tasksList = generateTasksList(task, taskType, verificationData);
+            document.getElementById('questTasksList').innerHTML = tasksList;
+            
+            // Show the page
+            document.getElementById('questDetailPage').classList.remove('hidden');
+            console.log('   ✅ Quest detail page shown');
+            
+            // Execute any post-render scripts
+            if (dynamicContent.onRender) {
+                console.log('   🎬 Executing onRender callback...');
+                dynamicContent.onRender();
+            }
+        }
+
+        function generateInstructions(task, taskType, verificationData) {
+            let instructions = '';
+            
+            // YouTube Watch Quest
+            if (taskType === 'youtube' || taskType === 'youtube_watch') {
+                instructions = `
+                    <div class="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">📺</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-red-400 mb-2">How to complete this quest:</h4>
+                                <ol class="space-y-2 text-sm text-gray-300">
+                                    <li class="flex gap-2"><span class="text-red-400 font-bold">1.</span> Click "Start mission" to open the YouTube video</li>
+                                    <li class="flex gap-2"><span class="text-red-400 font-bold">2.</span> Watch the entire video carefully</li>
+                                    <li class="flex gap-2"><span class="text-red-400 font-bold">3.</span> Look for the verification code shown in the video</li>
+                                    <li class="flex gap-2"><span class="text-red-400 font-bold">4.</span> Wait for the timer to complete (${task.min_watch_time_seconds || verificationData.min_watch_time || 30} seconds)</li>
+                                    <li class="flex gap-2"><span class="text-red-400 font-bold">5.</span> Enter the code and click "Claim" to get your reward</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Twitter Follow
+            else if (taskType === 'twitter_follow') {
+                instructions = `
+                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">🐦</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-blue-400 mb-2">How to complete this quest:</h4>
+                                <ol class="space-y-2 text-sm text-gray-300">
+                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">1.</span> Click "Start mission" to open Twitter</li>
+                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">2.</span> Follow @${verificationData.username || 'BRGYTamago'} on Twitter</li>
+                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">3.</span> Return here and click "Claim" to verify and get your reward</li>
+                                </ol>
+                                <p class="text-xs text-yellow-400 mt-3">⚠️ Make sure you're logged into Twitter before clicking Start mission</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Twitter Like
+            else if (taskType === 'twitter_like') {
+                instructions = `
+                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">❤️</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-blue-400 mb-2">How to complete this quest:</h4>
+                                <ol class="space-y-2 text-sm text-gray-300">
+                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">1.</span> Click "Start mission" to open the tweet</li>
+                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">2.</span> Click the ❤️ (Like) button on the tweet</li>
+                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">3.</span> Return here and click "Claim" to get your reward</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Twitter Retweet
+            else if (taskType === 'twitter_retweet') {
+                instructions = `
+                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-2xl p-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">🔄</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-blue-400 mb-2">How to complete this quest:</h4>
+                                <ol class="space-y-2 text-sm text-gray-300">
+                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">1.</span> Click "Start mission" to open the tweet</li>
+                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">2.</span> Click the 🔄 (Retweet) button</li>
+                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">3.</span> Confirm the retweet</li>
+                                    <li class="flex gap-2"><span class="text-blue-400 font-bold">4.</span> Return here and click "Claim" to get your reward</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Telegram Join
+            else if (taskType.startsWith('telegram_')) {
+                instructions = `
+                    <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-2xl p-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">✈️</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-cyan-400 mb-2">How to complete this quest:</h4>
+                                <ol class="space-y-2 text-sm text-gray-300">
+                                    <li class="flex gap-2"><span class="text-cyan-400 font-bold">1.</span> Click "Start mission" to open Telegram</li>
+                                    <li class="flex gap-2"><span class="text-cyan-400 font-bold">2.</span> Join the channel/group</li>
+                                    <li class="flex gap-2"><span class="text-cyan-400 font-bold">3.</span> Return here and click "Claim" to verify and get your reward</li>
+                                </ol>
+                                <p class="text-xs text-yellow-400 mt-3">⚠️ Make sure Telegram is installed on your device</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Instagram Follow
+            else if (task.platform === 'instagram' || taskType.includes('instagram')) {
+                instructions = `
+                    <div class="bg-pink-500/10 border border-pink-500/30 rounded-2xl p-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">📷</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-pink-400 mb-2">How to complete this quest:</h4>
+                                <ol class="space-y-2 text-sm text-gray-300">
+                                    <li class="flex gap-2"><span class="text-pink-400 font-bold">1.</span> Click "Start mission" to open Instagram</li>
+                                    <li class="flex gap-2"><span class="text-pink-400 font-bold">2.</span> Follow our Instagram account</li>
+                                    <li class="flex gap-2"><span class="text-pink-400 font-bold">3.</span> Return here and click "Claim" to get your reward</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Discord Join
+            else if (task.platform === 'discord' || taskType.includes('discord')) {
+                instructions = `
+                    <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-2xl p-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">💬</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-indigo-400 mb-2">How to complete this quest:</h4>
+                                <ol class="space-y-2 text-sm text-gray-300">
+                                    <li class="flex gap-2"><span class="text-indigo-400 font-bold">1.</span> Click "Start mission" to get the Discord invite link</li>
+                                    <li class="flex gap-2"><span class="text-indigo-400 font-bold">2.</span> Join our Discord server</li>
+                                    <li class="flex gap-2"><span class="text-indigo-400 font-bold">3.</span> Say "Hi" in the general channel</li>
+                                    <li class="flex gap-2"><span class="text-indigo-400 font-bold">4.</span> Return here and click "Claim" to get your reward</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Daily Check-in
+            else if (taskType === 'daily_checkin') {
+                instructions = `
+                    <div class="bg-green-500/10 border border-green-500/30 rounded-2xl p-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">📅</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-green-400 mb-2">Daily Check-in Reward:</h4>
+                                <p class="text-sm text-gray-300 mb-2">Come back every day to collect your daily reward!</p>
+                                <ol class="space-y-2 text-sm text-gray-300">
+                                    <li class="flex gap-2"><span class="text-green-400 font-bold">1.</span> Click "Start mission" to begin</li>
+                                    <li class="flex gap-2"><span class="text-green-400 font-bold">2.</span> Click "Claim" to get your daily reward</li>
+                                    <li class="flex gap-2"><span class="text-green-400 font-bold">3.</span> Come back tomorrow for more rewards!</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Default
+            else {
+                instructions = `
+                    <div class="bg-purple-500/10 border border-purple-500/30 rounded-2xl p-4 mb-4">
+                        <div class="flex items-start gap-3">
+                            <div class="text-2xl">🎯</div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-purple-400 mb-2">How to complete this quest:</h4>
+                                <ol class="space-y-2 text-sm text-gray-300">
+                                    <li class="flex gap-2"><span class="text-purple-400 font-bold">1.</span> Click "Start mission" to begin</li>
+                                    <li class="flex gap-2"><span class="text-purple-400 font-bold">2.</span> Complete the required action</li>
+                                    <li class="flex gap-2"><span class="text-purple-400 font-bold">3.</span> Return here and click "Claim" to get your reward</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            return instructions;
+        }
+
+        function generateActionButton(task, taskType) {
+            const taskTypeColors = {
+                'youtube': 'from-red-600 to-red-700 hover:from-red-700 hover:to-red-800',
+                'youtube_watch': 'from-red-600 to-red-700 hover:from-red-700 hover:to-red-800',
+                'twitter_follow': 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
+                'twitter_like': 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
+                'twitter_retweet': 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
+                'twitter_reply': 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
+                'telegram_join': 'from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600',
+                'instagram': 'from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600',
+                'discord': 'from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600',
+                'daily_checkin': 'from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600',
+                'default': 'from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
+            };
+            
+            const colors = taskTypeColors[taskType] || taskTypeColors['default'];
+            
+            return `
+                <button id="questActionBtn" onclick="handleQuestAction()" class="w-full bg-gradient-to-r ${colors} rounded-2xl p-4 font-bold text-lg active:scale-95 transition-all shadow-lg">
+                    Start mission
+                </button>
+            `;
+        }
+
+        // Handle quest action based on state (Start → Claim → Complete)
+        function handleQuestAction() {
+            const btn = document.getElementById('questActionBtn');
+            const taskType = currentTask.task_type || '';
+            
+            if (questState === 'not_started') {
+                // Start mission - open URL and change to "ready to claim"
+                if (currentTaskUrl) {
+                    window.open(currentTaskUrl, '_blank');
+                }
+                
+                // Mark first task as in progress
+                updateTaskStatus(0, 'in-progress');
+                
+                // For YouTube, show timer
+                if (taskType === 'youtube' || taskType === 'youtube_watch') {
+                    document.getElementById('youtubeTimer')?.classList.remove('hidden');
+                    startWatchTimer();
+                    btn.disabled = true;
+                    btn.textContent = 'Watching...';
+                    questState = 'in_progress';
+                } else {
+                    // For other quests, change button to "Claim" after short delay
+                    btn.disabled = true;
+                    btn.textContent = 'Verifying...';
+                    
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.textContent = 'Claim';
+                        questState = 'ready_to_claim';
+                        updateTaskStatus(0, 'completed');
+                    }, 2000);
+                }
+            }
+            else if (questState === 'ready_to_claim') {
+                // Claim reward
+                btn.disabled = true;
+                btn.innerHTML = '<span class="animate-spin inline-block">⏳</span> Claiming...';
+                
+                // Submit to backend
+                claimQuestReward();
+            }
+        }
+
+        function updateTaskStatus(taskIndex, status) {
+            const taskItems = document.querySelectorAll('.task-item');
+            if (taskItems[taskIndex]) {
+                const statusIcon = taskItems[taskIndex].querySelector('.task-status');
+                if (status === 'in-progress') {
+                    statusIcon.innerHTML = '<span class="text-yellow-400 text-xl">⏳</span>';
+                } else if (status === 'completed') {
+                    statusIcon.innerHTML = '<span class="text-green-400 text-xl">✓</span>';
+                }
+            }
+        }
+
+        function claimQuestReward() {
+            console.log('🎁 Claiming quest reward...');
+            
+            // For YouTube quests, need to get the code
+            const taskType = currentTask.task_type || '';
+            let submitData = {};
+            
+            if (taskType === 'youtube' || taskType === 'youtube_watch') {
+                const code = document.getElementById('verificationCodeInput')?.value.trim();
+                if (!code) {
+                    alert('Please enter the verification code first!');
+                    return;
+                }
+                submitData.code = code;
+                console.log('📝 Submitting code:', code);
+            }
+            
+            submitTaskCompletion(currentTaskId, submitData);
+        }
+
+        async function submitTaskCompletion(taskId, data) {
+            try {
+                console.log('🚀 Submitting task completion...');
+                console.log('   Task ID:', taskId);
+                console.log('   Data:', data);
+                console.log('   API URL:', `${API_URL}/tasks/${taskId}/complete`);
+                console.log('   Telegram ID:', TELEGRAM_ID);
+                
+                const requestBody = {
+                    telegram_id: TELEGRAM_ID,
+                    ...data
+                };
+                console.log('   Request body:', JSON.stringify(requestBody, null, 2));
+                
+                const response = await fetch(`${API_URL}/tasks/${taskId}/complete`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                console.log('📡 Response status:', response.status);
+                console.log('   Response ok:', response.ok);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Response not OK. Status:', response.status);
+                    console.error('   Error text:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const result = await response.json();
+                console.log('📦 Response data:', result);
+                
+                if (result.success) {
+                    console.log('✅ Task completed successfully!', result);
+                    
+                    // Add to completed tasks immediately
+                    completedTaskIds.add(taskId);
+                    console.log('📝 Added task to completedTaskIds:', taskId);
+                    
+                    // Show success animation
+                    showSuccessAnimation(result);
+                    
+                    // Wait then go back to quest list
+                    setTimeout(() => {
+                        console.log('🔄 Reloading quest list with completed task...');
+                        backToQuestList();
+                        // Reload tasks to update the list
+                        loadTasks();
+                        loadUserData();
+                    }, 2000);
+                } else {
+                    console.error('❌ Verification failed:', result.message);
+                    alert(result.message || 'Verification failed. Please try again.');
+                    
+                    // Re-enable action button if it exists (for non-YouTube quests)
+                    const actionBtn = document.getElementById('questActionBtn');
+                    if (actionBtn) {
+                        actionBtn.disabled = false;
+                        actionBtn.textContent = 'Claim';
+                    }
+                }
+            } catch (error) {
+                console.error('❌ ❌ Error submitting task:', error);
+                console.error('   Error name:', error.name);
+                console.error('   Error message:', error.message);
+                console.error('   Error stack:', error.stack);
+                
+                let errorMessage = 'Failed to submit. Please try again.';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = '⚠️ Network error: Cannot connect to server. Please check your connection.';
+                    console.error('   🔍 Debugging info:');
+                    console.error('      API_BASE:', API_BASE);
+                    console.error('      API_URL:', API_URL);
+                    console.error('      Task ID:', taskId);
+                } else if (error.message.includes('HTTP')) {
+                    errorMessage = `Server error: ${error.message}`;
+                }
+                
+                alert(errorMessage);
+                
+                // Re-enable action button if it exists (for non-YouTube quests)
+                const actionBtn = document.getElementById('questActionBtn');
+                if (actionBtn) {
+                    actionBtn.disabled = false;
+                    actionBtn.textContent = 'Claim';
+                }
+            }
+        }
+
+        function showSuccessAnimation(result) {
+            console.log('🎉 Showing success animation');
+            
+            // Try to find action button (for non-YouTube quests)
+            const btn = document.getElementById('questActionBtn');
+            
+            if (btn) {
+                // Regular quest - update button
+                btn.innerHTML = `
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="text-2xl">🎉</span>
+                        <span>+${result.points_awarded || currentTask.points_reward} XP Claimed!</span>
+                        <span class="text-2xl">✓</span>
+                    </div>
+                `;
+                btn.classList.add('bg-gradient-to-r', 'from-green-500', 'to-emerald-500');
+            } else {
+                // YouTube quest - create floating success message
+                const successMsg = document.createElement('div');
+                successMsg.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-8 py-6 rounded-2xl shadow-2xl z-50 text-center animate-bounce';
+                successMsg.innerHTML = `
+                    <div class="text-4xl mb-2">🎉</div>
+                    <div class="text-xl font-bold">Quest Complete!</div>
+                    <div class="text-lg">+${result.points_awarded || currentTask.points_reward} XP Earned!</div>
+                    <div class="text-2xl mt-2">✓</div>
+                    <div class="text-sm mt-2 opacity-90">Returning to quest list...</div>
+                `;
+                document.body.appendChild(successMsg);
+                setTimeout(() => successMsg.remove(), 2000);
+                
+                // Also update the YouTube submit button to show success
+                const youtubeBtn = document.getElementById('youtubeSubmitBtn');
+                if (youtubeBtn) {
+                    youtubeBtn.innerHTML = '<span class="text-2xl">✅</span> <span>Quest Complete!</span>';
+                    youtubeBtn.classList.add('bg-green-600');
+                }
+            }
+            
+            // Add confetti effect (simple version)
+            const confetti = document.createElement('div');
+            confetti.className = 'fixed inset-0 pointer-events-none z-50';
+            confetti.innerHTML = '🎉'.repeat(20).split('').map((emoji, i) => 
+                `<div class="absolute animate-bounce" style="left: ${Math.random() * 100}%; top: -20px; animation-delay: ${i * 0.1}s">${emoji}</div>`
+            ).join('');
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 2000);
+        }
+
+        function generateQuestContent(task, taskType, verificationData) {
+            console.log('📦 GENERATE QUEST CONTENT');
+            console.log('   Task type:', taskType);
+            console.log('   Verification data:', verificationData);
+            
+            const platform = task.platform?.toLowerCase() || '';
+            
+            // YouTube Watch Quest (with timer and code)
+            if (taskType === 'youtube' || taskType === 'youtube_watch') {
+                console.log('   🎬 Generating YouTube quest content');
+                return {
+                    html: `
+                        <!-- Watch Video Button -->
+                        <button id="watchVideoBtn" onclick="startYouTubeQuest()" class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-2xl p-4 font-bold text-lg mb-4 active:scale-95 transition-all shadow-lg">
+                            📺 Watch Video
+                        </button>
+                        
+                        <!-- Timer Display - Redesigned Professional & Simple -->
+                        <div id="youtubeTimer" class="hidden mb-6">
+                            <div id="timerContainer" class="bg-gradient-to-br from-gaming-dark/80 to-gaming-darker/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-xl transition-all duration-300">
+                                <!-- Timer Value -->
+                                <div class="flex items-center justify-center gap-4 mb-4">
+                                    <div id="timerIconContainer" class="w-12 h-12 rounded-full bg-yellow-500/10 border-2 border-yellow-500/30 flex items-center justify-center transition-all duration-500">
+                                        <svg id="timerIcon" class="w-6 h-6 text-yellow-400 transition-all duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div class="text-4xl font-bold text-white tracking-tight transition-all duration-500" id="timerCountdown">0:00</div>
+                                        <div class="text-xs text-gray-400 uppercase tracking-wider mt-1" id="timerLabel">Remaining</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Progress Bar -->
+                                <div class="relative">
+                                    <div class="w-full h-1.5 bg-gray-800/50 rounded-full overflow-hidden">
+                                        <div id="timerProgress" class="h-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-green-500 transition-all duration-500 ease-out" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Status Text -->
+                                <div class="text-center mt-3">
+                                    <span class="text-xs text-gray-400 font-medium" id="timerStatus">Keep watching...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Code Input Section (ALWAYS VISIBLE) -->
+                        <div id="codeInputSection" class="mb-4">
+                            <div class="bg-gaming-dark/60 border border-yellow-500/20 rounded-2xl p-4">
+                                <div class="text-center mb-3">
+                                    <p class="text-xs text-gray-400" id="codeInputHint">⏱️ Wait for timer to complete before submitting</p>
+                                </div>
+                                <div class="bg-gaming-darker/60 rounded-xl p-4">
+                                    <label class="block text-sm font-bold text-gray-300 mb-2">Enter Verification Code:</label>
+                                    <input type="text" id="verificationCodeInput" placeholder="Enter the code from video" class="w-full bg-gaming-darker/80 border-2 border-yellow-500/50 rounded-xl px-4 py-3 text-center font-bold text-lg tracking-wider placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/30 transition-all mb-3">
+                                    <button id="youtubeSubmitBtn" onclick="handleYouTubeCodeSubmit()" disabled class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-xl p-3 font-bold active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                        Submit Code & Claim Reward
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    onRender: () => {
+                        // Check task's top-level column first, then verification_data, then default
+                        const taskWatchTime = currentTask?.min_watch_time_seconds;
+                        const verificationWatchTime = verificationData.min_watch_time || verificationData.min_watch_time_seconds;
+                        const defaultTime = taskWatchTime || verificationWatchTime || 30;
+                        requiredWatchTime = defaultTime; // Always use database value
+                        console.log('   ✅ YouTube content rendered, watch time set to:', requiredWatchTime, 'seconds');
+                        console.log('   📊 Source: task.min_watch_time_seconds =', taskWatchTime, ', verification_data =', verificationWatchTime);
+                        
+                        // Set initial timer display
+                        const timerCountdown = document.getElementById('timerCountdown');
+                        if (timerCountdown) {
+                            const minutes = Math.floor(requiredWatchTime / 60);
+                            const seconds = requiredWatchTime % 60;
+                            timerCountdown.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                            console.log('   ✅ Initial timer display set to:', timerCountdown.textContent);
+                        }
+                    }
+                };
+            }
+            
+            // Twitter Quests
+            else if (taskType.startsWith('twitter_')) {
+                const actionText = {
+                    'twitter_follow': 'Follow on Twitter',
+                    'twitter_like': 'Like Tweet',
+                    'twitter_retweet': 'Retweet',
+                    'twitter_reply': 'Reply to Tweet'
+                }[taskType] || 'Open Twitter';
+                
+                return {
+                    html: `
+                        <button onclick="submitQuest()" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
+                            ${actionText}
+                        </button>
+                    `
+                };
+            }
+            
+            // Telegram Quests
+            else if (taskType.startsWith('telegram_')) {
+                return {
+                    html: `
+                        <button onclick="submitQuest()" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
+                            Join Telegram
+                        </button>
+                    `
+                };
+            }
+            
+            // Instagram Quests
+            else if (platform === 'instagram' || taskType.includes('instagram')) {
+                return {
+                    html: `
+                        <button onclick="submitQuest()" class="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
+                            Follow on Instagram
+                        </button>
+                    `
+                };
+            }
+            
+            // Discord Quests
+            else if (platform === 'discord' || taskType.includes('discord')) {
+                return {
+                    html: `
+                        <button onclick="submitQuest()" class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
+                            Join Discord
+                        </button>
+                    `
+                };
+            }
+            
+            // Daily Check-in
+            else if (taskType === 'daily_checkin') {
+                return {
+                    html: `
+                        <button onclick="submitQuest()" class="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
+                            ✓ Check In
+                        </button>
+                    `
+                };
+            }
+            
+            // Default/Generic Quest
+            else {
+                return {
+                    html: `
+                        <button onclick="submitQuest()" class="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
+                            Start mission
+                        </button>
+                    `
+                };
+            }
+        }
+
+        function generateTasksList(task, taskType, verificationData) {
+            let tasks = [];
+            
+            // YouTube Watch Quest - 2 tasks (simplified - no code input here)
+            if (taskType === 'youtube' || taskType === 'youtube_watch') {
+                tasks.push({
+                    id: 'watch',
+                    text: 'Watch the video completely',
+                    status: 'pending',
+                    locked: false,
+                    hasIcon: true
+                });
+                tasks.push({
+                    id: 'submit',
+                    text: 'Submit verification code',
+                    status: 'pending',
+                    locked: true,
+                    hasIcon: true
+                });
+            }
+            
+            // Twitter Follow
+            else if (taskType === 'twitter_follow') {
+                tasks.push({
+                    id: 'follow',
+                    text: `Follow @${verificationData.username || 'BRGYTamago'}`,
+                    status: 'pending',
+                    locked: false
+                });
+            }
+            
+            // Twitter Like
+            else if (taskType === 'twitter_like') {
+                tasks.push({
+                    id: 'like',
+                    text: 'Like the tweet',
+                    status: 'pending',
+                    locked: false
+                });
+            }
+            
+            // Twitter Retweet
+            else if (taskType === 'twitter_retweet') {
+                tasks.push({
+                    id: 'retweet',
+                    text: 'Retweet the post',
+                    status: 'pending',
+                    locked: false
+                });
+            }
+            
+            // Telegram Join
+            else if (taskType.startsWith('telegram_')) {
+                tasks.push({
+                    id: 'join',
+                    text: 'Join the Telegram chat',
+                    status: 'pending',
+                    locked: false
+                });
+            }
+            
+            // Discord Join
+            else if (task.platform === 'discord') {
+                tasks.push({
+                    id: 'join',
+                    text: 'Join our Discord server',
+                    status: 'pending',
+                    locked: false
+                });
+            }
+            
+            // Instagram Follow
+            else if (task.platform === 'instagram') {
+                tasks.push({
+                    id: 'follow',
+                    text: 'Follow us on Instagram',
+                    status: 'pending',
+                    locked: false
+                });
+            }
+            
+            // Daily Check-in
+            else if (taskType === 'daily_checkin') {
+                tasks.push({
+                    id: 'checkin',
+                    text: 'Complete daily check-in',
+                    status: 'pending',
+                    locked: false
+                });
+            }
+            
+            // Default - single task
+            else {
+                tasks.push({
+                    id: 'complete',
+                    text: task.description || 'Complete the required action',
+                    status: 'pending',
+                    locked: false
+                });
+            }
+            
+            // Render tasks
+            return tasks.map(t => `
+                <div class="bg-gaming-dark/60 rounded-xl p-4 border border-neon-blue/20 task-item" data-task-id="${t.id}">
+                    <div class="relative">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-300">${t.text}</p>
+                            </div>
+                            <div class="ml-3 text-gray-500 task-status">
+                                ${t.hasIcon ? '<span class="text-xl">⏳</span>' : '<span class="text-xl">›</span>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Helper function for YouTube quest
+        function startYouTubeQuest() {
+            console.log('🎥 START YOUTUBE QUEST');
+            console.log('Current task URL:', currentTaskUrl);
+            console.log('Required watch time:', requiredWatchTime);
+            
+            if (currentTaskUrl) {
+                window.open(currentTaskUrl, '_blank');
+                console.log('✅ Opened video in new tab');
+            }
+            
+            // Hide watch button
+            const watchBtn = document.getElementById('watchVideoBtn');
+            console.log('Watch button found:', watchBtn);
+            if (watchBtn) {
+                watchBtn.disabled = true;
+                watchBtn.textContent = '⏳ Watching...';
+            }
+            
+            // Show timer
+            const timerElement = document.getElementById('youtubeTimer');
+            console.log('Timer element found:', timerElement);
+            if (timerElement) {
+                timerElement.classList.remove('hidden');
+                console.log('✅ Timer displayed');
+            }
+            
+            // Mark watch task as in progress
+            const watchTask = document.querySelector('[data-task-id="watch"]');
+            console.log('Watch task element found:', watchTask);
+            if (watchTask) {
+                watchTask.querySelector('.task-status').innerHTML = '<span class="text-yellow-400 text-xl">⏳</span>';
+            }
+            
+            // Start timer
+            console.log('🚀 Starting timer...');
+            startWatchTimer();
+        }
+
+        function startWatchTimer() {
+            console.log('🎬 START TIMER - Required time:', requiredWatchTime);
+            const totalTime = requiredWatchTime || 30;
+            let remaining = totalTime; // Start from total time and count DOWN
+            
+            console.log('📊 Timer config: Starting at', totalTime, 'seconds, counting down to 0');
+            
+            // Set initial display
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            document.getElementById('timerCountdown').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('timerProgress').style.width = '0%';
+            
+            watchTimerInterval = setInterval(() => {
+                remaining--;
+                const elapsed = totalTime - remaining;
+                const progress = (elapsed / totalTime) * 100;
+                
+                // Update UI - show remaining time
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                document.getElementById('timerCountdown').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                document.getElementById('timerProgress').style.width = `${progress}%`;
+                
+                if (remaining % 5 === 0 || remaining <= 5) {
+                    console.log(`⏱️ Timer: ${remaining} seconds remaining (${elapsed}/${totalTime} elapsed)`);
+                }
+                
+                if (remaining <= 0) {
+                    console.log('✅✅✅ TIMER REACHED 0:00! ✅✅✅');
+                    console.log('Clearing interval and triggering unlock...');
+                    clearInterval(watchTimerInterval);
+                    watchTimerInterval = null;
+                    
+                    // Add visual alert
+                    addDebugLog('⏱️ TIMER COMPLETE - Starting unlock sequence', 'warn');
+                    
+                    // Trigger completion animations
+                    triggerTimerCompleteAnimation();
+                    
+                    // Call unlock immediately (remove delay)
+                    console.log('Calling unlockCodeInput NOW...');
+                    unlockCodeInput();
+                    
+                    // ALSO try with a small delay to ensure DOM is ready
+                    setTimeout(() => {
+                        console.log('🔄 SECOND UNLOCK ATTEMPT (ensuring DOM is ready)...');
+                        const btn = document.getElementById('youtubeSubmitBtn');
+                        if (btn && btn.hasAttribute('disabled')) {
+                            console.log('   ⚠️ Button still has disabled attribute! Forcing again...');
+                            btn.disabled = false;
+                            btn.removeAttribute('disabled');
+                            btn.style.opacity = '1';
+                            btn.style.cursor = 'pointer';
+                            btn.style.pointerEvents = 'auto';
+                        } else if (btn) {
+                            console.log('   ✅ Button is correctly enabled (no disabled attribute)');
+                        }
+                    }, 100);
+                }
+            }, 1000);
+        }
+        
+        function triggerTimerCompleteAnimation() {
+            // Get timer elements
+            const timerCountdown = document.getElementById('timerCountdown');
+            const timerContainer = document.getElementById('timerContainer');
+            const timerIconContainer = document.getElementById('timerIconContainer');
+            const timerIcon = document.getElementById('timerIcon');
+            const timerLabel = document.getElementById('timerLabel');
+            const progressBar = document.getElementById('timerProgress');
+            
+            // Animate countdown number
+            if (timerCountdown) {
+                timerCountdown.classList.add('timer-complete-animation');
+                timerCountdown.style.color = '#22c55e'; // green-500
+            }
+            
+            // Animate and change icon to checkmark
+            if (timerIconContainer) {
+                timerIconContainer.style.background = 'rgba(34, 197, 94, 0.2)';
+                timerIconContainer.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                timerIconContainer.classList.add('timer-complete-animation');
+            }
+            
+            if (timerIcon) {
+                // Change to checkmark icon
+                setTimeout(() => {
+                    timerIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+                    timerIcon.style.color = '#22c55e';
+                }, 200);
+            }
+            
+            // Update label with animation
+            if (timerLabel) {
+                setTimeout(() => {
+                    timerLabel.textContent = 'Complete!';
+                    timerLabel.style.color = '#22c55e';
+                    timerLabel.classList.add('slide-up-animation');
+                }, 300);
+            }
+            
+            // Add glow effect to container
+            if (timerContainer) {
+                timerContainer.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+                timerContainer.classList.add('success-glow-animation');
+            }
+            
+            // Ensure progress bar is at 100% with green color
+            if (progressBar) {
+                progressBar.style.width = '100%';
+                progressBar.style.background = 'linear-gradient(to right, #22c55e, #16a34a)';
+            }
+        }
+
+        function unlockCodeInput() {
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🔓 UNLOCK CODE INPUT CALLED');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            
+            // Add visual debug notification
+            addDebugLog('🔓 Timer complete - unlocking submit button', 'info');
+            
+            // Mark watch task as complete
+            const watchTask = document.querySelector('[data-task-id="watch"]');
+            console.log('1️⃣ Watch task element:', watchTask);
+            if (watchTask) {
+                watchTask.querySelector('.task-status').innerHTML = '<span class="text-green-400 text-xl">✓</span>';
+                console.log('   ✅ Watch task marked complete');
+            }
+            
+            // Unlock submit task
+            const submitTask = document.querySelector('[data-task-id="submit"]');
+            console.log('2️⃣ Submit task element:', submitTask);
+            if (submitTask) {
+                const lockOverlay = submitTask.querySelector('.task-lock');
+                console.log('   Lock overlay:', lockOverlay);
+                if (lockOverlay) {
+                    lockOverlay.remove();
+                    console.log('   ✅ Lock overlay removed');
+                }
+                
+                submitTask.querySelector('.task-status').innerHTML = '<span class="text-blue-400 text-xl">›</span>';
+                console.log('   ✅ Submit task unlocked');
+            }
+            
+            // Enable submit button (code input section is always visible)
+            console.log('3️⃣ Enabling submit button...');
+            const submitBtn = document.getElementById('youtubeSubmitBtn');
+            const codeInputHint = document.getElementById('codeInputHint');
+            
+            console.log('   Submit button:', submitBtn);
+            console.log('   Button found:', !!submitBtn);
+            console.log('   Button disabled before:', submitBtn?.disabled);
+            console.log('   Hint element:', codeInputHint);
+            
+            if (submitBtn) {
+                console.log('   📍 BEFORE UNLOCK:');
+                console.log('      disabled property:', submitBtn.disabled);
+                console.log('      disabled attribute:', submitBtn.getAttribute('disabled'));
+                console.log('      hasAttribute:', submitBtn.hasAttribute('disabled'));
+                
+                // FORCE enable the button - CRITICAL FIX for disabled="" issue
+                // Set property first
+                submitBtn.disabled = false;
+                
+                // Remove the attribute (this is KEY for disabled="" bug)
+                submitBtn.removeAttribute('disabled');
+                
+                // Remove all Tailwind disabled classes
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'disabled');
+                submitBtn.classList.add('cursor-pointer');
+                
+                // Force inline styles to override everything
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+                submitBtn.style.pointerEvents = 'auto';
+                submitBtn.style.filter = 'none'; // Remove any grayscale
+                
+                // Change button text to show it's ready
+                submitBtn.innerHTML = '<span class="text-2xl">✅</span> <span>Submit Code & Claim Reward</span>';
+                
+                console.log('   📍 AFTER UNLOCK:');
+                console.log('      disabled property:', submitBtn.disabled);
+                console.log('      disabled attribute:', submitBtn.getAttribute('disabled'));
+                console.log('      hasAttribute:', submitBtn.hasAttribute('disabled'));
+                console.log('      Button classes:', submitBtn.className);
+                console.log('      Button outerHTML:', submitBtn.outerHTML);
+                
+                // Add a mutation observer to catch if something re-disables it
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.type === 'attributes' && mutation.attributeName === 'disabled') {
+                            console.error('⚠️ WARNING: Something tried to re-disable the button!');
+                            console.error('   Forcing it enabled again...');
+                            submitBtn.disabled = false;
+                            submitBtn.removeAttribute('disabled');
+                        }
+                    });
+                });
+                observer.observe(submitBtn, { attributes: true, attributeFilter: ['disabled'] });
+                
+                console.log('   ✅ Submit button enabled');
+                console.log('   🎯 Button should now be FULLY CLICKABLE - disabled attribute REMOVED');
+                console.log('   🔍 Mutation observer added to prevent re-disabling');
+            } else {
+                console.error('   ❌ Submit button NOT FOUND!');
+                console.error('   Searched for ID: youtubeSubmitBtn');
+            }
+            
+            if (codeInputHint) {
+                codeInputHint.textContent = '✅ Timer complete! You can now submit.';
+                codeInputHint.className = 'text-xs text-green-400 font-bold';
+                console.log('   ✅ Hint text updated');
+            } else {
+                console.error('   ❌ Hint element NOT FOUND!');
+            }
+            
+            // Update timer status - professional style
+            const timerStatusElement = document.getElementById('timerStatus');
+            if (timerStatusElement) {
+                timerStatusElement.innerHTML = '<span class="inline-flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>Complete!</span>';
+                timerStatusElement.className = 'text-xs text-green-400 font-semibold';
+            }
+            
+            // Update timer countdown display
+            const timerCountdown = document.getElementById('timerCountdown');
+            if (timerCountdown) {
+                timerCountdown.className = 'text-4xl font-bold text-green-400 tracking-tight';
+            }
+            
+            // Focus on input field
+            const inputField = document.getElementById('verificationCodeInput');
+            console.log('   Input field:', inputField);
+            if (inputField) {
+                setTimeout(() => {
+                    inputField.focus();
+                    console.log('   ✅ Input field focused');
+                }, 300);
+            }
+            
+            // Hide watch button
+            const watchBtn = document.getElementById('watchVideoBtn');
+            console.log('4️⃣ Watch button:', watchBtn);
+            if (watchBtn) {
+                watchBtn.style.display = 'none';
+                console.log('   ✅ Watch button hidden');
+            }
+            
+            // Update timer status
+            const timerStatus = document.getElementById('timerStatus');
+            console.log('5️⃣ Timer status element:', timerStatus);
+            if (timerStatus) {
+                timerStatus.textContent = '✅ Timer complete!';
+                console.log('   ✅ Timer status updated');
+            }
+            
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🏁 UNLOCK CODE INPUT FINISHED');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        }
+
+        function handleYouTubeCodeSubmit() {
+            const code = document.getElementById('verificationCodeInput').value.trim();
+            if (!code) {
+                alert('Please enter the verification code from the video!');
+                return;
+            }
+            
+            // Mark submit task as complete
+            const submitTask = document.querySelector('[data-task-id="submit"]');
+            if (submitTask) {
+                submitTask.querySelector('.task-status').innerHTML = '<span class="text-green-400 text-xl">✓</span>';
+            }
+            
+            // Submit to backend
+            questState = 'ready_to_claim';
+            claimQuestReward();
+        }
+
+        function submitYouTubeCode() {
+            // Alias for backward compatibility
+            handleYouTubeCodeSubmit();
+        }
+
+        function submitQuest() {
+            // Open the quest URL
+            if (currentTaskUrl) {
+                window.open(currentTaskUrl, '_blank');
+            }
+            
+            // Mark task as in progress
+            const firstTask = document.querySelector('.task-item');
+            if (firstTask) {
+                firstTask.querySelector('.task-status').innerHTML = '<span class="text-yellow-400 text-xl">⏳</span>';
+            }
+            
+            // Auto-verify after short delay
+            setTimeout(() => {
+                submitTaskCompletion(currentTaskId, {});
+            }, 2000);
+        }
+
+        function showYouTubeQuestPage(task, platformEmoji, platformName, points, verificationData) {
+            // Set quest info - TapSwap style
+            document.getElementById('ytQuestTitle').textContent = task.title;
+            document.getElementById('ytQuestDescription').textContent = task.description || 'Watch the video and find the secret code!';
+            
+            // Format points with space (TapSwap style: "5 000" instead of "5000")
+            const formattedPoints = points.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            document.getElementById('ytQuestPoints').textContent = formattedPoints;
+            
+            // Get watch time from task - check top-level column first, then verification_data
+            const taskWatchTime = task?.min_watch_time_seconds;
+            const verificationWatchTime = verificationData?.min_watch_time || verificationData?.min_watch_time_seconds;
+            const watchTime = taskWatchTime || verificationWatchTime || 30;
+            
+            // Set initial timer display to show the required watch time
+            const initialMinutes = Math.floor(watchTime / 60);
+            const initialSeconds = watchTime % 60;
+            document.getElementById('ytTimerCountdown').textContent = 
+                `${initialMinutes}:${initialSeconds.toString().padStart(2, '0')}`;
+            
+            // Reset timer display - hide it initially
+            const timerDisplay = document.getElementById('ytTimerDisplay');
+            timerDisplay.classList.add('hidden');
+            timerDisplay.style.display = 'none';
+            
+            // Reset and lock code input
+            const codeLockOverlay = document.getElementById('ytCodeLockOverlay');
+            const verificationCodeInput = document.getElementById('ytVerificationCode');
+            const submitButton = document.getElementById('ytSubmitButton');
+            
+            // HIDE lock overlay - code input always visible
+            codeLockOverlay.classList.add('hidden');
+            codeLockOverlay.style.display = 'none';
+            
+            // Enable code input
+            verificationCodeInput.value = '';
+            verificationCodeInput.disabled = false;
+            verificationCodeInput.setAttribute('placeholder', 'Enter the code from video');
+            document.getElementById('ytCodeInputHint').innerHTML = '⏱️ Wait for timer to complete before submitting';
+            
+            // DISABLE submit button until timer completes
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span id="ytSubmitButtonText">Submit Code & Claim Reward</span>';
+            
+            // Show YouTube Quest Page - need to override inline style
+            const youtubePage = document.getElementById('youtubeQuestPage');
+            youtubePage.classList.remove('hidden');
+            youtubePage.style.display = 'block'; // Override the !important inline style
+        }
+
+        function showRegularQuestPage(task, platformEmoji, platformName, points) {
+            // Set quest info - TapSwap style
+            document.getElementById('regQuestTitle').textContent = task.title;
+            document.getElementById('regQuestDescription').textContent = task.description || 'Complete this quest to earn points!';
+            
+            // Format points with space (TapSwap style: "1 000" instead of "1000")
+            const formattedPoints = points.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            document.getElementById('regQuestPoints').textContent = formattedPoints;
+            
+            // Set button text
+            const platformButtons = {
+                'twitter': 'Follow on Twitter',
+                'telegram': 'Join Telegram',
+                'discord': 'Join Discord',
+                'instagram': 'Follow on Instagram'
+            };
+            
+            const buttonText = platformButtons[task.platform] || 'Start mission';
+            document.getElementById('regQuestButtonText').textContent = buttonText;
+            
+            // Set task description
+            const taskDescriptions = {
+                'twitter': 'Follow our Twitter account',
+                'telegram': 'Join the Telegram chat',
+                'discord': 'Join our Discord server',
+                'instagram': 'Follow us on Instagram'
+            };
+            
+            const taskDesc = taskDescriptions[task.platform] || 'Complete the required action';
+            document.getElementById('regTaskDescription').textContent = taskDesc;
+            
+            // Show Regular Quest Page
+            document.getElementById('regularQuestPage').classList.remove('hidden');
+        }
+
+        function openYouTubeVideo() {
+            // Open the video in a new tab
+            if (currentTaskUrl) {
+                window.open(currentTaskUrl, '_blank');
+            }
+            
+            // Get minimum watch time from task - check top-level column first, then verification_data
+            const taskWatchTime = currentTask?.min_watch_time_seconds;
+            const verificationData = currentTask?.verification_data || {};
+            const verificationWatchTime = verificationData.min_watch_time || verificationData.min_watch_time_seconds;
+            requiredWatchTime = taskWatchTime || verificationWatchTime || 30;
+            
+            console.log('🎬 Starting YouTube quest timer:');
+            console.log('   - task.min_watch_time_seconds:', taskWatchTime);
+            console.log('   - verification_data.min_watch_time:', verificationWatchTime);
+            console.log('   - Final watch time:', requiredWatchTime, 'seconds');
+            
+            // Get UI elements
+            const timerDisplay = document.getElementById('ytTimerDisplay');
+            const codeLockOverlay = document.getElementById('ytCodeLockOverlay');
+            const verificationCodeInput = document.getElementById('ytVerificationCode');
+            const submitButton = document.getElementById('ytSubmitButton');
+            
+            // Show timer if there's a minimum watch time
+            if (requiredWatchTime > 0) {
+                // Show timer display - remove hidden class AND set display style
+                timerDisplay.classList.remove('hidden');
+                timerDisplay.style.display = 'block';
+                
+                console.log('✅ Timer display shown - requiredWatchTime:', requiredWatchTime, 'seconds');
+                
+                // Keep code input ENABLED - hide lock overlay
+                codeLockOverlay.classList.add('hidden');
+                codeLockOverlay.style.display = 'none';
+                verificationCodeInput.disabled = false;
+                verificationCodeInput.setAttribute('placeholder', 'Enter the code from video');
+                document.getElementById('ytCodeInputHint').innerHTML = '⏱️ Wait for timer to complete before submitting';
+                
+                // DISABLE submit button until timer completes
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<span id="ytSubmitButtonText">Submit Code & Claim Reward</span>';
+                
+                // Start the timer
+                startYouTubeTimer();
+            } else {
+                // No timer required - enable button immediately
+                timerDisplay.classList.add('hidden');
+                timerDisplay.style.display = 'none';
+                codeLockOverlay.classList.add('hidden');
+                codeLockOverlay.style.display = 'none';
+                verificationCodeInput.disabled = false;
+                verificationCodeInput.setAttribute('placeholder', 'Enter the code from video');
+                document.getElementById('ytCodeInputHint').innerHTML = '✅ Enter your code and submit';
+                
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitButton.innerHTML = '<span class="text-3xl">✅</span><span>Submit Code & Claim Reward</span>';
+                
+                // Focus on input
+                setTimeout(() => verificationCodeInput.focus(), 300);
+            }
+        }
+
+        function startYouTubeTimer() {
+            videoStartTime = Date.now();
+            
+            // Set initial countdown display to show full time
+            const initialMinutes = Math.floor(requiredWatchTime / 60);
+            const initialSeconds = requiredWatchTime % 60;
+            document.getElementById('ytTimerCountdown').textContent = 
+                `${initialMinutes}:${initialSeconds.toString().padStart(2, '0')}`;
+            document.getElementById('ytTimerProgress').style.width = '0%';
+            
+            console.log(`⏱️ YouTube Timer starting: ${requiredWatchTime} seconds (${initialMinutes}:${initialSeconds.toString().padStart(2, '0')})`);
+            
+            // Clear any existing timer
+            if (videoWatchTimer) {
+                clearInterval(videoWatchTimer);
+            }
+            
+            // Update timer every second
+            videoWatchTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - videoStartTime) / 1000);
+                const remaining = Math.max(0, requiredWatchTime - elapsed);
+                const progress = Math.min(100, (elapsed / requiredWatchTime) * 100);
+                
+                // Update countdown display
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                document.getElementById('ytTimerCountdown').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Update progress bar
+                document.getElementById('ytTimerProgress').style.width = `${progress}%`;
+                
+                // Update status text
+                const timerStatus = document.getElementById('ytTimerStatus');
+                const submitButton = document.getElementById('ytSubmitButton');
+                
+                if (remaining > 0) {
+                    timerStatus.textContent = `⏳ Keep watching... ${remaining}s remaining`;
+                    timerStatus.className = 'text-xs text-gray-400 mt-2 block';
+                } else {
+                    timerStatus.textContent = '✅ Timer complete! You can now submit.';
+                    timerStatus.className = 'text-xs text-neon-green mt-2 font-bold animate-pulse block';
+                    
+                    // ENABLE SUBMIT BUTTON (code input already enabled from start)
+                    const verificationCodeInput = document.getElementById('ytVerificationCode');
+                    
+                    // Update hint text
+                    document.getElementById('ytCodeInputHint').innerHTML = '✅ Timer complete! You can now submit.';
+                    
+                    console.log('✅ Timer complete - submit button enabled!');
+                    
+                    // ENABLE the submit button
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    submitButton.innerHTML = '<span id="ytSubmitButtonText">Submit Code & Claim Reward</span>';
+                    
+                    // Stop timer
+                    clearInterval(videoWatchTimer);
+                    videoWatchTimer = null;
+                }
+            }, 1000);
+        }
+
+        async function submitYouTubeQuest() {
+            const code = document.getElementById('ytVerificationCode').value.trim();
+            
+            if (!code) {
+                alert('⚠️ Please enter the verification code!');
+                return;
+            }
+            
+            const submitButton = document.getElementById('ytSubmitButton');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="text-2xl">⏳</span><span>SUBMITTING...</span>';
+            
+            try {
+                const response = await fetch(`${API_URL}/complete-task`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        telegram_id: TELEGRAM_ID,
+                        task_id: currentTaskId,
+                        verification_code: code
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    // Success!
+                    submitButton.innerHTML = '<span class="text-2xl">✅</span><span>QUEST COMPLETED!</span>';
+                    
+                    // Show success message
+                    alert(`🎉 Quest Completed!\n\n+${currentTask.points_reward || 0} XP earned!`);
+                    
+                    // Reload data and go back to quest list
+                    await loadTasks();
+                    await loadProfile();
+                    backToQuestList();
+                } else {
+                    throw new Error(data.message || 'Verification failed');
+                }
+            } catch (error) {
+                console.error('Error submitting quest:', error);
+                alert(`❌ ${error.message || 'Failed to submit quest. Please try again.'}`);
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<span class="text-3xl">✅</span><span>SUBMIT CODE & COMPLETE</span>';
+            }
+        }
+
+        async function submitRegularQuest() {
+            // Open quest URL
+            if (currentTaskUrl) {
+                window.open(currentTaskUrl, '_blank');
+            }
+            
+            const submitButton = document.getElementById('regQuestButton');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="text-2xl">⏳</span><span>VERIFYING...</span>';
+            
+            try {
+                const response = await fetch(`${API_URL}/complete-task`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        telegram_id: TELEGRAM_ID,
+                        task_id: currentTaskId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    // Success!
+                    submitButton.innerHTML = '<span class="text-2xl">✅</span><span>QUEST COMPLETED!</span>';
+                    
+                    // Show success message
+                    alert(`🎉 Quest Completed!\n\n+${currentTask.points_reward || 0} XP earned!`);
+                    
+                    // Reload data and go back to quest list
+                    await loadTasks();
+                    await loadProfile();
+                    backToQuestList();
+                } else {
+                    throw new Error(data.message || 'Verification failed');
+                }
+            } catch (error) {
+                console.error('Error submitting quest:', error);
+                alert(`❌ ${error.message || 'Failed to complete quest. Please try again.'}`);
+                submitButton.disabled = false;
+                
+                // Restore original button text
+                const platformButtons = {
+                    'twitter': { icon: '🐦', text: 'OPEN TWITTER QUEST' },
+                    'telegram': { icon: '✈️', text: 'OPEN TELEGRAM QUEST' },
+                    'discord': { icon: '💬', text: 'OPEN DISCORD QUEST' },
+                    'instagram': { icon: '📷', text: 'OPEN INSTAGRAM QUEST' }
+                };
+                const buttonConfig = platformButtons[currentTask.platform] || { icon: '🚀', text: 'START QUEST' };
+                submitButton.innerHTML = `<span class="text-4xl">${buttonConfig.icon}</span><span>${buttonConfig.text}</span>`;
+            }
+        }
+
+        function openVideoAndShowCodeInput() {
+            // Open the video in a new tab
+            if (currentTaskUrl) {
+                window.open(currentTaskUrl, '_blank');
+            }
+            
+            // Keep watch section visible (don't hide it)
+            // Code input section is already visible
+            
+            // Get minimum watch time from task - check top-level column first, then verification_data
+            const taskWatchTime = currentTask?.min_watch_time_seconds;
+            const verificationData = currentTask?.verification_data || {};
+            const verificationWatchTime = verificationData.min_watch_time || verificationData.min_watch_time_seconds;
+            requiredWatchTime = taskWatchTime || verificationWatchTime || 30;
+            
+            console.log('🎬 YouTube quest watch time:', requiredWatchTime, 'seconds (from', taskWatchTime ? 'task column' : 'verification_data', ')');
+            
+            // Get UI elements
+            const timerDisplay = document.getElementById('timerDisplay');
+            const codeLockOverlay = document.getElementById('codeLockOverlay');
+            const verificationCodeInput = document.getElementById('verificationCode');
+            const codeInputHint = document.getElementById('codeInputHint');
+            
+            // Show timer if there's a minimum watch time
+            if (requiredWatchTime > 0) {
+                // Show timer display
+                timerDisplay.classList.remove('hidden');
+                
+                // Keep input locked (already locked from showTaskDetail)
+                codeLockOverlay.classList.remove('hidden');
+                verificationCodeInput.disabled = true;
+                verificationCodeInput.setAttribute('placeholder', '⏳ LOCKED - TIMER RUNNING');
+                codeInputHint.innerHTML = '🔒 Wait for timer to complete...';
+                
+                // Start the timer
+                startWatchTimer();
+            } else {
+                // No timer required - unlock immediately
+                timerDisplay.classList.add('hidden');
+                codeLockOverlay.classList.add('hidden');
+                verificationCodeInput.disabled = false;
+                verificationCodeInput.setAttribute('placeholder', 'ENTER CODE HERE');
+                codeInputHint.innerHTML = '💡 Tip: The code is usually shown as text in the video';
+            }
+            
+            // Show and update the submit button (initially disabled if timer is active)
+            const questActionButton = document.getElementById('questActionButton');
+            questActionButton.classList.remove('hidden');
+            
+            if (requiredWatchTime > 0) {
+                questActionButton.disabled = true;
+                questActionButton.classList.add('opacity-50', 'cursor-not-allowed');
+                questActionButton.innerHTML = '<span class="text-2xl">⏳</span><span>WAITING FOR TIMER...</span>';
+            } else {
+                questActionButton.disabled = false;
+                questActionButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                questActionButton.innerHTML = '<span class="text-3xl">✅</span><span>SUBMIT CODE & COMPLETE</span>';
+            }
+            
+            // Focus on the code input
+            setTimeout(() => {
+                document.getElementById('verificationCode').focus();
+            }, 300);
+        }
+
+        function startWatchTimer() {
+            videoStartTime = Date.now();
+            
+            // Clear any existing timer
+            if (videoWatchTimer) {
+                clearInterval(videoWatchTimer);
+            }
+            
+            // Update timer every second
+            videoWatchTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - videoStartTime) / 1000);
+                const remaining = Math.max(0, requiredWatchTime - elapsed);
+                const progress = Math.min(100, (elapsed / requiredWatchTime) * 100);
+                
+                // Update countdown display
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                document.getElementById('timerCountdown').textContent = 
+                    `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Update progress bar
+                document.getElementById('timerProgress').style.width = `${progress}%`;
+                
+                // Update status text
+                const timerStatus = document.getElementById('timerStatus');
+                const questActionButton = document.getElementById('questActionButton');
+                
+                if (remaining > 0) {
+                    timerStatus.textContent = `⏳ Keep watching... ${remaining}s remaining`;
+                    timerStatus.className = 'text-xs text-gray-400 mt-2';
+                } else {
+                    timerStatus.textContent = '✅ Timer complete! You can now submit.';
+                    timerStatus.className = 'text-xs text-neon-green mt-2 font-bold animate-pulse';
+                    
+                    // UNLOCK CODE INPUT
+                    const codeLockOverlay = document.getElementById('codeLockOverlay');
+                    const verificationCodeInput = document.getElementById('verificationCode');
+                    const codeInputHint = document.getElementById('codeInputHint');
+                    
+                    if (codeLockOverlay) codeLockOverlay.classList.add('hidden');
+                    if (verificationCodeInput) {
+                        verificationCodeInput.disabled = false;
+                        verificationCodeInput.setAttribute('placeholder', 'ENTER CODE HERE');
+                    }
+                    if (codeInputHint) {
+                        codeInputHint.innerHTML = '✅ Timer complete! Enter your code now';
+                    }
+                    
+                    // Focus on code input
+                    setTimeout(() => {
+                        if (verificationCodeInput) verificationCodeInput.focus();
+                    }, 300);
+                    
+                    // Enable submit button (try both button IDs)
+                    if (questActionButton) {
+                        questActionButton.disabled = false;
+                        questActionButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                        questActionButton.innerHTML = '<span class="text-3xl">✅</span><span>SUBMIT CODE & COMPLETE</span>';
+                    }
+                    
+                    // ALSO enable the YouTube submit button
+                    const youtubeSubmitBtn = document.getElementById('youtubeSubmitBtn');
+                    if (youtubeSubmitBtn) {
+                        console.log('🔓 ENABLING youtubeSubmitBtn after timer complete');
+                        youtubeSubmitBtn.disabled = false;
+                        youtubeSubmitBtn.removeAttribute('disabled');
+                        youtubeSubmitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'disabled');
+                        youtubeSubmitBtn.style.opacity = '1';
+                        youtubeSubmitBtn.style.cursor = 'pointer';
+                        youtubeSubmitBtn.style.pointerEvents = 'auto';
+                        youtubeSubmitBtn.innerHTML = '<span class="text-2xl">✅</span> <span>Submit Code & Claim Reward</span>';
+                        console.log('✅ youtubeSubmitBtn enabled!');
+                    }
+                    
+                    // Stop the timer
+                    clearInterval(videoWatchTimer);
+                    videoWatchTimer = null;
+                }
+            }, 1000);
+        }
+
+        function stopWatchTimer() {
+            if (videoWatchTimer) {
+                clearInterval(videoWatchTimer);
+                videoWatchTimer = null;
+            }
+            videoStartTime = null;
         }
 
         function closeTaskModal() {
+            // Stop watch timer if running
+            stopWatchTimer();
+            
+            // Reset code input lock state
+            const codeLockOverlay = document.getElementById('codeLockOverlay');
+            const verificationCodeInput = document.getElementById('verificationCode');
+            if (codeLockOverlay) codeLockOverlay.classList.add('hidden');
+            if (verificationCodeInput) {
+                verificationCodeInput.disabled = false;
+                verificationCodeInput.value = '';
+            }
+            
+            // Hide timer display
+            const timerDisplay = document.getElementById('timerDisplay');
+            if (timerDisplay) timerDisplay.classList.add('hidden');
+            
             document.getElementById('taskModal').classList.add('hidden');
             document.body.style.overflow = '';
             currentTaskId = null;
             currentTaskUrl = null;
             currentTask = null;
             document.getElementById('verificationCode').value = '';
+            
+            // Hide timer display
+            document.getElementById('timerDisplay').classList.add('hidden');
         }
 
         async function completeTask() {
-            if (!currentTaskId || !currentTaskUrl) return;
+            if (!currentTaskId) return;
             
             // Check if code is required for YouTube quests
-            const needsCode = currentTask && currentTask.task_type === 'youtube_watch' && 
-                             currentTask.verification_data?.method === 'time_delay_code';
+            const needsCode = currentTask && 
+                             (currentTask.task_type === 'youtube' || currentTask.task_type === 'youtube_watch') &&
+                             (currentTask.verification_data?.method === 'video_code' || 
+                              currentTask.verification_data?.method === 'youtube_code' || 
+                              currentTask.verification_data?.method === 'time_delay_code');
             
             if (needsCode) {
                 const code = document.getElementById('verificationCode').value.trim();
@@ -1040,8 +3387,10 @@
                 }
             }
             
-            // Open the task URL
-            window.open(currentTaskUrl, '_blank');
+            // For non-YouTube quests, open the URL
+            if (!needsCode && currentTaskUrl) {
+                window.open(currentTaskUrl, '_blank');
+            }
             
             // Submit completion
             try {
@@ -1064,6 +3413,9 @@
                 const result = await response.json();
                 
                 if (result.success) {
+                    // Stop timer if running
+                    stopWatchTimer();
+                    
                     alert('🎉 Quest Completed! +' + result.points_earned + ' XP');
                     loadUserData();
                     loadTasks(); // Reload to hide completed tasks
@@ -1071,6 +3423,9 @@
                 } else {
                     // Check if task was already completed
                     if (result.message === 'Task already completed') {
+                        // Stop timer if running
+                        stopWatchTimer();
+                        
                         alert('✅ You already completed this quest!');
                         loadTasks(); // Reload to hide this task
                         closeTaskModal();

@@ -181,12 +181,33 @@
         console.log('Website Quest - Has Token:', !!authToken);
 
         // Check authentication
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener('DOMContentLoaded', async function() {
             if (!authToken) {
                 alert('⚠️ Not authenticated! Redirecting to login...');
                 window.location.href = '/admin.html';
-            } else {
-                console.log('✅ Authenticated - Token found');
+                return;
+            }
+            
+            // Verify token is still valid
+            try {
+                const response = await fetch(`${API_URL}/auth/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.error('❌ Token validation failed');
+                    alert('⚠️ Session expired! Please login again.');
+                    localStorage.removeItem('authToken');
+                    window.location.href = '/admin.html';
+                    return;
+                }
+                
+                console.log('✅ Authenticated - Token verified');
+            } catch (error) {
+                console.error('❌ Token verification error:', error);
+                console.log('⚠️ Could not verify token, will try on submit');
             }
         });
 
@@ -268,6 +289,8 @@
 
 
             try {
+                console.log('🚀 Submitting quest with token:', authToken ? 'Token exists' : 'NO TOKEN');
+                
                 const response = await fetch(`${API_URL}/tasks`, {
                     method: 'POST',
                     headers: {
@@ -281,7 +304,8 @@
 
                 if (!response.ok) {
                     if (response.status === 401) {
-                        showAlert('❌ Unauthorized! Please login again.', 'error');
+                        console.error('❌ Authentication failed - Token might be expired');
+                        showAlert('❌ Unauthorized! Token expired. Please login again.', 'error');
                         localStorage.removeItem('authToken');
                         setTimeout(() => {
                             window.location.href = '/admin.html';

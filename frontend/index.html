@@ -234,6 +234,36 @@
         .slide-up-animation {
             animation: slide-up 0.5s ease-out;
         }
+        
+        /* Debug Log Styles */
+        #twitterDebugLogContent {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(59, 130, 246, 0.5) rgba(0, 0, 0, 0.3);
+        }
+        
+        #twitterDebugLogContent::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #twitterDebugLogContent::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+        
+        #twitterDebugLogContent::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            border-radius: 4px;
+        }
+        
+        #twitterDebugLogContent::-webkit-scrollbar-thumb:hover {
+            background: rgba(59, 130, 246, 0.7);
+        }
+        
+        #twitterDebugLogLines > div {
+            padding: 2px 0;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body class="bg-gaming-darker text-white">
@@ -2340,6 +2370,25 @@
                                 ${actionText}
                             </button>
                             
+                            <!-- Twitter Username Input (Hidden Initially) -->
+                            <div id="twitterUsernameContainer" class="hidden mb-4">
+                                <label for="twitterUsernameInput" class="block text-sm font-semibold text-gray-300 mb-2">
+                                    Your Twitter Username
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">@</span>
+                                    <input 
+                                        type="text" 
+                                        id="twitterUsernameInput" 
+                                        placeholder="username" 
+                                        class="w-full bg-gray-800/50 border border-gray-700 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all"
+                                        autocomplete="off"
+                                        spellcheck="false"
+                                    />
+                                </div>
+                                <p class="text-xs text-gray-400 mt-2">💡 Enter your Twitter username without the @ symbol</p>
+                            </div>
+                            
                             <!-- Verify Button (Hidden Initially) -->
                             <button id="twitterVerifyBtn" onclick="verifyTwitterAction()" class="hidden w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 rounded-2xl p-4 font-bold text-lg mb-4 active:scale-95 transition-all shadow-lg">
                                 🔍 Verify Action
@@ -2349,9 +2398,20 @@
                             <div id="twitterVerificationStatus" class="hidden mb-4"></div>
                             
                             <!-- Claim Button (Hidden Initially) -->
-                            <button id="twitterClaimBtn" onclick="handleTwitterClaim()" class="hidden w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 font-bold text-lg active:scale-95 transition-all shadow-lg">
+                            <button id="twitterClaimBtn" onclick="handleTwitterClaim()" class="hidden w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 font-bold text-lg mb-4 active:scale-95 transition-all shadow-lg">
                                 ✅ Claim Reward
                             </button>
+                            
+                            <!-- Debug Log Panel (Collapsible) -->
+                            <div id="twitterDebugPanel" class="hidden mt-4">
+                                <button onclick="toggleTwitterDebugLog()" class="w-full bg-gray-800/50 border border-gray-700 rounded-xl p-3 text-left flex items-center justify-between hover:bg-gray-700/50 transition-all">
+                                    <span class="text-sm font-semibold text-gray-300">🔍 Debug Log</span>
+                                    <span id="twitterDebugToggle" class="text-gray-400">▼</span>
+                                </button>
+                                <div id="twitterDebugLogContent" class="hidden mt-2 bg-black/80 border border-gray-700 rounded-xl p-4 max-h-96 overflow-y-auto">
+                                    <div id="twitterDebugLogLines" class="font-mono text-xs space-y-1"></div>
+                                </div>
+                            </div>
                         `
                     };
                 }
@@ -3590,6 +3650,8 @@
             console.log('🐦 Opening Twitter and preparing verification...');
             
             const actionBtn = document.getElementById('twitterActionBtn');
+            const usernameContainer = document.getElementById('twitterUsernameContainer');
+            const usernameInput = document.getElementById('twitterUsernameInput');
             const verifyBtn = document.getElementById('twitterVerifyBtn');
             const statusDiv = document.getElementById('twitterVerificationStatus');
             
@@ -3598,14 +3660,55 @@
                 window.open(currentTaskUrl, '_blank');
             }
             
-            // Update UI - hide action button, show verify button with instructions
+            // Hide action button
             if (actionBtn) {
                 actionBtn.style.display = 'none';
             }
             
-            if (verifyBtn) {
-                verifyBtn.classList.remove('hidden');
-                verifyBtn.style.display = 'block';
+            // Show username input container
+            if (usernameContainer) {
+                usernameContainer.classList.remove('hidden');
+                usernameContainer.style.display = 'block';
+            }
+            
+            // Pre-fill username from user profile or localStorage
+            if (usernameInput) {
+                // Try to get from current user data first
+                const savedUsername = window.currentUser?.twitter_username || localStorage.getItem('twitter_username');
+                if (savedUsername) {
+                    usernameInput.value = savedUsername;
+                }
+                
+                // Auto-remove @ symbol as user types
+                usernameInput.addEventListener('input', function(e) {
+                    let value = e.target.value;
+                    // Remove @ symbol if present
+                    if (value.startsWith('@')) {
+                        value = value.substring(1);
+                    }
+                    // Only allow alphanumeric and underscore (valid Twitter username format)
+                    value = value.replace(/[^a-zA-Z0-9_]/g, '');
+                    e.target.value = value;
+                });
+                
+                // Enable verify button when username is entered
+                usernameInput.addEventListener('input', function(e) {
+                    if (verifyBtn && e.target.value.trim().length > 0) {
+                        verifyBtn.classList.remove('hidden');
+                        verifyBtn.style.display = 'block';
+                    } else if (verifyBtn) {
+                        verifyBtn.classList.add('hidden');
+                        verifyBtn.style.display = 'none';
+                    }
+                });
+                
+                // If already has username, show verify button
+                if (savedUsername) {
+                    if (verifyBtn) {
+                        verifyBtn.classList.remove('hidden');
+                        verifyBtn.style.display = 'block';
+                    }
+                }
             }
             
             // Show instructions
@@ -3617,22 +3720,140 @@
                             <div class="text-2xl">ℹ️</div>
                             <div class="flex-1">
                                 <p class="text-sm font-bold text-blue-400">Instructions</p>
-                                <p class="text-xs text-gray-400 mt-1">Complete the action on Twitter, then click "Verify Action" to confirm.</p>
+                                <p class="text-xs text-gray-400 mt-1">1. Complete the action on Twitter<br>2. Enter your Twitter username below<br>3. Click "Verify Action" to confirm</p>
                             </div>
                         </div>
                     </div>
                 `;
             }
+            
+            // Show debug panel
+            initTwitterDebugLog();
+        }
+        
+        // Debug Log Functions
+        function initTwitterDebugLog() {
+            const debugPanel = document.getElementById('twitterDebugPanel');
+            if (debugPanel) {
+                debugPanel.classList.remove('hidden');
+                clearTwitterDebugLog();
+                addTwitterDebugLog('🔍 Debug log initialized', 'info');
+            }
+        }
+        
+        function toggleTwitterDebugLog() {
+            const content = document.getElementById('twitterDebugLogContent');
+            const toggle = document.getElementById('twitterDebugToggle');
+            
+            if (content && toggle) {
+                if (content.classList.contains('hidden')) {
+                    content.classList.remove('hidden');
+                    toggle.textContent = '▲';
+                } else {
+                    content.classList.add('hidden');
+                    toggle.textContent = '▼';
+                }
+            }
+        }
+        
+        function addTwitterDebugLog(message, type = 'info') {
+            const logLines = document.getElementById('twitterDebugLogLines');
+            if (!logLines) return;
+            
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const line = document.createElement('div');
+            
+            // Color coding based on type
+            const colors = {
+                'info': 'text-cyan-400',
+                'success': 'text-green-400',
+                'error': 'text-red-400',
+                'warning': 'text-yellow-400',
+                'step': 'text-blue-400'
+            };
+            
+            const color = colors[type] || 'text-gray-300';
+            
+            line.className = `${color}`;
+            line.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${message}`;
+            
+            logLines.appendChild(line);
+            
+            // Auto-scroll to bottom
+            const logContent = document.getElementById('twitterDebugLogContent');
+            if (logContent) {
+                logContent.scrollTop = logContent.scrollHeight;
+            }
+            
+            // Also log to console
+            console.log(message);
+        }
+        
+        function clearTwitterDebugLog() {
+            const logLines = document.getElementById('twitterDebugLogLines');
+            if (logLines) {
+                logLines.innerHTML = '';
+            }
         }
         
         function verifyTwitterAction() {
-            console.log('🔍 Verifying Twitter action...');
+            addTwitterDebugLog('═══════════════════════════════════', 'step');
+            addTwitterDebugLog('🔍 STARTING VERIFICATION PROCESS', 'step');
+            addTwitterDebugLog('═══════════════════════════════════', 'step');
             
             const statusDiv = document.getElementById('twitterVerificationStatus');
             const verifyBtn = document.getElementById('twitterVerifyBtn');
             const claimBtn = document.getElementById('twitterClaimBtn');
+            const usernameInput = document.getElementById('twitterUsernameInput');
+            
+            addTwitterDebugLog('📋 Step 1: Getting DOM elements', 'step');
+            addTwitterDebugLog('   • Status Div: ' + (statusDiv ? '✅ Found' : '❌ Not found'), 'info');
+            addTwitterDebugLog('   • Verify Button: ' + (verifyBtn ? '✅ Found' : '❌ Not found'), 'info');
+            addTwitterDebugLog('   • Claim Button: ' + (claimBtn ? '✅ Found' : '❌ Not found'), 'info');
+            addTwitterDebugLog('   • Username Input: ' + (usernameInput ? '✅ Found' : '❌ Not found'), 'info');
+            
+            // Get and validate Twitter username
+            let twitterUsername = usernameInput?.value?.trim() || '';
+            addTwitterDebugLog('📋 Step 2: Getting Twitter username', 'step');
+            addTwitterDebugLog('   • Raw value: ' + usernameInput?.value, 'info');
+            addTwitterDebugLog('   • Trimmed value: ' + twitterUsername, 'info');
+            
+            // Remove @ symbol if present
+            if (twitterUsername.startsWith('@')) {
+                addTwitterDebugLog('   • Removing @ symbol from: ' + twitterUsername, 'info');
+                twitterUsername = twitterUsername.substring(1);
+                addTwitterDebugLog('   • After removing @: ' + twitterUsername, 'info');
+            }
+            
+            // Validate username
+            addTwitterDebugLog('📋 Step 3: Validating username', 'step');
+            if (!twitterUsername) {
+                addTwitterDebugLog('❌ Validation failed: Username is empty', 'error');
+                showTwitterVerificationError('Please enter your Twitter username.');
+                return;
+            }
+            
+            // Validate format (alphanumeric and underscore only)
+            const isValidFormat = /^[a-zA-Z0-9_]{1,15}$/.test(twitterUsername);
+            addTwitterDebugLog('   • Username: ' + twitterUsername, 'info');
+            addTwitterDebugLog('   • Length: ' + twitterUsername.length, 'info');
+            addTwitterDebugLog('   • Valid format: ' + (isValidFormat ? '✅ Yes' : '❌ No'), isValidFormat ? 'success' : 'error');
+            
+            if (!isValidFormat) {
+                addTwitterDebugLog('❌ Validation failed: Invalid format', 'error');
+                showTwitterVerificationError('Invalid Twitter username format. Use only letters, numbers, and underscores (max 15 characters).');
+                return;
+            }
+            
+            addTwitterDebugLog('✅ Username validation passed: ' + twitterUsername, 'success');
+            
+            // Save username to localStorage for future use
+            addTwitterDebugLog('📋 Step 4: Saving to localStorage', 'step');
+            localStorage.setItem('twitter_username', twitterUsername);
+            addTwitterDebugLog('   • Saved to localStorage: ' + twitterUsername, 'success');
             
             // Show loading state
+            addTwitterDebugLog('📋 Step 5: Updating UI (loading)', 'step');
             if (statusDiv) {
                 statusDiv.innerHTML = `
                     <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
@@ -3644,47 +3865,111 @@
                                 </svg>
                             </div>
                             <div class="flex-1">
-                                <p class="text-sm font-bold text-cyan-400">Checking with Twitter API...</p>
-                                <p class="text-xs text-gray-400 mt-1">Verifying your action</p>
+                                <p class="text-sm font-bold text-cyan-400">Checking @${twitterUsername}...</p>
+                                <p class="text-xs text-gray-400 mt-1">Verifying your action with Twitter API</p>
                             </div>
                         </div>
                     </div>
                 `;
+                addTwitterDebugLog('   • Loading animation displayed', 'info');
             }
             
             if (verifyBtn) {
                 verifyBtn.disabled = true;
                 verifyBtn.innerHTML = '⏳ Checking...';
+                addTwitterDebugLog('   • Verify button disabled', 'info');
+            }
+            
+            // Disable username input during verification
+            if (usernameInput) {
+                usernameInput.disabled = true;
+                addTwitterDebugLog('   • Username input disabled', 'info');
             }
             
             // Get Telegram user ID (we use this as the user identifier)
+            addTwitterDebugLog('📋 Step 6: Getting Telegram user ID', 'step');
             const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('telegram_id');
+            addTwitterDebugLog('   • Telegram WebApp: ' + (window.Telegram?.WebApp ? '✅ Available' : '❌ Not available'), 'info');
+            addTwitterDebugLog('   • Telegram ID: ' + telegramId, 'info');
             
             if (!telegramId) {
-                console.error('❌ No Telegram ID found');
+                addTwitterDebugLog('❌ No Telegram ID found', 'error');
                 showTwitterVerificationError('Could not get your user ID. Please reload the app.');
+                if (usernameInput) usernameInput.disabled = false;
                 return;
             }
             
+            // Get current task info
+            addTwitterDebugLog('📋 Step 7: Getting task information', 'step');
+            addTwitterDebugLog('   • Task ID: ' + currentTaskId, 'info');
+            addTwitterDebugLog('   • Task URL: ' + currentTaskUrl, 'info');
+            addTwitterDebugLog('   • Action Type: ' + (currentTask?.verification_data?.action_type || 'N/A'), 'info');
+            addTwitterDebugLog('   • Target Handle: ' + (currentTask?.verification_data?.twitter_handle || 'N/A'), 'info');
+            
+            // Prepare API request
+            const apiUrl = `${API_URL}/tasks/${currentTaskId}/complete`;
+            const requestBody = {
+                telegram_id: telegramId,
+                twitter_username: twitterUsername
+            };
+            
+            addTwitterDebugLog('📋 Step 8: Preparing API request', 'step');
+            addTwitterDebugLog('   • API URL: ' + apiUrl, 'info');
+            addTwitterDebugLog('   • Method: POST', 'info');
+            addTwitterDebugLog('   • Body: ' + JSON.stringify(requestBody), 'info');
+            
+            addTwitterDebugLog('📋 Step 9: Sending to backend...', 'step');
+            addTwitterDebugLog('   ⏳ Waiting for Twitter API response...', 'info');
+            
+            const startTime = Date.now();
+            
             // Call backend to verify Twitter action via Twitter API
-            fetch(`${API_URL}/tasks/${currentTaskId}/complete`, {
+            fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    telegram_id: telegramId
-                })
+                body: JSON.stringify(requestBody)
             })
-            .then(response => response.json())
+            .then(response => {
+                const endTime = Date.now();
+                const duration = endTime - startTime;
+                
+                addTwitterDebugLog('📋 Step 10: Received response', 'step');
+                addTwitterDebugLog('   • Status: ' + response.status, response.ok ? 'success' : 'error');
+                addTwitterDebugLog('   • Duration: ' + duration + 'ms', 'info');
+                addTwitterDebugLog('   • Parsing JSON...', 'info');
+                
+                return response.json();
+            })
             .then(result => {
-                console.log('✅ Verification result:', result);
+                addTwitterDebugLog('📋 Step 11: Processing result', 'step');
+                addTwitterDebugLog('   • Success: ' + result.success, result.success ? 'success' : 'error');
+                console.log('   - Success:', result.success);
+                console.log('   - Message:', result.message);
+                addTwitterDebugLog('   • Message: ' + (result.message || 'N/A'), 'info');
+                addTwitterDebugLog('   • Error: ' + (result.error || 'N/A'), 'info');
+                addTwitterDebugLog('   • Points Earned: ' + (result.points_earned || 'N/A'), 'info');
                 
                 if (result.success) {
+                    addTwitterDebugLog('═══════════════════════════════════', 'success');
+                    addTwitterDebugLog('✅ VERIFICATION SUCCESSFUL!', 'success');
+                    addTwitterDebugLog('═══════════════════════════════════', 'success');
+                    addTwitterDebugLog('   • @' + twitterUsername + ' completed the action', 'success');
+                    
+                    const points = result.points_earned || result.new_total || currentTask?.points_reward;
+                    addTwitterDebugLog('   • Points to award: ' + points, 'success');
+                    
                     // Store result for claim function
                     window.twitterVerificationResult = result;
+                    addTwitterDebugLog('   • Result stored in memory', 'info');
+                    
+                    // Save Twitter username to user profile in backend
+                    addTwitterDebugLog('📋 Step 12: Saving to user profile', 'step');
+                    saveTwitterUsernameToProfile(twitterUsername, telegramId);
                     
                     // Show success and enable claim button
+                    addTwitterDebugLog('📋 Step 13: Updating UI (success)', 'step');
                     if (statusDiv) {
                         statusDiv.innerHTML = `
                             <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
@@ -3692,26 +3977,46 @@
                                     <div class="text-2xl">✅</div>
                                     <div class="flex-1">
                                         <p class="text-sm font-bold text-green-400">Action Verified!</p>
-                                        <p class="text-xs text-gray-400 mt-1">Click "Claim Reward" to get your points.</p>
+                                        <p class="text-xs text-gray-400 mt-1">@${twitterUsername} completed the action. Click "Claim Reward" to get your points.</p>
                                     </div>
                                 </div>
                             </div>
                         `;
+                        addTwitterDebugLog('   • Success message displayed', 'success');
                     }
                     
-                    // Hide verify button, show claim button
+                    // Hide username input container and verify button
+                    const usernameContainer = document.getElementById('twitterUsernameContainer');
+                    if (usernameContainer) {
+                        usernameContainer.style.display = 'none';
+                        addTwitterDebugLog('   • Username container hidden', 'info');
+                    }
+                    
                     if (verifyBtn) {
                         verifyBtn.style.display = 'none';
+                        addTwitterDebugLog('   • Verify button hidden', 'info');
                     }
                     
+                    // Show claim button
                     if (claimBtn) {
                         claimBtn.classList.remove('hidden');
                         claimBtn.style.display = 'block';
+                        addTwitterDebugLog('   • Claim button displayed', 'success');
                     }
+                    
+                    addTwitterDebugLog('✅ Verification complete! Ready to claim reward.', 'success');
+                    
                 } else {
+                    addTwitterDebugLog('═══════════════════════════════════', 'error');
+                    addTwitterDebugLog('❌ VERIFICATION FAILED', 'error');
+                    addTwitterDebugLog('═══════════════════════════════════', 'error');
+                    
                     // Show error - user hasn't completed the action
                     const errorMessage = result.message || result.error || 'Action not completed yet. Please complete the action on Twitter and try again.';
+                    addTwitterDebugLog('   • Error: ' + errorMessage, 'error');
+                    addTwitterDebugLog('   • @' + twitterUsername + ' has not completed the action', 'error');
                     
+                    addTwitterDebugLog('📋 Step 12: Updating UI (error)', 'step');
                     if (statusDiv) {
                         statusDiv.innerHTML = `
                             <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
@@ -3719,28 +4024,108 @@
                                     <div class="text-2xl">❌</div>
                                     <div class="flex-1">
                                         <p class="text-sm font-bold text-red-400">Action Not Completed</p>
-                                        <p class="text-xs text-gray-400 mt-1">${errorMessage}</p>
+                                        <p class="text-xs text-gray-400 mt-1">@${twitterUsername}: ${errorMessage}</p>
                                     </div>
                                 </div>
                             </div>
                         `;
+                        addTwitterDebugLog('   • Error message displayed', 'error');
+                    }
+                    
+                    // Re-enable username input and verify button for retry
+                    addTwitterDebugLog('📋 Step 13: Re-enabling for retry', 'step');
+                    if (usernameInput) {
+                        usernameInput.disabled = false;
+                        addTwitterDebugLog('   • Username input re-enabled', 'info');
                     }
                     
                     if (verifyBtn) {
                         verifyBtn.disabled = false;
                         verifyBtn.innerHTML = '🔍 Verify Again';
+                        addTwitterDebugLog('   • Verify button re-enabled', 'info');
                     }
+                    
+                    addTwitterDebugLog('❌ User can retry after completing action', 'warning');
+                }
+                
+                addTwitterDebugLog('═══════════════════════════════════', 'info');
+                addTwitterDebugLog('🔍 VERIFICATION PROCESS ENDED', 'info');
+                addTwitterDebugLog('═══════════════════════════════════', 'info');
+            })
+            .catch(error => {
+                addTwitterDebugLog('═══════════════════════════════════', 'error');
+                addTwitterDebugLog('❌ NETWORK ERROR', 'error');
+                addTwitterDebugLog('═══════════════════════════════════', 'error');
+                addTwitterDebugLog('   • Error Type: ' + error.name, 'error');
+                addTwitterDebugLog('   • Error Message: ' + error.message, 'error');
+                addTwitterDebugLog('   • Possible causes:', 'warning');
+                addTwitterDebugLog('     1. Backend server not running', 'warning');
+                addTwitterDebugLog('     2. Network connection issue', 'warning');
+                addTwitterDebugLog('     3. CORS error', 'warning');
+                addTwitterDebugLog('     4. API endpoint not found (404)', 'warning');
+                addTwitterDebugLog('     5. Invalid JSON response', 'warning');
+                
+                // Re-enable input on error
+                if (usernameInput) {
+                    usernameInput.disabled = false;
+                    addTwitterDebugLog('   • Username input re-enabled', 'info');
+                }
+                
+                showTwitterVerificationError('Connection error. Please try again.');
+                addTwitterDebugLog('❌ Verification failed at network level', 'error');
+            });
+        }
+        
+        // Helper function to save Twitter username to user profile
+        function saveTwitterUsernameToProfile(twitterUsername, telegramId) {
+            addTwitterDebugLog('💾 Saving username to profile...', 'step');
+            addTwitterDebugLog('   • Username: ' + twitterUsername, 'info');
+            addTwitterDebugLog('   • Telegram ID: ' + telegramId, 'info');
+            addTwitterDebugLog('   • API: PATCH /users/' + telegramId + '/profile', 'info');
+            
+            const requestBody = { twitter_username: twitterUsername };
+            addTwitterDebugLog('   • Sending PATCH request...', 'info');
+            
+            // Update backend user profile
+            fetch(`${API_URL}/users/${telegramId}/profile`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            })
+            .then(response => {
+                addTwitterDebugLog('   • Response: ' + response.status + ' ' + (response.ok ? 'OK' : 'ERROR'), response.ok ? 'info' : 'error');
+                return response.json();
+            })
+            .then(result => {
+                if (result.success) {
+                    addTwitterDebugLog('✅ Username saved to database!', 'success');
+                    addTwitterDebugLog('   • Database updated: ' + twitterUsername, 'success');
+                    
+                    // Update currentUser if exists
+                    if (window.currentUser) {
+                        window.currentUser.twitter_username = twitterUsername;
+                        addTwitterDebugLog('   • window.currentUser updated', 'success');
+                    }
+                } else {
+                    addTwitterDebugLog('⚠️ Failed to save username to database', 'warning');
+                    addTwitterDebugLog('   • Reason: ' + (result.message || 'Unknown error'), 'warning');
+                    addTwitterDebugLog('   • Note: Username still saved in localStorage', 'info');
                 }
             })
             .catch(error => {
-                console.error('❌ Verification error:', error);
-                showTwitterVerificationError('Connection error. Please try again.');
+                addTwitterDebugLog('❌ Error saving username to database', 'error');
+                addTwitterDebugLog('   • Error: ' + error.message, 'error');
+                addTwitterDebugLog('   • Note: Username still in localStorage', 'info');
+                addTwitterDebugLog('   • Profile may not sync across devices', 'warning');
             });
         }
         
         function showTwitterVerificationError(message) {
             const statusDiv = document.getElementById('twitterVerificationStatus');
             const verifyBtn = document.getElementById('twitterVerifyBtn');
+            const usernameInput = document.getElementById('twitterUsernameInput');
             
             if (statusDiv) {
                 statusDiv.innerHTML = `
@@ -3754,6 +4139,11 @@
                         </div>
                     </div>
                 `;
+            }
+            
+            // Re-enable input on error
+            if (usernameInput) {
+                usernameInput.disabled = false;
             }
             
             if (verifyBtn) {

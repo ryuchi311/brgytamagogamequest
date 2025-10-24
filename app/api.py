@@ -260,6 +260,47 @@ async def get_user(telegram_id: int):
     return user
 
 
+@app.patch("/api/users/{telegram_id}/profile")
+async def update_user_profile(telegram_id: int, data: dict):
+    """Update user profile (e.g., save Twitter username)"""
+    try:
+        # Get user by telegram_id
+        user = DatabaseService.get_user_by_telegram_id(telegram_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Prepare update data
+        update_data = {}
+        
+        # Allow updating twitter_username
+        if 'twitter_username' in data:
+            update_data['twitter_username'] = data['twitter_username']
+        
+        # Allow updating other profile fields if needed
+        if 'instagram_username' in data:
+            update_data['instagram_username'] = data['instagram_username']
+        
+        if 'discord_username' in data:
+            update_data['discord_username'] = data['discord_username']
+        
+        # Update the user profile
+        if update_data:
+            update_data['updated_at'] = datetime.utcnow().isoformat()
+            
+            result = supabase.table("users").update(update_data).eq("id", user['id']).execute()
+            
+            if result.data:
+                return {"success": True, "message": "Profile updated successfully", "data": result.data[0]}
+            else:
+                return {"success": False, "message": "Failed to update profile"}
+        else:
+            return {"success": False, "message": "No valid fields to update"}
+            
+    except Exception as e:
+        print(f"Error updating user profile: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update profile: {str(e)}")
+
+
 @app.get("/api/users/{telegram_id}/notifications")
 async def get_user_notifications(telegram_id: int, unread_only: bool = False):
     """Get user notifications"""

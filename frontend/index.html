@@ -2318,21 +2318,53 @@
             }
             
             // Twitter Quests
-            else if (taskType.startsWith('twitter_')) {
-                const actionText = {
-                    'twitter_follow': 'Follow on Twitter',
-                    'twitter_like': 'Like Tweet',
-                    'twitter_retweet': 'Retweet',
-                    'twitter_reply': 'Reply to Tweet'
-                }[taskType] || 'Open Twitter';
+            else if (taskType.startsWith('twitter_') || taskType === 'twitter' || platform === 'twitter') {
+                const verificationMethod = verificationData.method || 'manual';
+                const actionType = verificationData.action_type || 'follow';
                 
-                return {
-                    html: `
-                        <button onclick="submitQuest()" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
-                            ${actionText}
-                        </button>
-                    `
-                };
+                const actionText = {
+                    'follow': '🐦 Follow on Twitter',
+                    'like': '❤️ Like Tweet',
+                    'retweet': '🔄 Retweet',
+                    'quote': '💬 Quote Tweet',
+                    'reply': '💬 Reply to Tweet',
+                    'combo': '⭐ Complete Twitter Actions'
+                }[actionType] || '🐦 Open Twitter';
+                
+                // API Verification - Auto check
+                if (verificationMethod === 'api') {
+                    return {
+                        html: `
+                            <!-- Open Twitter Button -->
+                            <button id="twitterActionBtn" onclick="openTwitterAndPrepareVerification()" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-4 font-bold text-lg mb-4 active:scale-95 transition-all shadow-lg">
+                                ${actionText}
+                            </button>
+                            
+                            <!-- Verify Button (Hidden Initially) -->
+                            <button id="twitterVerifyBtn" onclick="verifyTwitterAction()" class="hidden w-full bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 rounded-2xl p-4 font-bold text-lg mb-4 active:scale-95 transition-all shadow-lg">
+                                🔍 Verify Action
+                            </button>
+                            
+                            <!-- Verification Status -->
+                            <div id="twitterVerificationStatus" class="hidden mb-4"></div>
+                            
+                            <!-- Claim Button (Hidden Initially) -->
+                            <button id="twitterClaimBtn" onclick="handleTwitterClaim()" class="hidden w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 rounded-2xl p-4 font-bold text-lg active:scale-95 transition-all shadow-lg">
+                                ✅ Claim Reward
+                            </button>
+                        `
+                    };
+                }
+                // Manual Verification - Submit for review
+                else {
+                    return {
+                        html: `
+                            <button onclick="submitQuest()" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-2xl p-4 font-bold text-lg mb-8 active:scale-95 transition-all shadow-lg">
+                                ${actionText}
+                            </button>
+                        `
+                    };
+                }
             }
             
             // Telegram Quests
@@ -3551,6 +3583,225 @@
                 }, 2000);
             }, 500);
         }
+
+        // ============ TWITTER QUEST FUNCTIONS ============
+        
+        function openTwitterAndPrepareVerification() {
+            console.log('🐦 Opening Twitter and preparing verification...');
+            
+            const actionBtn = document.getElementById('twitterActionBtn');
+            const verifyBtn = document.getElementById('twitterVerifyBtn');
+            const statusDiv = document.getElementById('twitterVerificationStatus');
+            
+            // Open Twitter URL
+            if (currentTaskUrl) {
+                window.open(currentTaskUrl, '_blank');
+            }
+            
+            // Update UI - hide action button, show verify button with instructions
+            if (actionBtn) {
+                actionBtn.style.display = 'none';
+            }
+            
+            if (verifyBtn) {
+                verifyBtn.classList.remove('hidden');
+                verifyBtn.style.display = 'block';
+            }
+            
+            // Show instructions
+            if (statusDiv) {
+                statusDiv.classList.remove('hidden');
+                statusDiv.innerHTML = `
+                    <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">ℹ️</div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-blue-400">Instructions</p>
+                                <p class="text-xs text-gray-400 mt-1">Complete the action on Twitter, then click "Verify Action" to confirm.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function verifyTwitterAction() {
+            console.log('🔍 Verifying Twitter action...');
+            
+            const statusDiv = document.getElementById('twitterVerificationStatus');
+            const verifyBtn = document.getElementById('twitterVerifyBtn');
+            const claimBtn = document.getElementById('twitterClaimBtn');
+            
+            // Show loading state
+            if (statusDiv) {
+                statusDiv.innerHTML = `
+                    <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="animate-spin">
+                                <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-cyan-400">Checking with Twitter API...</p>
+                                <p class="text-xs text-gray-400 mt-1">Verifying your action</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (verifyBtn) {
+                verifyBtn.disabled = true;
+                verifyBtn.innerHTML = '⏳ Checking...';
+            }
+            
+            // Get Telegram user ID (we use this as the user identifier)
+            const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('telegram_id');
+            
+            if (!telegramId) {
+                console.error('❌ No Telegram ID found');
+                showTwitterVerificationError('Could not get your user ID. Please reload the app.');
+                return;
+            }
+            
+            // Call backend to verify Twitter action via Twitter API
+            fetch(`${API_URL}/tasks/${currentTaskId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    telegram_id: telegramId
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('✅ Verification result:', result);
+                
+                if (result.success) {
+                    // Store result for claim function
+                    window.twitterVerificationResult = result;
+                    
+                    // Show success and enable claim button
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `
+                            <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-2xl">✅</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-bold text-green-400">Action Verified!</p>
+                                        <p class="text-xs text-gray-400 mt-1">Click "Claim Reward" to get your points.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Hide verify button, show claim button
+                    if (verifyBtn) {
+                        verifyBtn.style.display = 'none';
+                    }
+                    
+                    if (claimBtn) {
+                        claimBtn.classList.remove('hidden');
+                        claimBtn.style.display = 'block';
+                    }
+                } else {
+                    // Show error - user hasn't completed the action
+                    const errorMessage = result.message || result.error || 'Action not completed yet. Please complete the action on Twitter and try again.';
+                    
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `
+                            <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="text-2xl">❌</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-bold text-red-400">Action Not Completed</p>
+                                        <p class="text-xs text-gray-400 mt-1">${errorMessage}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    if (verifyBtn) {
+                        verifyBtn.disabled = false;
+                        verifyBtn.innerHTML = '🔍 Verify Again';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('❌ Verification error:', error);
+                showTwitterVerificationError('Connection error. Please try again.');
+            });
+        }
+        
+        function showTwitterVerificationError(message) {
+            const statusDiv = document.getElementById('twitterVerificationStatus');
+            const verifyBtn = document.getElementById('twitterVerifyBtn');
+            
+            if (statusDiv) {
+                statusDiv.innerHTML = `
+                    <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="text-2xl">⚠️</div>
+                            <div class="flex-1">
+                                <p class="text-sm font-bold text-yellow-400">Error</p>
+                                <p class="text-xs text-gray-400 mt-1">${message}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (verifyBtn) {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '🔄 Try Again';
+            }
+        }
+        
+        function handleTwitterClaim() {
+            console.log('🎁 Claiming Twitter reward...');
+            
+            const claimBtn = document.getElementById('twitterClaimBtn');
+            if (claimBtn) {
+                claimBtn.innerHTML = '🎉 Claiming...';
+                claimBtn.disabled = true;
+            }
+            
+            // Get the verification result
+            const result = window.twitterVerificationResult || {};
+            const pointsEarned = result.points_earned || result.new_total || currentTask?.points_reward || 0;
+            
+            // Show success animation
+            setTimeout(() => {
+                const successMsg = document.createElement('div');
+                successMsg.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50';
+                successMsg.innerHTML = `
+                    <div class="bg-gradient-to-br from-blue-500 to-purple-600 text-white px-8 py-6 rounded-2xl shadow-2xl text-center max-w-sm mx-4 animate-bounce">
+                        <div class="text-5xl mb-3">🎉</div>
+                        <div class="text-2xl font-bold mb-2">Quest Complete!</div>
+                        <div class="text-xl mb-2">+${pointsEarned} Points</div>
+                        <div class="text-sm opacity-90 mt-3">Congratulations! Returning to quests...</div>
+                    </div>
+                `;
+                document.body.appendChild(successMsg);
+                
+                // Return to quest list
+                setTimeout(() => {
+                    successMsg.remove();
+                    backToQuestList();
+                    // Reload tasks to show updated status
+                    if (typeof loadTasks === 'function') {
+                        loadTasks();
+                    }
+                }, 2000);
+            }, 500);
+        }
+
+        // ============ GENERAL QUEST FUNCTIONS ============
 
         function submitQuest() {
             // Open the quest URL

@@ -916,37 +916,37 @@
                 // Mobile cards
                 const cardsContainer = document.getElementById('usersCards');
                 cardsContainer.innerHTML = users.map(user => `
-                    <div class="bg-gradient-to-br from-black/60 to-gray-900/40 border-2 ${user.is_banned ? 'border-red-500/30' : 'border-neon-blue/30'} rounded-xl p-4">
+                    <div class="bg-gradient-to-br from-black/60 to-gray-900/40 border-2 ${user.is_banned ? 'border-red-500/30' : 'border-neon-blue/30'} rounded-xl p-3">
                         <!-- Header -->
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="flex-1">
-                                <h3 class="text-white font-bold gaming-body text-lg">${user.first_name || 'Unknown'} ${user.last_name || ''}</h3>
-                                <p class="text-gray-400 text-sm gaming-body">@${user.username || 'N/A'}</p>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-white font-bold gaming-body text-sm truncate">${user.first_name || 'Unknown'} ${user.last_name || ''}</h3>
+                                <p class="text-gray-400 text-xs gaming-body truncate">@${user.username || 'N/A'}</p>
                             </div>
-                            <span class="px-2 py-1 ${user.is_banned ? 'bg-red-900/30 border-red-500/50 text-red-400' : 'bg-neon-green/20 border-neon-green/50 text-neon-green'} border rounded-lg gaming-title text-xs whitespace-nowrap ml-2">
-                                ${user.is_banned ? '🚫 BANNED' : '✓ ACTIVE'}
+                            <span class="px-2 py-1 ${user.is_banned ? 'bg-red-900/30 border-red-500/50 text-red-400' : 'bg-neon-green/20 border-neon-green/50 text-neon-green'} border rounded text-[10px] gaming-title whitespace-nowrap ml-2">
+                                ${user.is_banned ? '🚫' : '✓'}
                             </span>
                         </div>
                         
                         <!-- Stats Grid -->
-                        <div class="grid grid-cols-3 gap-3 mb-3">
-                            <div class="bg-neon-purple/10 border border-neon-purple/30 rounded-lg p-2 text-center">
-                                <div class="text-gray-400 text-xs gaming-title mb-1">LEVEL</div>
-                                <div class="text-neon-purple font-bold gaming-body">${Math.floor((user.total_points_earned || 0) / 100) + 1}</div>
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <div class="bg-neon-purple/10 border border-neon-purple/30 rounded-lg p-1.5 text-center">
+                                <div class="text-[10px] text-gray-400 gaming-title mb-0.5">LVL</div>
+                                <div class="text-neon-purple text-xs font-bold gaming-body">${Math.floor((user.total_points_earned || 0) / 100) + 1}</div>
                             </div>
-                            <div class="bg-neon-green/10 border border-neon-green/30 rounded-lg p-2 text-center">
-                                <div class="text-gray-400 text-xs gaming-title mb-1">XP</div>
-                                <div class="text-neon-green font-bold gaming-body">${user.points || 0}</div>
+                            <div class="bg-neon-green/10 border border-neon-green/30 rounded-lg p-1.5 text-center">
+                                <div class="text-[10px] text-gray-400 gaming-title mb-0.5">XP</div>
+                                <div class="text-neon-green text-xs font-bold gaming-body">${user.points || 0}</div>
                             </div>
-                            <div class="bg-neon-blue/10 border border-neon-blue/30 rounded-lg p-2 text-center">
-                                <div class="text-gray-400 text-xs gaming-title mb-1">EARNED</div>
-                                <div class="text-neon-blue font-bold gaming-body">${user.total_points_earned || 0}</div>
+                            <div class="bg-neon-blue/10 border border-neon-blue/30 rounded-lg p-1.5 text-center">
+                                <div class="text-[10px] text-gray-400 gaming-title mb-0.5">TOTAL</div>
+                                <div class="text-neon-blue text-xs font-bold gaming-body">${user.total_points_earned || 0}</div>
                             </div>
                         </div>
                         
                         <!-- Action -->
-                        <button onclick="toggleUserBan('${user.telegram_id}')" class="w-full px-4 py-2 ${user.is_banned ? 'bg-neon-green/20 hover:bg-neon-green/30 border-neon-green/50' : 'bg-red-900/30 hover:bg-red-900/50 border-red-500/50'} border rounded-lg gaming-title text-sm transition-all">
-                            ${user.is_banned ? '✅ UNBAN PLAYER' : '🚫 BAN PLAYER'}
+                        <button onclick="toggleUserBan('${user.telegram_id}')" class="w-full px-3 py-1.5 ${user.is_banned ? 'bg-neon-green/20 hover:bg-neon-green/30 border-neon-green/50' : 'bg-red-900/30 hover:bg-red-900/50 border-red-500/50'} border rounded-lg gaming-title text-xs transition-all">
+                            ${user.is_banned ? '✅ UNBAN' : '🚫 BAN'}
                         </button>
                     </div>
                 `).join('');
@@ -1022,49 +1022,46 @@
                     const rarity = task.points_reward < 50 ? 'common' : task.points_reward < 100 ? 'rare' : task.points_reward < 200 ? 'epic' : 'legendary';
                     
                     return `
-                    <div class="bg-gradient-to-br from-black/60 to-gray-900/40 border-2 ${task.is_active ? 'border-neon-purple/30' : 'border-gray-700/50'} rounded-xl p-4">
+                    <div class="bg-gradient-to-br from-black/60 to-gray-900/40 border-2 ${task.is_active ? 'border-neon-purple/30' : 'border-gray-700/50'} rounded-xl p-3">
                         <!-- Header -->
-                        <div class="flex items-start justify-between mb-3">
-                            <div class="flex-1">
-                                <h3 class="text-white font-bold gaming-body text-lg mb-1">${task.title}</h3>
-                                ${task.is_bonus ? '<span class="text-neon-yellow text-xs">⭐ BONUS</span>' : ''}
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-white font-bold gaming-body text-sm mb-0.5 truncate">${task.title}</h3>
+                                ${task.is_bonus ? '<span class="text-neon-yellow text-[10px]">⭐</span>' : ''}
                             </div>
-                            <span class="px-2 py-1 ${task.is_active ? 'bg-neon-green/20 border-neon-green/50 text-neon-green' : 'bg-gray-700/30 border-gray-600/50 text-gray-400'} border rounded-lg gaming-title text-xs whitespace-nowrap ml-2">
-                                ${task.is_active ? '✓ ACTIVE' : '⏸ INACTIVE'}
+                            <span class="px-2 py-1 ${task.is_active ? 'bg-neon-green/20 border-neon-green/50 text-neon-green' : 'bg-gray-700/30 border-gray-600/50 text-gray-400'} border rounded text-[10px] gaming-title whitespace-nowrap ml-2">
+                                ${task.is_active ? '✓' : '⏸'}
                             </span>
                         </div>
                         
                         <!-- Details Grid -->
-                        <div class="grid grid-cols-2 gap-3 mb-4">
-                            <div>
-                                <div class="text-gray-400 text-xs gaming-title mb-1">TYPE</div>
-                                <div class="text-white gaming-body capitalize text-sm">${task.task_type || 'N/A'}</div>
+                        <div class="grid grid-cols-4 gap-1.5 mb-2">
+                            <div class="bg-black/30 border border-gray-700/50 rounded p-1.5 text-center">
+                                <div class="text-[10px] text-gray-400 gaming-title mb-0.5">TYPE</div>
+                                <div class="text-white gaming-body text-[10px] truncate" title="${task.task_type || 'N/A'}">${(task.task_type || 'N/A').substring(0, 8)}</div>
                             </div>
-                            <div>
-                                <div class="text-gray-400 text-xs gaming-title mb-1">PLATFORM</div>
-                                <div class="text-white gaming-body capitalize text-sm">${task.platform || '—'}</div>
+                            <div class="bg-black/30 border border-gray-700/50 rounded p-1.5 text-center">
+                                <div class="text-[10px] text-gray-400 gaming-title mb-0.5">PLATFORM</div>
+                                <div class="text-white gaming-body text-[10px] truncate" title="${task.platform || '—'}">${(task.platform || '—').substring(0, 8)}</div>
                             </div>
-                            <div>
-                                <div class="text-gray-400 text-xs gaming-title mb-1">XP REWARD</div>
-                                <div class="text-neon-green font-bold gaming-body text-sm">+${task.points_reward} XP</div>
+                            <div class="bg-neon-green/10 border border-neon-green/30 rounded p-1.5 text-center">
+                                <div class="text-[10px] text-gray-400 gaming-title mb-0.5">XP</div>
+                                <div class="text-neon-green font-bold gaming-body text-xs">+${task.points_reward}</div>
                             </div>
-                            <div>
-                                <div class="text-gray-400 text-xs gaming-title mb-1">RARITY</div>
-                                <span class="inline-block px-2 py-1 border ${rarityColors[rarity]} rounded-lg gaming-title text-xs uppercase">
-                                    ${rarity}
-                                </span>
+                            <div class="bg-black/30 border ${rarityColors[rarity].split(' ')[1]} rounded p-1.5 text-center">
+                                <div class="text-[10px] ${rarityColors[rarity].split(' ')[0]} gaming-title">${rarity.toUpperCase()}</div>
                             </div>
                         </div>
                         
                         <!-- Actions -->
-                        <div class="flex gap-2">
-                            <button onclick="editTask('${task.id}')" class="flex-1 px-3 py-2 bg-blue-900/30 hover:bg-blue-900/50 border border-blue-500/50 rounded-lg gaming-title text-xs transition-all">
-                                ✏️ EDIT
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button onclick="editTask('${task.id}')" class="px-2 py-1.5 bg-blue-900/30 hover:bg-blue-900/50 border border-blue-500/50 rounded gaming-title text-[10px] transition-all">
+                                ✏️
                             </button>
-                            <button onclick="toggleTaskStatus('${task.id}', ${task.is_active})" class="flex-1 px-3 py-2 ${task.is_active ? 'bg-yellow-900/30 hover:bg-yellow-900/50 border-yellow-500/50' : 'bg-green-900/30 hover:bg-green-900/50 border-green-500/50'} border rounded-lg gaming-title text-xs transition-all">
-                                ${task.is_active ? '⏸ PAUSE' : '▶️ ACTIVATE'}
+                            <button onclick="toggleTaskStatus('${task.id}', ${task.is_active})" class="px-2 py-1.5 ${task.is_active ? 'bg-yellow-900/30 hover:bg-yellow-900/50 border-yellow-500/50' : 'bg-green-900/30 hover:bg-green-900/50 border-green-500/50'} border rounded gaming-title text-[10px] transition-all">
+                                ${task.is_active ? '⏸' : '▶️'}
                             </button>
-                            <button onclick="deleteTask('${task.id}')" class="px-3 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-500/50 rounded-lg gaming-title text-xs transition-all">
+                            <button onclick="deleteTask('${task.id}')" class="px-2 py-1.5 bg-red-900/30 hover:bg-red-900/50 border border-red-500/50 rounded gaming-title text-[10px] transition-all">
                                 🗑️
                             </button>
                         </div>

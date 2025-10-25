@@ -431,11 +431,23 @@ async def verify_task_completion(request: dict):
             import requests
             
             bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+            print(f"\n🔍 Telegram Verification Debug:")
+            print(f"   Task ID: {task_id}")
+            print(f"   Task Type: {task_type}")
+            print(f"   Platform: {task.get('platform')}")
+            print(f"   Bot Token: {bot_token[:20] if bot_token else 'NOT SET'}...")
+            
             if not bot_token:
+                print("❌ Bot token not configured!")
                 return {"success": False, "message": "Telegram bot not configured"}
             
             chat_id = verification_data.get('chat_id')
+            print(f"   Chat ID: {chat_id}")
+            print(f"   User Telegram ID: {telegram_id}")
+            print(f"   Verification Data: {verification_data}")
+            
             if not chat_id:
+                print("❌ Chat ID not found in verification_data!")
                 return {"success": False, "message": "Chat ID not configured in task"}
             
             # Use Telegram Bot API to check membership
@@ -445,24 +457,48 @@ async def verify_task_completion(request: dict):
                 "user_id": telegram_id
             }
             
+            print(f"   API URL: {url[:60]}...")
+            print(f"   Params: {params}")
+            print(f"   Calling Telegram Bot API...")
+            
             response = requests.get(url, params=params, timeout=10)
             data = response.json()
             
+            print(f"   Response Status: {response.status_code}")
+            print(f"   Response Data: {data}")
+            
             if data.get('ok'):
                 member_status = data.get('result', {}).get('status')
+                user_info = data.get('result', {}).get('user', {})
+                print(f"   Member Status: {member_status}")
+                print(f"   User Info: {user_info}")
+                
                 # Valid statuses: creator, administrator, member, restricted, left, kicked
                 if member_status in ['creator', 'administrator', 'member', 'restricted']:
                     verification_success = True
                     verification_message = f"✅ Telegram membership verified! Welcome to {verification_data.get('chat_name', 'the group')}"
+                    print(f"✅ Verification successful! User is a {member_status}")
                 else:
                     verification_success = False
-                    verification_message = f"❌ You are not a member of {verification_data.get('chat_name', 'the group')}. Please join first!"
+                    verification_message = f"❌ You are not a member of {verification_data.get('chat_name', 'the group')}. Please join first! (Status: {member_status})"
+                    print(f"❌ Verification failed! User status is: {member_status}")
             else:
                 error_description = data.get('description', 'Unknown error')
+                error_code = data.get('error_code', 'N/A')
                 verification_message = f"Failed to verify membership: {error_description}"
+                print(f"❌ Telegram API returned error!")
+                print(f"   Error Code: {error_code}")
+                print(f"   Error Description: {error_description}")
+                print(f"   Possible reasons:")
+                print(f"   1. Bot not in the group/channel")
+                print(f"   2. Chat ID incorrect")
+                print(f"   3. Bot lacks admin permissions (for channels)")
                 
         except Exception as e:
             verification_message = f"Telegram verification error: {str(e)}"
+            print(f"💥 Exception during Telegram verification: {str(e)}")
+            import traceback
+            traceback.print_exc()
             
     # YouTube video watch verification - supports both 'youtube' and 'youtube_watch' task types
     elif task_type in ['youtube', 'youtube_watch']:

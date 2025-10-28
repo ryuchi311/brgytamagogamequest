@@ -1,237 +1,471 @@
-# 🎯 Telegram Bot Points Rewards System
+# 🎮 Quest Hub - Telegram Mini App# 🎯 Telegram Bot Points Rewards System
 
-A comprehensive web application for a Telegram bot that enables users to earn points through completing various tasks. Built with Python, FastAPI, and Supabase PostgreSQL.
 
-## 🌟 Features
 
-### User Features
-- ✅ **Task Completion System** - Complete social media tasks, watch videos, and more
-- 💰 **Points Tracking** - Earn and accumulate points for every task completed
-- 🏆 **Leaderboard** - Compete with other users and see top performers
-- 🎁 **Rewards Redemption** - Redeem points for discounts, gift cards, and exclusive content
-- 🔔 **Real-time Notifications** - Get notified about new tasks and opportunities
-- 📊 **Progress Tracking** - Monitor your points and completed tasks
+A gamified quest platform built with Telegram Mini Apps, featuring multiple quest types including Telegram group verification, Twitter follows, YouTube engagement, and website visits.A comprehensive web application for a Telegram bot that enables users to earn points through completing various tasks. Built with Python, FastAPI, and Supabase PostgreSQL.
+
+
+
+## ✨ Features## 🌟 Features
+
+
+
+- 🎯 **Multiple Quest Types**: Telegram groups, Twitter follows, YouTube engagement, website visits### User Features
+
+- 👥 **User Management**: Authentication, profiles, and progress tracking- ✅ **Task Completion System** - Complete social media tasks, watch videos, and more
+
+- 💎 **Points & Rewards System**: XP, loot rewards, and progression- 💰 **Points Tracking** - Earn and accumulate points for every task completed
+
+- 📊 **Admin Dashboard**: Quest creation, user management, analytics- 🏆 **Leaderboard** - Compete with other users and see top performers
+
+- 🏆 **Leaderboard**: Real-time rankings and competition- 🎁 **Rewards Redemption** - Redeem points for discounts, gift cards, and exclusive content
+
+- 🎨 **Gaming-Themed UI**: Immersive user experience with branded colors- 🔔 **Real-time Notifications** - Get notified about new tasks and opportunities
+
+- 🤖 **Telegram Bot Integration**: Automated verification and announcements- 📊 **Progress Tracking** - Monitor your points and completed tasks
+
 - 📱 **Telegram Bot Integration** - Interact directly through Telegram
-
-### Admin Features
-- 📊 **Dashboard Analytics** - View system statistics and user metrics
-- 👥 **User Management** - Monitor and manage user accounts
-- 📋 **Task Management** - Create, edit, and delete tasks
-- 🎁 **Reward Management** - Configure rewards and pricing
-- ✅ **Task Verification** - Approve or reject user task submissions
-- 🚫 **User Moderation** - Ban/unban users as needed
-
-## 🏗️ Architecture
-
-```
-├── app/
-│   ├── api.py              # FastAPI backend
-│   ├── models.py           # Database models and Supabase client
-│   └── telegram_bot.py     # Telegram bot implementation
-├── frontend/
-│   ├── index.html          # User web interface
-│   └── admin.html          # Admin dashboard
-├── database/
-│   └── schema.sql          # PostgreSQL database schema
-├── docker-compose.yml      # Docker orchestration
-├── Dockerfile              # Docker container configuration
-├── requirements.txt        # Python dependencies
-└── .env                    # Environment variables
-```
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Admin Features
 
-- Docker and Docker Compose
-- Python 3.11+
-- Telegram Bot Token (from [@BotFather](https://t.me/botfather))
-- Supabase Account (or local PostgreSQL)
+### Prerequisites- 📊 **Dashboard Analytics** - View system statistics and user metrics
+
+- Python 3.9+- 👥 **User Management** - Monitor and manage user accounts
+
+- Docker & Docker Compose- 📋 **Task Management** - Create, edit, and delete tasks
+
+- Telegram Bot Token (get from [@BotFather](https://t.me/BotFather))- 🎁 **Reward Management** - Configure rewards and pricing
+
+- Supabase Account (free tier available at [supabase.com](https://supabase.com))- ✅ **Task Verification** - Approve or reject user task submissions
+
+- 🚫 **User Moderation** - Ban/unban users as needed
 
 ### Installation
 
-1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd telegram-bot-points-system
-```
+## 🏗️ Architecture
 
-2. **Set up environment variables**
-```bash
-cp .env.example .env
-```
+1. **Clone and configure:**
 
-Edit `.env` with your configuration:
+```bash```
+
+git clone <repository-url>├── app/
+
+cd quest-hub│   ├── api.py              # FastAPI backend
+
+cp .env.example .env│   ├── models.py           # Database models and Supabase client
+
+# Edit .env with your credentials (see docs/QUICKSTART.md for details)│   └── telegram_bot.py     # Telegram bot implementation
+
+```├── frontend/
+
+│   ├── index.html          # User web interface
+
+2. **Start services:**│   └── admin.html          # Admin dashboard
+
+```bash├── database/
+
+./start.sh│   └── schema.sql          # PostgreSQL database schema
+
+```├── docker-compose.yml      # Docker orchestration
+
+├── Dockerfile              # Docker container configuration
+
+3. **Access the application:**├── requirements.txt        # Python dependencies
+
+- **Frontend**: http://localhost:8080└── .env                    # Environment variables
+
+- **Backend API**: http://localhost:8000```
+
+- **API Docs**: http://localhost:8000/docs
+
+## 🚀 Quick Start
+
+### First-Time Setup
+
+### Prerequisites
+
+1. Create your Telegram bot with [@BotFather](https://t.me/BotFather)
+
+2. Set up Supabase database (see [docs/DATABASE_ARCHITECTURE.md](./docs/DATABASE_ARCHITECTURE.md))- Docker and Docker Compose
+
+3. Configure environment variables in `.env`- Python 3.11+
+
+4. Run `./setup.sh` to initialize the database- Telegram Bot Token (from [@BotFather](https://t.me/botfather))
+
+5. Start services with `./start.sh`- Supabase Account (or local PostgreSQL)
+
+
+
+For detailed setup instructions, see [docs/QUICKSTART.md](./docs/QUICKSTART.md).### Installation
+
+
+
+## 🛠️ Management Scripts1. **Clone the repository**
+
+```bash
+
+| Script | Description | Usage |git clone <repository-url>
+
+|--------|-------------|-------|cd telegram-bot-points-system
+
+| `./start.sh` | Start all services with auto-recovery | `./start.sh [--monitor-logs]` |```
+
+| `./stop.sh` | Stop all services gracefully | `./stop.sh` |
+
+| `./restart.sh` | Restart with full diagnostics | `./restart.sh` |2. **Set up environment variables**
+
+| `./check_status.sh` | Check system health | `./check_status.sh` |```bash
+
+| `./monitor_logs.sh` | Monitor application logs | `./monitor_logs.sh [backend\|frontend\|both]` |cp .env.example .env
+
+| `./manage_groups.sh` | Manage Telegram groups | `./manage_groups.sh` |```
+
+
+
+See [docs/STARTUP_SCRIPTS_GUIDE.md](./docs/STARTUP_SCRIPTS_GUIDE.md) for detailed script documentation.Edit `.env` with your configuration:
+
 ```env
-# Telegram Bot Configuration
+
+## 📖 Documentation# Telegram Bot Configuration
+
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
 
-# Supabase Configuration
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_KEY=your_supabase_service_role_key
+All documentation has been organized in the [docs/](./docs/) folder:
 
-# Database Configuration
+# Supabase Configuration
+
+### 🏁 Getting StartedSUPABASE_URL=your_supabase_project_url
+
+- [**Quick Start Guide**](./docs/QUICKSTART.md) - Get up and running in minutesSUPABASE_KEY=your_supabase_anon_key
+
+- [**Quick Launch Checklist**](./docs/QUICK_LAUNCH_CHECKLIST.md) - Pre-deployment checklistSUPABASE_SERVICE_KEY=your_supabase_service_role_key
+
+- [**Development Roadmap**](./docs/DEVELOPMENT_ROADMAP.md) - Project phases and milestones
+
+- [**Project Structure**](./docs/PROJECT_STRUCTURE.md) - Codebase organization# Database Configuration
+
 DATABASE_URL=postgresql://postgres:postgres@postgres:5432/telegram_bot_db
 
-# JWT Configuration
-SECRET_KEY=your_secret_key_change_in_production
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+### 🎯 Quest Types & Implementation
 
-# Admin Configuration
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=changeme123
-```
+- [**Quest Types Guide**](./docs/QUEST_TYPES_GUIDE.md) - Complete overview of all quest types# JWT Configuration
+
+- [**Quest Handlers Implementation**](./docs/QUEST_HANDLERS_IMPLEMENTATION.md) - Backend logicSECRET_KEY=your_secret_key_change_in_production
+
+- [**Quest Management Update**](./docs/QUEST_MANAGEMENT_UPDATE.md) - Admin quest managementALGORITHM=HS256
+
+- [**TapSwap-Inspired Quests**](./docs/TAPSWAP_INSPIRED_QUESTS.md) - Gamification patternsACCESS_TOKEN_EXPIRE_MINUTES=30
+
+
+
+### 📱 Telegram Integration# Admin Configuration
+
+- [**Telegram Auth Quick Guide**](./docs/TELEGRAM_AUTH_QUICK_GUIDE.md) - Authentication setupADMIN_USERNAME=admin
+
+- [**Telegram Verification Troubleshooting**](./docs/TELEGRAM_VERIFICATION_TROUBLESHOOTING.md) - Debug guideADMIN_PASSWORD=changeme123
+
+- [**User Guide - Telegram**](./docs/USER_GUIDE_TELEGRAM.md) - User-facing documentation```
+
+- [**Telegram Bot Setup**](./docs/TELEGRAM_BOT_SETUP_GUIDE.md) - Bot configuration
 
 3. **Set up Supabase Database**
 
-Option A: Using Supabase Cloud
-- Create a new project on [Supabase](https://supabase.com)
-- Go to SQL Editor and run the contents of `database/schema.sql`
+### 🐦 Twitter Integration
+
+- [**Twitter API Setup**](./docs/TWITTER_API_SETUP.md) - API credentials and configurationOption A: Using Supabase Cloud
+
+- [**Twitter API Setup Guide**](./docs/TWITTER_API_SETUP_GUIDE.md) - Step-by-step setup- Create a new project on [Supabase](https://supabase.com)
+
+- [**Twitter Verification Methods**](./docs/TWITTER_VERIFICATION_METHODS.md) - Verification strategies- Go to SQL Editor and run the contents of `database/schema.sql`
+
 - Copy your project URL and API keys to `.env`
 
-Option B: Using Local PostgreSQL (via Docker)
-- The docker-compose.yml will automatically set up PostgreSQL
-- Schema will be automatically imported
+### 📺 YouTube Integration
+
+- [**YouTube Quick Start**](./docs/YOUTUBE_QUICK_START.md) - Get started with YouTube questsOption B: Using Local PostgreSQL (via Docker)
+
+- [**YouTube Quest Workflow**](./docs/YOUTUBE_QUEST_WORKFLOW.md) - Complete workflow guide- The docker-compose.yml will automatically set up PostgreSQL
+
+- [**YouTube Verification**](./docs/YOUTUBE_VERIFICATION.md) - Verification implementation- Schema will be automatically imported
+
+- [**YouTube Debug Guide**](./docs/YOUTUBE_QUEST_DEBUG_GUIDE.md) - Troubleshooting
 
 4. **Start the application**
-```bash
-docker-compose up -d
-```
+
+### 🌐 Website Quests```bash
+
+- [**Website Link Quest Workflow**](./docs/WEBSITE_LINK_QUEST_WORKFLOW.md) - Implementation guidedocker-compose up -d
+
+- [**Website Quest Manual Verification**](./docs/WEBSITE_QUEST_MANUAL_VERIFICATION.md) - Manual verification```
+
+- [**Website Link Quest Quick Reference**](./docs/WEBSITE_LINK_QUEST_QUICK_REFERENCE.md) - Quick guide
 
 This will start:
-- PostgreSQL database (port 5432)
-- FastAPI backend (port 8000)
-- Telegram bot
-- Nginx web server (port 80)
+
+### 👨‍💼 Administration- PostgreSQL database (port 5432)
+
+- [**Admin Actions Implementation**](./docs/ADMIN_ACTIONS_IMPLEMENTATION.md) - Admin features- FastAPI backend (port 8000)
+
+- [**Admin Dashboard Fix**](./docs/ADMIN_DASHBOARD_FIX.md) - Dashboard documentation- Telegram bot
+
+- [**Admin Auth Fix**](./docs/ADMIN_AUTH_FIX.md) - Authentication implementation- Nginx web server (port 80)
+
+- [**Quest Creation Update**](./docs/QUEST_CREATION_UPDATE.md) - Creating quests
 
 5. **Access the application**
-- User Interface: http://localhost
-- Admin Dashboard: http://localhost/admin
-- API Documentation: http://localhost:8000/docs
-- API Base URL: http://localhost:8000/api
+
+### 🔧 Operations & Troubleshooting- User Interface: http://localhost
+
+- [**Startup Scripts Guide**](./docs/STARTUP_SCRIPTS_GUIDE.md) - Script documentation- Admin Dashboard: http://localhost/admin
+
+- [**Log Monitoring Feature**](./docs/LOG_MONITORING_FEATURE.md) - Log monitoring guide- API Documentation: http://localhost:8000/docs
+
+- [**System Status**](./docs/SYSTEM_STATUS.md) - Health monitoring- API Base URL: http://localhost:8000/api
+
+- [**Debug Panel Guide**](./docs/DEBUG_PANEL_GUIDE.md) - Debugging tools
 
 ### Manual Setup (Without Docker)
 
-1. **Install dependencies**
-```bash
-pip install -r requirements.txt
+### 🚀 Deployment
+
+- [**Deployment Checklist**](./docs/DEPLOYMENT_CHECKLIST.md) - Pre-deployment steps1. **Install dependencies**
+
+- [**Deployment Success**](./docs/DEPLOYMENT_SUCCESS.md) - Post-deployment verification```bash
+
+- [**Supabase Fixes Required**](./docs/SUPABASE_FIXES_REQUIRED.md) - Database considerationspip install -r requirements.txt
+
 ```
 
-2. **Set up database**
+### 🏗️ Architecture & Development
+
+- [**Database Architecture**](./docs/DATABASE_ARCHITECTURE.md) - Database schema2. **Set up database**
+
+- [**API Examples**](./docs/API_EXAMPLES.md) - API usage examples```bash
+
+- [**Project Summary**](./docs/PROJECT_SUMMARY.txt) - High-level overview# Connect to your PostgreSQL database and run:
+
+- [**Phase 2 Complete**](./docs/PHASE_2_COMPLETE.md) - Development phasespsql -U postgres -d telegram_bot_db -f database/schema.sql
+
+- [**Phase 3 Complete**](./docs/PHASE_3_COMPLETE.md) - Recent updates```
+
+
+
+### 📚 Quick References3. **Start the API server**
+
+- [**Quick Reference - Mobile**](./docs/QUICK_REFERENCE_MOBILE.md) - Mobile optimization```bash
+
+- [**Quick Access Guide**](./docs/QUICK_ACCESS_GUIDE.md) - Common taskspython -m uvicorn app.api:app --reload --port 8000
+
+- [**Quest Handlers Quick Reference**](./docs/QUEST_HANDLERS_QUICK_REFERENCE.md) - Handler guide```
+
+
+
+## 🏗️ Project Structure4. **Start the Telegram bot**
+
 ```bash
-# Connect to your PostgreSQL database and run:
-psql -U postgres -d telegram_bot_db -f database/schema.sql
-```
 
-3. **Start the API server**
-```bash
-python -m uvicorn app.api:app --reload --port 8000
-```
+```python app/telegram_bot.py
 
-4. **Start the Telegram bot**
-```bash
-python app/telegram_bot.py
-```
+quest-hub/```
 
-5. **Serve frontend** (using Python's HTTP server)
-```bash
-cd frontend
-python -m http.server 8080
-```
+├── app/                    # Backend API (FastAPI)
 
-## 📱 Telegram Bot Commands
+│   ├── api.py             # Main API endpoints5. **Serve frontend** (using Python's HTTP server)
 
-- `/start` - Register and see main menu
-- `/help` - Show help message with all commands
-- `/tasks` - View available tasks
-- `/profile` - View your profile and points
-- `/leaderboard` - View top users
-- `/rewards` - Browse available rewards
+│   └── models.py          # Data models```bash
 
-## 🔧 Configuration
+├── frontend/              # Frontend (HTML/JS)cd frontend
 
-### Task Types
+│   ├── index.html         # Main apppython -m http.server 8080
 
-- `social_follow` - Follow social media accounts
-- `like_post` - Like posts
-- `share_post` - Share content
-- `watch_video` - Watch videos
-- `custom` - Custom tasks
+│   ├── admin.html         # Admin dashboard```
 
-### Supported Platforms
+│   └── assets/            # Static assets
 
-- Instagram
-- Twitter
-- Facebook
+├── bot/                   # Telegram bot## 📱 Telegram Bot Commands
+
+│   ├── main.py            # Bot main logic
+
+│   └── handlers/          # Command handlers- `/start` - Register and see main menu
+
+├── docs/                  # Documentation- `/help` - Show help message with all commands
+
+├── scripts/               # Utility scripts- `/tasks` - View available tasks
+
+│   ├── start.sh           # Start services- `/profile` - View your profile and points
+
+│   ├── stop.sh            # Stop services- `/leaderboard` - View top users
+
+│   └── restart.sh         # Restart services- `/rewards` - Browse available rewards
+
+└── docker-compose.yml     # Docker configuration
+
+```## 🔧 Configuration
+
+
+
+## 🔌 API Endpoints### Task Types
+
+
+
+### User Endpoints- `social_follow` - Follow social media accounts
+
+- `GET /api/tasks` - Get all available quests- `like_post` - Like posts
+
+- `POST /api/tasks/:id/verify` - Verify quest completion- `share_post` - Share content
+
+- `GET /api/users/:id` - Get user profile- `watch_video` - Watch videos
+
+- `GET /api/leaderboard` - Get leaderboard rankings- `custom` - Custom tasks
+
+
+
+### Admin Endpoints### Supported Platforms
+
+- `POST /api/tasks` - Create new quest
+
+- `PUT /api/tasks/:id` - Update quest- Instagram
+
+- `DELETE /api/tasks/:id` - Delete quest- Twitter
+
+- `GET /api/users` - List all users- Facebook
+
 - YouTube
-- TikTok
 
-### Reward Types
+For complete API documentation, visit http://localhost:8000/docs after starting the services.- TikTok
 
-- `discount` - Discount codes
-- `gift_card` - Gift cards
-- `exclusive_content` - Premium content access
-- `custom` - Custom rewards
 
-## 📊 API Documentation
 
-### Authentication
+## 🔍 System Health### Reward Types
 
-Admin endpoints require JWT authentication. Login to get a token:
+
+
+Check system status anytime:- `discount` - Discount codes
+
+```bash- `gift_card` - Gift cards
+
+./check_status.sh- `exclusive_content` - Premium content access
+
+```- `custom` - Custom rewards
+
+
+
+Monitor logs in real-time:## 📊 API Documentation
 
 ```bash
-POST /api/auth/login
-{
-  "username": "admin",
-  "password": "changeme123"
+
+./monitor_logs.sh both     # Monitor both backend and frontend### Authentication
+
+./monitor_logs.sh backend  # Monitor backend only
+
+./monitor_logs.sh frontend # Monitor frontend onlyAdmin endpoints require JWT authentication. Login to get a token:
+
+```
+
+```bash
+
+Or start services with automatic log monitoring:POST /api/auth/login
+
+```bash{
+
+./start.sh --monitor-logs  "username": "admin",
+
+```  "password": "changeme123"
+
 }
-```
 
-Use the returned token in subsequent requests:
+## 🐛 Troubleshooting```
+
+
+
+### Services won't start?Use the returned token in subsequent requests:
+
+```bash```bash
+
+./restart.sh  # Runs full diagnostics and cleanupAuthorization: Bearer <your_token>
+
+``````
+
+
+
+### Telegram verification issues?### Main Endpoints
+
 ```bash
-Authorization: Bearer <your_token>
-```
 
-### Main Endpoints
+./debug_telegram_verification.sh  # Interactive debugging#### Users
 
-#### Users
-- `GET /api/users` - Get all users
+```- `GET /api/users` - Get all users
+
 - `GET /api/users/{telegram_id}` - Get user by Telegram ID
-- `GET /api/users/{telegram_id}/notifications` - Get user notifications
 
-#### Tasks
-- `GET /api/tasks` - Get all active tasks
+### Need to check logs?- `GET /api/users/{telegram_id}/notifications` - Get user notifications
+
+```bash
+
+./monitor_logs.sh both  # Real-time log monitoring#### Tasks
+
+```- `GET /api/tasks` - Get all active tasks
+
 - `GET /api/tasks/{task_id}` - Get task details
-- `POST /api/tasks` - Create task (Admin)
-- `PUT /api/tasks/{task_id}` - Update task (Admin)
-- `DELETE /api/tasks/{task_id}` - Delete task (Admin)
+
+For more troubleshooting guides, see:- `POST /api/tasks` - Create task (Admin)
+
+- [Telegram Verification Troubleshooting](./docs/TELEGRAM_VERIFICATION_TROUBLESHOOTING.md)- `PUT /api/tasks/{task_id}` - Update task (Admin)
+
+- [YouTube Debug Guide](./docs/YOUTUBE_QUEST_DEBUG_GUIDE.md)- `DELETE /api/tasks/{task_id}` - Delete task (Admin)
+
+- [System Status Monitoring](./docs/SYSTEM_STATUS.md)
 
 #### Rewards
-- `GET /api/rewards` - Get all active rewards
-- `POST /api/rewards` - Create reward (Admin)
-- `PUT /api/rewards/{reward_id}` - Update reward (Admin)
 
-#### Leaderboard
-- `GET /api/leaderboard` - Get top users
+## 🤝 Contributing- `GET /api/rewards` - Get all active rewards
+
+- `POST /api/rewards` - Create reward (Admin)
+
+We welcome contributions! Please see [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) for guidelines on:- `PUT /api/rewards/{reward_id}` - Update reward (Admin)
+
+- Code style and standards
+
+- Pull request process#### Leaderboard
+
+- Testing requirements- `GET /api/leaderboard` - Get top users
+
+- Documentation updates
 
 #### Admin
-- `GET /api/admin/stats` - Get system statistics (Admin)
+
+## 📄 License- `GET /api/admin/stats` - Get system statistics (Admin)
+
 - `GET /api/admin/user-tasks` - Get user task submissions (Admin)
-- `PUT /api/admin/user-tasks/{id}/verify` - Verify task (Admin)
+
+This project is licensed under the terms specified in [LICENSE](LICENSE).- `PUT /api/admin/user-tasks/{id}/verify` - Verify task (Admin)
+
 - `PUT /api/admin/users/{id}/ban` - Ban/unban user (Admin)
+
+## 🙏 Acknowledgments
 
 Full API documentation available at: http://localhost:8000/docs
 
-## 🗄️ Database Schema
+Built with:
 
-### Main Tables
+- [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework## 🗄️ Database Schema
+
+- [Supabase](https://supabase.com/) - Open source Firebase alternative
+
+- [Telegram Bot API](https://core.telegram.org/bots/api) - Bot platform### Main Tables
+
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 
 - **users** - User accounts and points
-- **tasks** - Available tasks
+
+---- **tasks** - Available tasks
+
 - **user_tasks** - Task completion tracking
-- **rewards** - Available rewards
+
+**Need help?** Check the [docs/](./docs/) folder or create an issue on GitHub.- **rewards** - Available rewards
+
 - **user_rewards** - Redemption history
 - **notifications** - User notifications
 - **admin_users** - Administrator accounts

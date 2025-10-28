@@ -1,0 +1,16 @@
+{
+  "groups": [
+    {
+      "id": -1001234567890,
+      "title": "Example Group Name",
+      "username": "examplegroup",
+      "chat_id": "@examplegroup",
+      "type": "supergroup",
+      "description": "This is an example group",
+      "member_count": 100,
+      "added_at": "2025-10-26T00:00:00",
+      "invite_link": "https://t.me/examplegroup",
+      "notes": "Main community group"
+    }
+  ]
+}

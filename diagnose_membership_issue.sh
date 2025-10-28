@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Quick Telegram Verification Diagnostic
+# Shows common issues and solutions
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔍 Telegram 'Not a Member' Troubleshooting Guide"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+echo "📋 Common Causes & Solutions:"
+echo ""
+
+echo "1️⃣  WRONG CHAT ID FORMAT"
+echo "   ❌ Issue: verification_data has wrong chat_id"
+echo "   ✅ Solution: Verify chat_id format in quest"
+echo "      • Public groups: @groupusername"
+echo "      • Private/supergroups: -1001234567890"
+echo "   🔧 How to get correct chat_id:"
+echo "      • Forward message from group to @userinfobot"
+echo "      • Or add @RawDataBot to the group"
+echo ""
+
+echo "2️⃣  BOT NOT IN GROUP"
+echo "   ❌ Issue: Bot needs to be member to check membership"
+echo "   ✅ Solution: Add your bot to the group"
+echo "      • Get bot username from .env (TELEGRAM_BOT_TOKEN)"
+echo "      • Add bot as member or admin to the group"
+echo "      • For channels, bot must be admin"
+echo ""
+
+echo "3️⃣  USER PRIVACY SETTINGS"
+echo "   ❌ Issue: User's privacy prevents bot from seeing them"
+echo "   ✅ Solution: User must interact with bot first"
+echo "      • User sends /start to your bot"
+echo "      • This allows bot to see user's membership"
+echo ""
+
+echo "4️⃣  USER ACTUALLY NOT JOINED"
+echo "   ❌ Issue: User thinks they joined but didn't"
+echo "   ✅ Solution: User needs to actually join the group"
+echo "      • Click the group link"
+echo "      • Click 'Join' button"
+echo "      • Wait for confirmation"
+echo "      • Then click 'Verify Me'"
+echo ""
+
+echo "5️⃣  CACHED MEMBERSHIP STATUS"
+echo "   ❌ Issue: Bot's cached data is outdated"
+echo "   ✅ Solution: Wait a few seconds and retry"
+echo "      • Telegram API may take time to update"
+echo "      • User should wait 5-10 seconds after joining"
+echo ""
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔧 Diagnostic Tools Available:"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Run these commands to diagnose:"
+echo ""
+echo "1. Test membership verification:"
+echo "   ./test_telegram_membership.sh"
+echo ""
+echo "2. Check backend logs for verification attempts:"
+echo "   ./monitor_logs.sh backend"
+echo ""
+echo "3. Check if quest has correct chat_id:"
+echo "   curl http://localhost:8000/api/tasks | jq '.[] | select(.task_type==\"telegram_group\") | {id, title, chat_id: .verification_data.chat_id}'"
+echo ""
+echo "4. Manual API test (replace values):"
+echo "   curl 'https://api.telegram.org/bot<BOT_TOKEN>/getChatMember?chat_id=<CHAT_ID>&user_id=<USER_ID>'"
+echo ""
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📊 Check Quest Configuration:"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+if command -v jq &> /dev/null; then
+    echo ""
+    echo "Telegram group quests in database:"
+    curl -s http://localhost:8000/api/tasks 2>/dev/null | jq -r '.[] | select(.task_type == "telegram_group") | "ID: \(.id) | Title: \(.title) | Chat ID: \(.verification_data.chat_id // "❌ MISSING")"'
+else
+    echo ""
+    echo "⚠️  Install 'jq' to view quest configuration"
+    echo "   sudo apt-get install jq"
+fi
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "💡 Quick Fix Checklist:"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "  [ ] Bot is added to the group as member/admin"
+echo "  [ ] Chat ID in verification_data is correct format"
+echo "  [ ] User has sent /start to the bot"
+echo "  [ ] User has actually clicked JOIN in the group"
+echo "  [ ] Waited 5-10 seconds after joining before verifying"
+echo "  [ ] User's Telegram ID matches the one in database"
+echo ""
+echo "Run: ./test_telegram_membership.sh for detailed testing"
+echo ""

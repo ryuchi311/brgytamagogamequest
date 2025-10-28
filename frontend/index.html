@@ -1302,6 +1302,22 @@
                 ? allTasksData 
                 : allTasksData.filter(task => getQuestCategory(task) === currentQuestCategory);
             
+            // Sort: Incomplete quests first, completed quests last
+            filtered.sort((a, b) => {
+                const statusA = getQuestStatus(a);
+                const statusB = getQuestStatus(b);
+                
+                const isCompletedA = statusA.status === 'completed';
+                const isCompletedB = statusB.status === 'completed';
+                
+                // If one is completed and the other isn't, incomplete comes first
+                if (isCompletedA && !isCompletedB) return 1;  // a goes after b
+                if (!isCompletedA && isCompletedB) return -1; // a comes before b
+                
+                // If both have the same completion status, maintain original order
+                return 0;
+            });
+            
             // Update count
             document.getElementById('tasksCount').textContent = filtered.length;
             

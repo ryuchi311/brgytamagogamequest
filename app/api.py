@@ -478,6 +478,43 @@ async def verify_task_completion(request: dict):
                     verification_success = True
                     verification_message = f"✅ Telegram membership verified! Welcome to {verification_data.get('chat_name', 'the group')}"
                     print(f"✅ Verification successful! User is a {member_status}")
+                    
+                    # Send announcement to the group
+                    try:
+                        # Get user's display name
+                        user_display_name = user_info.get('first_name', 'User')
+                        if user_info.get('last_name'):
+                            user_display_name += f" {user_info.get('last_name')}"
+                        username = user_info.get('username', '')
+                        
+                        # Build announcement message
+                        announcement = f"🎉 **New Member Joined!**\n\n"
+                        announcement += f"✅ {user_display_name}"
+                        if username:
+                            announcement += f" (@{username})"
+                        announcement += f" has successfully verified and joined the **Brgy Tamago Quest Hub**!\n\n"
+                        announcement += f"🎮 Congratulations and welcome to the community! 🚀\n"
+                        announcement += f"💎 Points earned: {task.get('points_reward', 0)}"
+                        
+                        # Send message to the group
+                        send_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                        send_params = {
+                            "chat_id": chat_id,
+                            "text": announcement,
+                            "parse_mode": "Markdown"
+                        }
+                        
+                        print(f"   📢 Sending announcement to group...")
+                        announce_response = requests.post(send_url, json=send_params, timeout=10)
+                        announce_data = announce_response.json()
+                        
+                        if announce_data.get('ok'):
+                            print(f"   ✅ Announcement sent successfully!")
+                        else:
+                            print(f"   ⚠️  Announcement failed: {announce_data.get('description')}")
+                    except Exception as announce_error:
+                        print(f"   ⚠️  Failed to send announcement: {str(announce_error)}")
+                        # Don't fail the verification if announcement fails
                 else:
                     verification_success = False
                     verification_message = f"❌ You are not a member of {verification_data.get('chat_name', 'the group')}. Please join first! (Status: {member_status})"
@@ -485,14 +522,29 @@ async def verify_task_completion(request: dict):
             else:
                 error_description = data.get('description', 'Unknown error')
                 error_code = data.get('error_code', 'N/A')
-                verification_message = f"Failed to verify membership: {error_description}"
+                
                 print(f"❌ Telegram API returned error!")
                 print(f"   Error Code: {error_code}")
                 print(f"   Error Description: {error_description}")
-                print(f"   Possible reasons:")
-                print(f"   1. Bot not in the group/channel")
-                print(f"   2. Chat ID incorrect")
-                print(f"   3. Bot lacks admin permissions (for channels)")
+                
+                # Provide user-friendly error messages
+                if 'bot is not a member' in error_description.lower() or error_code == 403:
+                    verification_message = "❌ Bot is not in the group. Please contact admin to add the bot first."
+                    print(f"   Reason: Bot not added to group")
+                elif 'chat not found' in error_description.lower() or error_code == 400:
+                    verification_message = "❌ Group not found. Please check the group link and try again."
+                    print(f"   Reason: Chat ID incorrect or group doesn't exist")
+                elif 'user not found' in error_description.lower():
+                    verification_message = "❌ User not found. Please make sure you're using the correct Telegram account."
+                    print(f"   Reason: User ID incorrect")
+                else:
+                    verification_message = f"❌ Verification failed: {error_description}"
+                
+                print(f"   Possible solutions:")
+                print(f"   1. Make sure bot is added to the group/channel")
+                print(f"   2. Verify chat_id is correct in quest configuration")
+                print(f"   3. Check if user has actually joined the group")
+                print(f"   4. For channels, bot needs admin rights to check membership")
                 
         except Exception as e:
             verification_message = f"Telegram verification error: {str(e)}"

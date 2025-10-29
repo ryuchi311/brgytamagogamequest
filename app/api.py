@@ -648,40 +648,49 @@ async def verify_task_completion(request: dict):
                         verification_message = f"✅ Full verification successful! Welcome to {verification_data.get('chat_name', 'the group')}"
                         print(f"\n   🎉 VERIFICATION PASSED - User authenticated from all sources!")
                         
-                        # Send announcement to the group with user mention
-                        try:
-                            # Build announcement message with user mention
-                            user_mention = f"[{user_display_name}](tg://user?id={telegram_id})"
+                        # Check quest type from verification_data to determine if announcement is needed
+                        quest_type = verification_data.get('type', '').lower()
+                        print(f"   Quest type from verification_data: {quest_type}")
+                        
+                        # Only send announcement for join_group, not for join_channel
+                        if quest_type == 'join_group':
+                            print(f"   📢 Quest type is 'join_group' - sending announcement...")
+                            try:
+                                # Build announcement message with user mention
+                                user_mention = f"[{user_display_name}](tg://user?id={telegram_id})"
+                                
+                                announcement = f"🎉 **Quest Verified!**\n\n"
+                                announcement += f"✅ {user_mention}"
+                                if telegram_username:
+                                    announcement += f" (@{telegram_username})"
+                                announcement += f" has successfully completed the quest!\n\n"
+                                announcement += f"📍 Group: **{verification_data.get('chat_name', 'Brgy Tamago')}**\n"
+                                announcement += f"🎮 Quest: **{task.get('title', 'Join Quest')}**\n"
+                                announcement += f"💎 Reward: **{task.get('points_reward', 0)} XP**\n\n"
+                                announcement += f"� Verified user ready to claim reward! 🚀"
                             
-                            announcement = f"🎉 **Quest Verified!**\n\n"
-                            announcement += f"✅ {user_mention}"
-                            if telegram_username:
-                                announcement += f" (@{telegram_username})"
-                            announcement += f" has successfully completed the quest!\n\n"
-                            announcement += f"📍 Group: **{verification_data.get('chat_name', 'Brgy Tamago')}**\n"
-                            announcement += f"🎮 Quest: **{task.get('title', 'Join Quest')}**\n"
-                            announcement += f"💎 Reward: **{task.get('points_reward', 0)} XP**\n\n"
-                            announcement += f"� Verified user ready to claim reward! 🚀"
-                            
-                            # Send message to the group
-                            send_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                            send_params = {
-                                "chat_id": chat_id,
-                                "text": announcement,
-                                "parse_mode": "Markdown"
-                            }
-                            
-                            print(f"   📢 Sending announcement to group...")
-                            announce_response = requests.post(send_url, json=send_params, timeout=10)
-                            announce_data = announce_response.json()
-                            
-                            if announce_data.get('ok'):
-                                print(f"   ✅ Announcement sent successfully!")
-                            else:
-                                print(f"   ⚠️  Announcement failed: {announce_data.get('description')}")
-                        except Exception as announce_error:
-                            print(f"   ⚠️  Failed to send announcement: {str(announce_error)}")
-                            # Don't fail the verification if announcement fails
+                                
+                                # Send message to the group
+                                send_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                                send_params = {
+                                    "chat_id": chat_id,
+                                    "text": announcement,
+                                    "parse_mode": "Markdown"
+                                }
+                                
+                                print(f"   📢 Sending announcement to group...")
+                                announce_response = requests.post(send_url, json=send_params, timeout=10)
+                                announce_data = announce_response.json()
+                                
+                                if announce_data.get('ok'):
+                                    print(f"   ✅ Announcement sent successfully!")
+                                else:
+                                    print(f"   ⚠️  Announcement failed: {announce_data.get('description')}")
+                            except Exception as announce_error:
+                                print(f"   ⚠️  Failed to send announcement: {str(announce_error)}")
+                                # Don't fail the verification if announcement fails
+                        else:
+                            print(f"   ℹ️  Quest type is '{quest_type}' - skipping announcement (only for join_group)")
                     else:
                         verification_success = False
                         reasons = []

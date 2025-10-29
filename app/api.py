@@ -260,6 +260,57 @@ async def get_user(telegram_id: int):
     return user
 
 
+@app.get("/api/users/telegram/username/{username}")
+async def get_user_by_username(username: str):
+    """Get user by Telegram username (for validation)"""
+    try:
+        # Remove @ if present
+        clean_username = username.strip().replace('@', '')
+        
+        print(f"🔍 Looking up username: '{clean_username}'")
+        
+        # Search in database - use eq with case-insensitive search
+        # First try exact match (case-sensitive)
+        response = supabase.table("users").select("*").eq("username", clean_username).execute()
+        
+        # If not found, try case-insensitive
+        if not response.data or len(response.data) == 0:
+            print(f"   Exact match not found, trying case-insensitive...")
+            response = supabase.table("users").select("*").execute()
+            
+            # Filter manually for case-insensitive match
+            matching_users = [
+                user for user in response.data 
+                if user.get('username', '').lower() == clean_username.lower()
+            ]
+            
+            if matching_users:
+                user = matching_users[0]
+                print(f"   ✅ Found user: {user.get('username')} (telegram_id: {user.get('telegram_id')})")
+                return {
+                    "telegram_id": user.get('telegram_id'),
+                    "username": user.get('username'),
+                    "found": True
+                }
+            else:
+                print(f"   ❌ No user found with username: {clean_username}")
+                raise HTTPException(status_code=404, detail="Username not found")
+        else:
+            user = response.data[0]
+            print(f"   ✅ Found user: {user.get('username')} (telegram_id: {user.get('telegram_id')})")
+            # Return minimal info for validation
+            return {
+                "telegram_id": user.get('telegram_id'),
+                "username": user.get('username'),
+                "found": True
+            }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error looking up username: {e}")
+        raise HTTPException(status_code=500, detail="Error looking up username")
+
+
 @app.patch("/api/users/{telegram_id}/profile")
 async def update_user_profile(telegram_id: int, data: dict):
     """Update user profile (e.g., save Twitter username)"""
@@ -431,19 +482,26 @@ async def verify_task_completion(request: dict):
             import requests
             
             bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+            provided_username = request.get('telegram_username', '').strip().replace('@', '')
+            
             print(f"\n🔍 Telegram Verification Debug:")
             print(f"   Task ID: {task_id}")
             print(f"   Task Type: {task_type}")
             print(f"   Platform: {task.get('platform')}")
+            print(f"   User Telegram ID: {telegram_id}")
+            print(f"   Provided Username: @{provided_username}" if provided_username else "   Provided Username: (not provided)")
             print(f"   Bot Token: {bot_token[:20] if bot_token else 'NOT SET'}...")
             
             if not bot_token:
                 print("❌ Bot token not configured!")
                 return {"success": False, "message": "Telegram bot not configured"}
             
+            if not provided_username:
+                print("❌ Telegram username not provided!")
+                return {"success": False, "message": "Please provide your Telegram username"}
+            
             chat_id = verification_data.get('chat_id')
             print(f"   Chat ID: {chat_id}")
-            print(f"   User Telegram ID: {telegram_id}")
             print(f"   Verification Data: {verification_data}")
             
             if not chat_id:
@@ -475,46 +533,165 @@ async def verify_task_completion(request: dict):
                 
                 # Valid statuses: creator, administrator, member, restricted, left, kicked
                 if member_status in ['creator', 'administrator', 'member', 'restricted']:
-                    verification_success = True
-                    verification_message = f"✅ Telegram membership verified! Welcome to {verification_data.get('chat_name', 'the group')}"
-                    print(f"✅ Verification successful! User is a {member_status}")
+                    print(f"✅ User is a member! Status: {member_status}")
                     
-                    # Send announcement to the group
-                    try:
-                        # Get user's display name
-                        user_display_name = user_info.get('first_name', 'User')
-                        if user_info.get('last_name'):
-                            user_display_name += f" {user_info.get('last_name')}"
-                        username = user_info.get('username', '')
-                        
-                        # Build announcement message
-                        announcement = f"🎉 **New Member Joined!**\n\n"
-                        announcement += f"✅ {user_display_name}"
-                        if username:
-                            announcement += f" (@{username})"
-                        announcement += f" has successfully verified and joined the **Brgy Tamago Quest Hub**!\n\n"
-                        announcement += f"🎮 Congratulations and welcome to the community! 🚀\n"
-                        announcement += f"💎 Points earned: {task.get('points_reward', 0)}"
-                        
-                        # Send message to the group
-                        send_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                        send_params = {
-                            "chat_id": chat_id,
-                            "text": announcement,
-                            "parse_mode": "Markdown"
-                        }
-                        
-                        print(f"   📢 Sending announcement to group...")
-                        announce_response = requests.post(send_url, json=send_params, timeout=10)
-                        announce_data = announce_response.json()
-                        
-                        if announce_data.get('ok'):
-                            print(f"   ✅ Announcement sent successfully!")
+                    # Get user's display name and username from Telegram
+                    user_display_name = user_info.get('first_name', 'User')
+                    if user_info.get('last_name'):
+                        user_display_name += f" {user_info.get('last_name')}"
+                    telegram_username = user_info.get('username', '').replace('@', '')
+                    
+                    print(f"   Telegram User Info:")
+                    print(f"   - ID: {telegram_id}")
+                    print(f"   - Name: {user_display_name}")
+                    print(f"   - Username from Telegram API: @{telegram_username}" if telegram_username else "   - Username: (none)")
+                    print(f"   - Username provided by user: @{provided_username}")
+                    
+                    # Verify that the provided username matches the Telegram API username
+                    if telegram_username and provided_username:
+                        if telegram_username.lower() != provided_username.lower():
+                            verification_success = False
+                            verification_message = f"❌ Username mismatch! You entered @{provided_username} but your Telegram username is @{telegram_username}"
+                            print(f"   ❌ Username mismatch: Provided @{provided_username}, Actual @{telegram_username}")
+                            return {"success": False, "message": verification_message}
                         else:
-                            print(f"   ⚠️  Announcement failed: {announce_data.get('description')}")
-                    except Exception as announce_error:
-                        print(f"   ⚠️  Failed to send announcement: {str(announce_error)}")
-                        # Don't fail the verification if announcement fails
+                            print(f"   ✅ Username matches: @{provided_username}")
+                    elif not telegram_username:
+                        # User has no username set in Telegram
+                        verification_success = False
+                        verification_message = "❌ You don't have a Telegram username set! Please set a username in Telegram Settings first."
+                        print(f"   ❌ User has no Telegram username")
+                        return {"success": False, "message": verification_message}
+                    
+                    # Step 1: Check against users.json file
+                    import json
+                    users_json_path = 'users.json'
+                    users_json_valid = False
+                    
+                    try:
+                        if os.path.exists(users_json_path):
+                            with open(users_json_path, 'r') as f:
+                                users_data = json.load(f)
+                                
+                            # Check if user exists in users.json with matching telegram_id
+                            user_in_json = None
+                            for json_user in users_data.get('users', []):
+                                if str(json_user.get('telegram_id')) == str(telegram_id):
+                                    user_in_json = json_user
+                                    break
+                            
+                            if user_in_json:
+                                print(f"   ✅ User found in users.json")
+                                print(f"      - Stored username: {user_in_json.get('username', 'N/A')}")
+                                
+                                # Verify username matches (if both exist)
+                                stored_username = user_in_json.get('username', '').replace('@', '')
+                                if telegram_username and stored_username:
+                                    if stored_username.lower() == telegram_username.lower():
+                                        users_json_valid = True
+                                        print(f"   ✅ Username matches in users.json!")
+                                    else:
+                                        print(f"   ⚠️  Username mismatch: JSON has @{stored_username}, Telegram has @{telegram_username}")
+                                else:
+                                    # If no username to compare, just verify ID match is enough
+                                    users_json_valid = True
+                                    print(f"   ✅ Telegram ID matches in users.json!")
+                            else:
+                                print(f"   ❌ User NOT found in users.json (telegram_id: {telegram_id})")
+                        else:
+                            print(f"   ⚠️  users.json file not found - creating new one")
+                            users_data = {"users": []}
+                            
+                    except Exception as json_error:
+                        print(f"   ⚠️  Error reading users.json: {str(json_error)}")
+                        users_json_valid = False
+                    
+                    # Step 2: Check against Supabase users table
+                    database_valid = False
+                    try:
+                        db_user = supabase.table("users").select("*").eq("telegram_id", str(telegram_id)).execute()
+                        
+                        if db_user.data and len(db_user.data) > 0:
+                            db_user_record = db_user.data[0]
+                            print(f"   ✅ User found in database")
+                            print(f"      - User ID: {db_user_record.get('id')}")
+                            print(f"      - Username: {db_user_record.get('username', 'N/A')}")
+                            print(f"      - Total XP: {db_user_record.get('total_xp', 0)}")
+                            
+                            # Verify username matches (if both exist)
+                            stored_db_username = db_user_record.get('username', '').replace('@', '')
+                            if telegram_username and stored_db_username:
+                                if stored_db_username.lower() == telegram_username.lower():
+                                    database_valid = True
+                                    print(f"   ✅ Username matches in database!")
+                                else:
+                                    print(f"   ⚠️  Username mismatch: DB has @{stored_db_username}, Telegram has @{telegram_username}")
+                            else:
+                                # If no username to compare, ID match is enough
+                                database_valid = True
+                                print(f"   ✅ Telegram ID matches in database!")
+                        else:
+                            print(f"   ❌ User NOT found in database (telegram_id: {telegram_id})")
+                            
+                    except Exception as db_error:
+                        print(f"   ⚠️  Error checking database: {str(db_error)}")
+                        database_valid = False
+                    
+                    # Step 3: Verify user exists in both sources
+                    print(f"\n   📋 Verification Summary:")
+                    print(f"      - Telegram membership: ✅ Verified")
+                    print(f"      - users.json check: {'✅ Valid' if users_json_valid else '❌ Not found or mismatch'}")
+                    print(f"      - Database check: {'✅ Valid' if database_valid else '❌ Not found or mismatch'}")
+                    
+                    if users_json_valid and database_valid:
+                        verification_success = True
+                        verification_message = f"✅ Full verification successful! Welcome to {verification_data.get('chat_name', 'the group')}"
+                        print(f"\n   🎉 VERIFICATION PASSED - User authenticated from all sources!")
+                        
+                        # Send announcement to the group with user mention
+                        try:
+                            # Build announcement message with user mention
+                            user_mention = f"[{user_display_name}](tg://user?id={telegram_id})"
+                            
+                            announcement = f"🎉 **Quest Verified!**\n\n"
+                            announcement += f"✅ {user_mention}"
+                            if telegram_username:
+                                announcement += f" (@{telegram_username})"
+                            announcement += f" has successfully completed the quest!\n\n"
+                            announcement += f"📍 Group: **{verification_data.get('chat_name', 'Brgy Tamago')}**\n"
+                            announcement += f"🎮 Quest: **{task.get('title', 'Join Quest')}**\n"
+                            announcement += f"💎 Reward: **{task.get('points_reward', 0)} XP**\n\n"
+                            announcement += f"� Verified user ready to claim reward! 🚀"
+                            
+                            # Send message to the group
+                            send_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                            send_params = {
+                                "chat_id": chat_id,
+                                "text": announcement,
+                                "parse_mode": "Markdown"
+                            }
+                            
+                            print(f"   📢 Sending announcement to group...")
+                            announce_response = requests.post(send_url, json=send_params, timeout=10)
+                            announce_data = announce_response.json()
+                            
+                            if announce_data.get('ok'):
+                                print(f"   ✅ Announcement sent successfully!")
+                            else:
+                                print(f"   ⚠️  Announcement failed: {announce_data.get('description')}")
+                        except Exception as announce_error:
+                            print(f"   ⚠️  Failed to send announcement: {str(announce_error)}")
+                            # Don't fail the verification if announcement fails
+                    else:
+                        verification_success = False
+                        reasons = []
+                        if not users_json_valid:
+                            reasons.append("not found in users.json")
+                        if not database_valid:
+                            reasons.append("not found in database")
+                        
+                        verification_message = f"❌ Verification failed: User {' and '.join(reasons)}. Please ensure you're registered in Quest Hub first!"
+                        print(f"\n   ❌ VERIFICATION FAILED - User not authenticated from all sources")
                 else:
                     verification_success = False
                     verification_message = f"❌ You are not a member of {verification_data.get('chat_name', 'the group')}. Please join first! (Status: {member_status})"

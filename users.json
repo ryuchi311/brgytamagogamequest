@@ -1,0 +1,46 @@
+{
+  "users": [
+    {
+      "telegram_id": "123456789",
+      "user_id": "ee7ef960-7ddb-4a68-8103-a4afd5057e25",
+      "username": "testuser",
+      "first_name": null,
+      "last_name": null,
+      "total_xp": 0,
+      "created_at": "2025-10-16T01:18:11.864429+00:00",
+      "updated_at": "2025-10-21T23:12:58.712594+00:00"
+    },
+    {
+      "telegram_id": "1271737596",
+      "user_id": "e1b1778d-9702-4dc9-a50e-d9cccbf5cc5a",
+      "username": "chicago311",
+      "first_name": "Chi | BrgyTamago |",
+      "last_name": "Freelance",
+      "total_xp": 0,
+      "created_at": "2025-10-18T22:04:47.287197+00:00",
+      "updated_at": "2025-10-23T23:39:13.710744+00:00"
+    },
+    {
+      "telegram_id": "6062619692",
+      "user_id": "7d8148b0-210c-4c71-b025-71a560bb65da",
+      "username": "chicago311bt",
+      "first_name": "Chi : Tech",
+      "last_name": "",
+      "total_xp": 0,
+      "created_at": "2025-10-23T23:58:29.848673+00:00",
+      "updated_at": "2025-10-24T00:56:28.611765+00:00"
+    },
+    {
+      "telegram_id": "7988161711",
+      "user_id": "3932bf05-dc9c-4ef4-93a8-0ea8a5f7c256",
+      "username": "Ryuchi101",
+      "first_name": "Allen Ryu",
+      "last_name": "",
+      "total_xp": 0,
+      "created_at": "2025-10-22T20:51:49.657147+00:00",
+      "updated_at": "2025-10-25T23:25:47.947782+00:00"
+    }
+  ],
+  "last_sync": "2025-10-28T22:33:17.404893",
+  "total_count": 4
+}

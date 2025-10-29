@@ -89,6 +89,22 @@
             animation: fade-in 0.5s ease-out;
         }
         
+        /* Scale-in animation for modals */
+        @keyframes scale-in {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .animate-scale-in {
+            animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
         /* Pulse animation for participate button */
         @keyframes pulse {
             0%, 100% { 
@@ -654,6 +670,88 @@
                 </button>
             </div>
         </nav>
+    </div>
+
+    <!-- Telegram Username Input Modal -->
+    <div id="telegramUsernameModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-[60] hidden flex items-center justify-center">
+        <div class="bg-gaming-dark w-full max-w-md mx-4 rounded-3xl border-2 border-neon-blue/30 shadow-[0_0_50px_rgba(0,149,255,0.3)] overflow-hidden">
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 p-6 border-b border-neon-blue/30">
+                <h3 class="text-2xl font-black gaming-title gradient-text text-center">🔐 Telegram Verification</h3>
+                <p class="text-sm text-gray-300 text-center mt-2">Enter your Telegram username to verify</p>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6 space-y-4">
+                <!-- Group Name Display -->
+                <div class="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl p-4 text-center">
+                    <p class="text-xs text-gray-400 mb-1">Verifying membership for:</p>
+                    <p class="text-lg font-bold text-cyan-300" id="telegramGroupName">Loading...</p>
+                </div>
+                
+                <!-- Info Box -->
+                <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">ℹ️</span>
+                        <div class="flex-1 text-sm text-gray-300">
+                            <p class="font-bold text-blue-300 mb-1">Why we need this:</p>
+                            <p>We'll check if you're a member of the Telegram group using your username.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Username Input -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-300 mb-2">Telegram Username</label>
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">@</span>
+                        <input 
+                            type="text" 
+                            id="telegramUsernameInput" 
+                            placeholder="username" 
+                            class="w-full pl-10 pr-12 py-3 bg-gaming-darker border-2 border-neon-blue/30 rounded-xl text-white placeholder-gray-500 focus:border-neon-blue focus:outline-none focus:ring-2 focus:ring-neon-blue/50 transition-all"
+                            autocomplete="off"
+                            oninput="validateUsernameRealtime()"
+                        />
+                        <!-- Validation Indicator -->
+                        <div id="usernameValidationIndicator" class="absolute right-4 top-1/2 -translate-y-1/2 hidden">
+                            <span id="validationSpinner" class="text-gray-400 animate-spin hidden">⏳</span>
+                            <span id="validationCheck" class="text-green-400 text-xl hidden">✓</span>
+                            <span id="validationCross" class="text-red-400 text-xl hidden">✗</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2" id="usernameHelper">Enter without the @ symbol</p>
+                    <!-- Success Message -->
+                    <div id="usernameSuccess" class="hidden mt-2 text-sm text-green-400 flex items-center gap-2">
+                        <span>✓</span>
+                        <span>Username found in database</span>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="usernameError" class="hidden bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-sm text-red-300">
+                    <span class="font-bold">❌ Error:</span> <span id="usernameErrorText"></span>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3 pt-2">
+                    <button 
+                        onclick="closeTelegramUsernameModal()" 
+                        class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-95"
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        onclick="submitTelegramVerification()" 
+                        id="usernameSubmitBtn"
+                        disabled
+                        class="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all active:scale-95 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <span id="usernameSubmitBtnText">✅ Verify</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Task Detail Modal -->
@@ -4451,7 +4549,7 @@
             submitButton.innerHTML = '<span class="text-2xl">⏳</span><span>SUBMITTING...</span>';
             
             try {
-                const response = await fetch(`${API_URL}/complete-task`, {
+                const response = await fetch(`${API_URL}/tasks/${currentTaskId}/complete`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -4459,19 +4557,18 @@
                     },
                     body: JSON.stringify({
                         telegram_id: TELEGRAM_ID,
-                        task_id: currentTaskId,
                         verification_code: code
                     })
                 });
                 
                 const data = await response.json();
                 
-                if (response.ok && data.status === 'success') {
+                if (response.ok && data.success) {
                     // Success!
                     submitButton.innerHTML = '<span class="text-2xl">✅</span><span>QUEST COMPLETED!</span>';
                     
                     // Show success message
-                    alert(`🎉 Quest Completed!\n\n+${currentTask.points_reward || 0} XP earned!`);
+                    alert(data.message || `🎉 Quest Completed!\n\n+${data.points_earned || currentTask.points_reward || 0} XP earned!`);
                     
                     // Reload data and go back to quest list
                     await loadTasks();
@@ -4521,26 +4618,25 @@
             buttonText.textContent = '⏳ VERIFYING...';
             
             try {
-                const response = await fetch(`${API_URL}/complete-task`, {
+                const response = await fetch(`${API_URL}/tasks/${currentTaskId}/complete`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({
-                        telegram_id: TELEGRAM_ID,
-                        task_id: currentTaskId
+                        telegram_id: TELEGRAM_ID
                     })
                 });
                 
                 const data = await response.json();
                 
-                if (response.ok && data.status === 'success') {
+                if (response.ok && data.success) {
                     // Success!
                     buttonText.textContent = '✅ QUEST COMPLETED!';
                     
                     // Show success message
-                    alert(`🎉 Quest Completed!\n\n+${currentTask.points_reward || 0} XP earned!`);
+                    alert(data.message || `🎉 Quest Completed!\n\n+${data.points_earned || currentTask.points_reward || 0} XP earned!`);
                     
                     // Reload data and go back to quest list
                     await loadTasks();
@@ -4558,14 +4654,199 @@
         }
         
         async function verifyTelegramMembership() {
-            const submitButton = document.getElementById('regQuestButton');
-            const buttonText = document.getElementById('regQuestButtonText');
+            // Show the username input modal instead of directly verifying
+            showTelegramUsernameModal();
+        }
+        
+        function showTelegramUsernameModal() {
+            const modal = document.getElementById('telegramUsernameModal');
+            const input = document.getElementById('telegramUsernameInput');
+            const errorDiv = document.getElementById('usernameError');
+            const successDiv = document.getElementById('usernameSuccess');
+            const submitBtn = document.getElementById('usernameSubmitBtn');
+            const groupNameElement = document.getElementById('telegramGroupName');
             
-            submitButton.disabled = true;
-            buttonText.textContent = '⏳ Verifying...';
+            // Reset modal state
+            input.value = '';
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+            submitBtn.disabled = true;
+            
+            // Hide all validation indicators
+            document.getElementById('usernameValidationIndicator').classList.add('hidden');
+            document.getElementById('validationSpinner').classList.add('hidden');
+            document.getElementById('validationCheck').classList.add('hidden');
+            document.getElementById('validationCross').classList.add('hidden');
+            
+            // Extract and display the group name from current task
+            let groupName = 'Telegram Group';
+            if (currentTask) {
+                // Try to get group name from various sources
+                if (currentTask.verification_data && currentTask.verification_data.group_name) {
+                    groupName = currentTask.verification_data.group_name;
+                } else if (currentTask.verification_data && currentTask.verification_data.channel_name) {
+                    groupName = currentTask.verification_data.channel_name;
+                } else if (currentTask.title) {
+                    // Extract from title if it contains "Join" pattern
+                    // e.g., "Join BRGY Tamago Group" -> "BRGY Tamago Group"
+                    groupName = currentTask.title.replace(/^Join\s+/i, '').trim();
+                }
+            }
+            
+            // Display the group name
+            if (groupNameElement) {
+                groupNameElement.textContent = groupName;
+            }
+            
+            // Show modal
+            modal.classList.remove('hidden');
+            
+            // Focus on input
+            setTimeout(() => input.focus(), 100);
+            
+            // Handle Enter key
+            input.onkeypress = function(e) {
+                if (e.key === 'Enter' && !submitBtn.disabled) {
+                    submitTelegramVerification();
+                }
+            };
+        }
+        
+        // Debounce timer for username validation
+        let usernameValidationTimer = null;
+        
+        async function validateUsernameRealtime() {
+            const input = document.getElementById('telegramUsernameInput');
+            const indicator = document.getElementById('usernameValidationIndicator');
+            const spinner = document.getElementById('validationSpinner');
+            const checkMark = document.getElementById('validationCheck');
+            const crossMark = document.getElementById('validationCross');
+            const successDiv = document.getElementById('usernameSuccess');
+            const errorDiv = document.getElementById('usernameError');
+            const submitBtn = document.getElementById('usernameSubmitBtn');
+            
+            const username = input.value.trim().replace('@', '');
+            
+            // Clear previous timer
+            if (usernameValidationTimer) {
+                clearTimeout(usernameValidationTimer);
+            }
+            
+            // Hide all states
+            indicator.classList.add('hidden');
+            spinner.classList.add('hidden');
+            checkMark.classList.add('hidden');
+            crossMark.classList.add('hidden');
+            successDiv.classList.add('hidden');
+            errorDiv.classList.add('hidden');
+            submitBtn.disabled = true;
+            
+            // If empty, don't validate
+            if (!username) {
+                return;
+            }
+            
+            // Show loading spinner immediately
+            indicator.classList.remove('hidden');
+            spinner.classList.remove('hidden');
+            
+            // Debounce: Wait 500ms after user stops typing
+            usernameValidationTimer = setTimeout(async () => {
+                try {
+                    // Check username against database
+                    console.log(`🔍 Validating username: ${username}`);
+                    console.log(`   Current user TELEGRAM_ID: ${TELEGRAM_ID}`);
+                    
+                    const response = await fetch(`${API_URL}/users/telegram/username/${username}`);
+                    
+                    console.log(`   Response status: ${response.status}`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log(`   Response data:`, data);
+                        console.log(`   data.telegram_id: ${data.telegram_id} (${typeof data.telegram_id})`);
+                        console.log(`   TELEGRAM_ID: ${TELEGRAM_ID} (${typeof TELEGRAM_ID})`);
+                        
+                        // Username found and matches current user (compare as strings)
+                        if (data && String(data.telegram_id) === String(TELEGRAM_ID)) {
+                            console.log(`   ✅ Match! Username belongs to current user`);
+                            spinner.classList.add('hidden');
+                            checkMark.classList.remove('hidden');
+                            successDiv.classList.remove('hidden');
+                            submitBtn.disabled = false;
+                            
+                            // Change input border to green
+                            input.classList.remove('border-neon-blue/30', 'border-red-500/50');
+                            input.classList.add('border-green-500/50');
+                        } else if (data) {
+                            // Username exists but belongs to different user
+                            console.log(`   ❌ Username belongs to different user`);
+                            spinner.classList.add('hidden');
+                            crossMark.classList.remove('hidden');
+                            errorDiv.classList.remove('hidden');
+                            document.getElementById('usernameErrorText').textContent = 'This username belongs to a different account';
+                            
+                            // Change input border to red
+                            input.classList.remove('border-neon-blue/30', 'border-green-500/50');
+                            input.classList.add('border-red-500/50');
+                        }
+                    } else {
+                        // Username not found in database
+                        console.log(`   ❌ Username not found in database`);
+                        spinner.classList.add('hidden');
+                        crossMark.classList.remove('hidden');
+                        errorDiv.classList.remove('hidden');
+                        document.getElementById('usernameErrorText').textContent = 'Username not found. Please make sure you\'re registered.';
+                        
+                        // Change input border to red
+                        input.classList.remove('border-neon-blue/30', 'border-green-500/50');
+                        input.classList.add('border-red-500/50');
+                    }
+                } catch (error) {
+                    console.error('Error validating username:', error);
+                    spinner.classList.add('hidden');
+                    indicator.classList.add('hidden');
+                    
+                    // Reset border
+                    input.classList.remove('border-green-500/50', 'border-red-500/50');
+                    input.classList.add('border-neon-blue/30');
+                }
+            }, 500);
+        }
+        
+        function closeTelegramUsernameModal() {
+            const modal = document.getElementById('telegramUsernameModal');
+            modal.classList.add('hidden');
+            
+            // Clear validation timer
+            if (usernameValidationTimer) {
+                clearTimeout(usernameValidationTimer);
+            }
+        }
+        
+        async function submitTelegramVerification() {
+            const input = document.getElementById('telegramUsernameInput');
+            const submitBtn = document.getElementById('usernameSubmitBtn');
+            const submitBtnText = document.getElementById('usernameSubmitBtnText');
+            const errorDiv = document.getElementById('usernameError');
+            const errorText = document.getElementById('usernameErrorText');
+            
+            const username = input.value.trim().replace('@', '');
+            
+            // Validate username
+            if (!username) {
+                errorText.textContent = 'Please enter your Telegram username';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            // Disable button and show loading
+            submitBtn.disabled = true;
+            submitBtnText.textContent = '⏳ Verifying...';
+            errorDiv.classList.add('hidden');
             
             try {
-                const response = await fetch(`${API_URL}/complete-task`, {
+                const response = await fetch(`${API_URL}/tasks/${currentTaskId}/complete`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -4573,31 +4854,70 @@
                     },
                     body: JSON.stringify({
                         telegram_id: TELEGRAM_ID,
-                        task_id: currentTaskId
+                        telegram_username: username  // Send the username
                     })
                 });
                 
                 const data = await response.json();
                 
-                if (response.ok && data.status === 'success') {
+                if (response.ok && data.success) {
                     // Success! User is verified as a member
-                    buttonText.textContent = '✅ VERIFIED!';
+                    submitBtnText.textContent = '✅ VERIFIED!';
                     
-                    // Show success message
-                    alert(`🎉 Membership Verified!\n\n+${currentTask.points_reward || 0} XP earned!`);
+                    // Close username modal
+                    setTimeout(() => {
+                        closeTelegramUsernameModal();
+                    }, 300);
                     
-                    // Reload data and go back to quest list
-                    await loadTasks();
-                    await loadProfile();
-                    backToQuestList();
+                    // Update the main button
+                    const submitButton = document.getElementById('regQuestButton');
+                    const buttonText = document.getElementById('regQuestButtonText');
+                    if (submitButton && buttonText) {
+                        submitButton.disabled = true;
+                        buttonText.textContent = '✅ VERIFIED!';
+                    }
+                    
+                    // Show congratulations modal with rewards
+                    setTimeout(() => {
+                        const pointsEarned = data.points_earned || currentTask.points_reward || 0;
+                        const congratsModal = document.createElement('div');
+                        congratsModal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-50 animate-fade-in';
+                        congratsModal.innerHTML = `
+                            <div class="bg-gradient-to-br from-neon-blue via-cyber-purple to-neon-pink text-white px-10 py-8 rounded-2xl shadow-2xl text-center max-w-md mx-4 transform scale-95 animate-scale-in border-2 border-neon-blue/50">
+                                <div class="text-6xl mb-4 animate-bounce">🎉</div>
+                                <div class="text-3xl font-bold mb-3 text-shadow-neon">Telegram Quest Complete!</div>
+                                <div class="text-xl mb-4">
+                                    <div class="bg-black/30 rounded-lg px-6 py-4 mb-3 border border-neon-blue/30">
+                                        <div class="text-sm opacity-80 mb-1">Verified Member</div>
+                                        <div class="text-2xl font-bold text-neon-blue">@${username}</div>
+                                    </div>
+                                    <div class="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg px-6 py-4 border border-yellow-500/50">
+                                        <div class="text-sm opacity-80 mb-1">Rewards Earned</div>
+                                        <div class="text-3xl font-bold text-yellow-300">+${pointsEarned} XP</div>
+                                    </div>
+                                </div>
+                                <div class="text-sm opacity-90 mt-4 animate-pulse">🎮 Returning to quests...</div>
+                            </div>
+                        `;
+                        document.body.appendChild(congratsModal);
+                        
+                        // Reload data and return to quest list
+                        setTimeout(async () => {
+                            congratsModal.remove();
+                            await loadTasks();
+                            await loadProfile();
+                            backToQuestList();
+                        }, 3000);
+                    }, 400);
                 } else {
-                    throw new Error(data.message || 'Not a member yet. Please join the group first!');
+                    throw new Error(data.message || 'Verification failed');
                 }
             } catch (error) {
                 console.error('Error verifying membership:', error);
-                alert(`❌ ${error.message || 'Verification failed. Please make sure you joined the group!'}`);
-                submitButton.disabled = false;
-                buttonText.textContent = '🔍 Verify Me';
+                errorText.textContent = error.message || 'Verification failed. Please make sure you joined the group and entered the correct username!';
+                errorDiv.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtnText.textContent = '✅ Verify';
             }
         }
 

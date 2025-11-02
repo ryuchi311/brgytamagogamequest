@@ -421,41 +421,43 @@
                             <label class="block text-cyan-400 gaming-title text-sm mb-2">ACTION TYPE *</label>
                             <select id="telegramAction"
                                 class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500">
-                                <option value="join_group">Join Group/Supergroup</option>
-                                <option value="join_channel">Subscribe to Channel</option>
+                                <option value="join_group">Join Group</option>
+                                <option value="join_channel">Join Channel</option>
                             </select>
                         </div>
 
                         <div>
-                            <label class="block text-cyan-400 gaming-title text-sm mb-2">TELEGRAM LINK *</label>
-                            <input id="telegramLink" type="text"
-                                class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
-                                placeholder="https://t.me/yourgroupname or @yourgroupname">
-                            <p class="text-xs text-gray-400 mt-1">Example: https://t.me/mychannel or @mychannel</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-cyan-400 gaming-title text-sm mb-2">GROUP/CHANNEL ID *</label>
+                            <label class="block text-cyan-400 gaming-title text-sm mb-2">CHAT ID *</label>
                             <input id="telegramChatId" type="text"
                                 class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
-                                placeholder="-1001234567890 or @channelname">
-                            <p class="text-xs text-gray-400 mt-1">Numeric ID or username with @</p>
+                                placeholder="e.g., @tamagowarriors or -1001234567890">
+                            <p class="text-xs text-gray-400 mt-1">Username (@username) or numeric ID (-100...)</p>
                         </div>
 
                         <div>
-                            <label class="block text-cyan-400 gaming-title text-sm mb-2">GROUP/CHANNEL NAME *</label>
+                            <label class="block text-cyan-400 gaming-title text-sm mb-2">CHAT NAME *</label>
                             <input id="telegramName" type="text"
                                 class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
-                                placeholder="My Awesome Channel">
-                            <p class="text-xs text-gray-400 mt-1">Display name for users</p>
+                                placeholder="e.g., Brgy Tamago Community">
+                            <p class="text-xs text-gray-400 mt-1">Display name for the group/channel</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-cyan-400 gaming-title text-sm mb-2">INVITE LINK *</label>
+                            <input id="telegramLink" type="url"
+                                class="w-full bg-black/50 border-2 border-cyan-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
+                                placeholder="https://t.me/tamagowarriors">
+                            <p class="text-xs text-gray-400 mt-1">Public link users click to join</p>
                         </div>
 
                         <div class="p-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl">
-                            <p class="text-sm text-gray-300">
-                                ⚡ <strong>Requirements:</strong>
-                                <br>• Bot must be admin in the group/channel
-                                <br>• Bot needs permission to see member list
-                            </p>
+                            <h3 class="font-bold text-cyan-400 mb-2">⚠️ Important Requirements:</h3>
+                            <ul class="text-sm text-gray-300 space-y-1">
+                                <li>✅ Bot must be added to the group/channel</li>
+                                <li>✅ Bot must be promoted to admin</li>
+                                <li>✅ Bot needs permission to see members</li>
+                                <li>✅ Auto-verification will check membership instantly</li>
+                            </ul>
                         </div>
                     </div>
                 </div>

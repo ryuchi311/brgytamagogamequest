@@ -1456,8 +1456,32 @@
         let editingTaskId = null;
         
         async function editTask(taskId) {
-            // Redirect to dedicated edit page
-            window.location.href = `/edit-quest.html?id=${taskId}`;
+            try {
+                // First, fetch the quest to check its type
+                const response = await fetch(`${API_URL}/tasks/${taskId}`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                
+                if (response.ok) {
+                    const quest = await response.json();
+                    
+                    // Check if it's a Telegram quest
+                    if (quest.task_type && quest.task_type.includes('telegram')) {
+                        // Redirect to dedicated Telegram quest edit page
+                        window.location.href = `edit-telegram-quest.html?id=${taskId}`;
+                    } else {
+                        // Redirect to general edit page for other quest types
+                        window.location.href = `edit-quest.html?id=${taskId}`;
+                    }
+                } else {
+                    // Fallback to general edit page if we can't determine type
+                    window.location.href = `edit-quest.html?id=${taskId}`;
+                }
+            } catch (error) {
+                console.error('Error checking quest type:', error);
+                // Fallback to general edit page
+                window.location.href = `edit-quest.html?id=${taskId}`;
+            }
         }
         
         // Legacy edit function (kept for reference, not used)

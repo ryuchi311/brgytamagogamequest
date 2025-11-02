@@ -1465,10 +1465,13 @@
                 if (response.ok) {
                     const quest = await response.json();
                     
-                    // Check if it's a Telegram quest
+                    // Check quest type and route to appropriate edit page
                     if (quest.task_type && quest.task_type.includes('telegram')) {
                         // Redirect to dedicated Telegram quest edit page
                         window.location.href = `edit-telegram-quest.html?id=${taskId}`;
+                    } else if (quest.task_type && quest.task_type.includes('twitter') || quest.platform === 'twitter') {
+                        // Redirect to dedicated Twitter quest edit page
+                        window.location.href = `edit-twitter-quest.html?id=${taskId}`;
                     } else {
                         // Redirect to general edit page for other quest types
                         window.location.href = `edit-quest.html?id=${taskId}`;

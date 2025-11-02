@@ -1472,6 +1472,12 @@
                     } else if (quest.task_type && quest.task_type.includes('twitter') || quest.platform === 'twitter') {
                         // Redirect to dedicated Twitter quest edit page
                         window.location.href = `edit-twitter-quest.html?id=${taskId}`;
+                    } else if (quest.task_type && quest.task_type.includes('youtube') || quest.platform === 'youtube') {
+                        // Redirect to dedicated YouTube quest edit page
+                        window.location.href = `edit-youtube-quest.html?id=${taskId}`;
+                    } else if (quest.task_type && (quest.task_type.includes('visit') || quest.task_type.includes('website')) || quest.platform === 'website') {
+                        // Redirect to dedicated Website quest edit page
+                        window.location.href = `edit-website-quest.html?id=${taskId}`;
                     } else {
                         // Redirect to general edit page for other quest types
                         window.location.href = `edit-quest.html?id=${taskId}`;

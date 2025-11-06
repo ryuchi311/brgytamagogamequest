@@ -90,6 +90,53 @@
         }
         .card-glow { animation: glow 3s infinite; }
         .slide-in { animation: slideIn 0.5s ease-out; }
+        
+        /* Enhanced Verification Styles */
+        .filter-btn {
+            transition: all 0.3s ease;
+        }
+        .filter-btn.active-filter {
+            background: rgba(254, 189, 17, 0.3) !important;
+            border-color: rgba(254, 189, 17, 0.8) !important;
+            color: #FEBD11 !important;
+            box-shadow: 0 0 10px rgba(254, 189, 17, 0.3);
+        }
+        .table-row {
+            transition: all 0.3s ease;
+        }
+        .table-row:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Notification Animation */
+        .notification-enter {
+            animation: slideInRight 0.3s ease-out;
+        }
+        .notification-exit {
+            animation: slideOutRight 0.3s ease-in;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        /* Pulse animation for new submissions */
+        .new-submission {
+            animation: pulse-highlight 2s ease-in-out;
+        }
+        
+        @keyframes pulse-highlight {
+            0%, 100% { background-color: rgba(59, 130, 246, 0.1); }
+            50% { background-color: rgba(59, 130, 246, 0.3); }
+        }
+        
         .admin-bg {
             background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
             position: relative;
@@ -401,15 +448,64 @@
             <!-- Verification Section -->
             <section id="verification" class="content-section hidden">
                 <div class="bg-gaming-dark/60 border-2 border-neon-green/20 rounded-2xl p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-2xl font-black gaming-title gradient-text">✓ MISSION CONTROL - VERIFICATION QUEUE</h2>
-                        <div class="text-sm text-gray-400 gaming-body">Pending: <span id="verificationCount" class="text-neon-yellow font-bold">0</span></div>
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
+                        <div>
+                            <h2 class="text-2xl font-black gaming-title gradient-text">✓ MISSION CONTROL - VERIFICATION QUEUE</h2>
+                            <div class="text-sm text-gray-400 gaming-body mt-1">
+                                Pending: <span id="verificationCount" class="text-neon-yellow font-bold">0</span> | 
+                                Auto-refresh: <span class="text-neon-green">30s</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Filter Controls -->
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="filterVerifications('all')" class="filter-btn active-filter px-3 py-1 bg-brand-gold/20 border border-brand-gold/50 rounded-lg text-brand-gold text-xs gaming-title hover:bg-brand-gold/30 transition-all">
+                                ALL
+                            </button>
+                            <button onclick="filterVerifications('telegram')" class="filter-btn px-3 py-1 bg-blue-900/20 border border-blue-500/50 rounded-lg text-blue-400 text-xs gaming-title hover:bg-blue-900/30 transition-all">
+                                TELEGRAM
+                            </button>
+                            <button onclick="filterVerifications('twitter')" class="filter-btn px-3 py-1 bg-purple-900/20 border border-purple-500/50 rounded-lg text-purple-400 text-xs gaming-title hover:bg-purple-900/30 transition-all">
+                                TWITTER
+                            </button>
+                            <button onclick="filterVerifications('youtube')" class="filter-btn px-3 py-1 bg-red-900/20 border border-red-500/50 rounded-lg text-red-400 text-xs gaming-title hover:bg-red-900/30 transition-all">
+                                YOUTUBE
+                            </button>
+                            <button onclick="filterVerifications('social')" class="filter-btn px-3 py-1 bg-pink-900/20 border border-pink-500/50 rounded-lg text-pink-400 text-xs gaming-title hover:bg-pink-900/30 transition-all">
+                                SOCIAL
+                            </button>
+                            <button onclick="filterVerifications('high-xp')" class="filter-btn px-3 py-1 bg-brand-red/20 border border-brand-red/50 rounded-lg text-brand-red text-xs gaming-title hover:bg-brand-red/30 transition-all">
+                                HIGH XP
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Actions Bar -->
+                    <div id="bulkActions" class="mb-4 p-3 bg-gray-900/50 border border-gray-700 rounded-lg" style="opacity: 0.5; pointer-events: none;">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="text-sm text-gray-400 gaming-body">Bulk Actions:</span>
+                            <button onclick="bulkVerifyTasks(true)" class="px-4 py-2 bg-green-900/30 border border-green-500/50 rounded-lg text-green-400 text-sm gaming-title hover:bg-green-900/50 transition-all">
+                                ✓ APPROVE SELECTED
+                            </button>
+                            <button onclick="bulkVerifyTasks(false)" class="px-4 py-2 bg-red-900/30 border border-red-500/50 rounded-lg text-red-400 text-sm gaming-title hover:bg-red-900/50 transition-all">
+                                ✗ REJECT SELECTED
+                            </button>
+                            <button onclick="toggleAllTasks(true)" class="px-3 py-2 bg-blue-900/30 border border-blue-500/50 rounded-lg text-blue-400 text-sm gaming-title hover:bg-blue-900/50 transition-all">
+                                SELECT ALL
+                            </button>
+                            <button onclick="toggleAllTasks(false)" class="px-3 py-2 bg-gray-900/30 border border-gray-500/50 rounded-lg text-gray-400 text-sm gaming-title hover:bg-gray-900/50 transition-all">
+                                CLEAR
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead>
                                 <tr class="border-b-2 border-neon-green/20">
+                                    <th class="px-4 py-3 text-left text-neon-green gaming-title text-sm">
+                                        <input type="checkbox" onchange="toggleAllTasks(this.checked)" class="rounded border-gray-600 bg-gray-800 text-neon-green focus:ring-2 focus:ring-neon-green">
+                                    </th>
                                     <th class="px-4 py-3 text-left text-neon-green gaming-title text-sm">PLAYER</th>
                                     <th class="px-4 py-3 text-left text-neon-green gaming-title text-sm">QUEST</th>
                                     <th class="px-4 py-3 text-left text-neon-green gaming-title text-sm">XP REWARD</th>
@@ -419,9 +515,31 @@
                                 </tr>
                             </thead>
                             <tbody id="verificationTable" class="divide-y divide-gray-800">
-                                <tr><td colspan="6" class="text-center py-12 text-gray-500">No pending verifications</td></tr>
+                                <tr><td colspan="7" class="text-center py-12 text-gray-500">No pending verifications</td></tr>
                             </tbody>
                         </table>
+                    </div>
+                    
+                    <!-- Stats Footer -->
+                    <div class="mt-6 pt-4 border-t border-gray-700">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                            <div class="bg-green-900/20 border border-green-500/30 rounded-lg p-3">
+                                <div class="text-green-400 font-bold gaming-title text-lg" id="verifiedToday">0</div>
+                                <div class="text-xs text-gray-400 gaming-body">Verified Today</div>
+                            </div>
+                            <div class="bg-red-900/20 border border-red-500/30 rounded-lg p-3">
+                                <div class="text-red-400 font-bold gaming-title text-lg" id="rejectedToday">0</div>
+                                <div class="text-xs text-gray-400 gaming-body">Rejected Today</div>
+                            </div>
+                            <div class="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                                <div class="text-blue-400 font-bold gaming-title text-lg" id="avgVerificationTime">0m</div>
+                                <div class="text-xs text-gray-400 gaming-body">Avg. Processing</div>
+                            </div>
+                            <div class="bg-brand-gold/20 border border-brand-gold/30 rounded-lg p-3">
+                                <div class="text-brand-gold font-bold gaming-title text-lg" id="totalXpAwarded">0</div>
+                                <div class="text-xs text-gray-400 gaming-body">XP Awarded</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1108,7 +1226,7 @@
             }
         }
 
-        // Load verification
+        // Enhanced load verification with better UI
         async function loadVerification() {
             try {
                 const response = await fetch(`${API_URL}/admin/user-tasks?status=submitted`, {
@@ -1120,35 +1238,186 @@
                 
                 const tbody = document.getElementById('verificationTable');
                 if (userTasks.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-12 text-gray-500">No pending verifications</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-12 text-gray-500">🎉 No pending verifications! All caught up!</td></tr>';
                     return;
                 }
                 
-                tbody.innerHTML = userTasks.map(ut => `
-                    <tr class="table-row">
-                        <td class="px-4 py-4 text-white font-bold gaming-body">${ut.users?.first_name || 'Unknown'}</td>
-                        <td class="px-4 py-4 text-gray-300 gaming-body">${ut.tasks?.title || 'Unknown'}</td>
-                        <td class="px-4 py-4 text-neon-green font-bold gaming-body">+${ut.tasks?.points_reward || 0} XP</td>
-                        <td class="px-4 py-4">
-                            ${ut.proof_url ? `<a href="${ut.proof_url}" target="_blank" class="text-neon-blue hover:text-neon-purple transition-colors">🔗 View Proof</a>` : '<span class="text-gray-500">No proof</span>'}
-                        </td>
-                        <td class="px-4 py-4 text-gray-400 text-sm gaming-body">${new Date(ut.created_at).toLocaleDateString()}</td>
-                        <td class="px-4 py-4">
-                            <div class="flex gap-2">
-                                <button onclick="verifyTask('${ut.id}', true)" class="px-4 py-2 bg-neon-green/20 hover:bg-neon-green/30 border border-neon-green/50 rounded-lg gaming-title text-sm text-neon-green transition-all hover:scale-105">
-                                    ✓ APPROVE
-                                </button>
-                                <button onclick="verifyTask('${ut.id}', false)" class="px-4 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-500/50 rounded-lg gaming-title text-sm transition-all hover:scale-105">
-                                    ✗ REJECT
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
+                tbody.innerHTML = userTasks.map(ut => {
+                    const submittedDate = new Date(ut.created_at);
+                    const timeAgo = getTimeAgo(submittedDate);
+                    const questType = getQuestTypeIcon(ut.tasks?.task_type || 'unknown');
+                    const priorityClass = getPriorityClass(ut.tasks?.points_reward || 0);
+                    
+                    return `
+                        <tr class="table-row hover:bg-gray-800/50 transition-all group">
+                            <td class="px-4 py-4">
+                                <input type="checkbox" name="task-select" value="${ut.id}" onchange="updateBulkActions()" class="rounded border-gray-600 bg-gray-800 text-neon-green focus:ring-2 focus:ring-neon-green">
+                            </td>
+                            <td class="px-4 py-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-brand-gold to-brand-red flex items-center justify-center text-white text-xs font-bold">
+                                        ${(ut.users?.first_name || 'U')[0]}
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-bold gaming-body">${ut.users?.first_name || 'Unknown'}</div>
+                                        ${ut.users?.username ? `<div class="text-xs text-gray-400">@${ut.users.username}</div>` : ''}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg">${questType}</span>
+                                    <div>
+                                        <div class="text-gray-300 gaming-body font-medium">${ut.tasks?.title || 'Unknown Quest'}</div>
+                                        <div class="text-xs text-gray-500 capitalize">${ut.tasks?.task_type || 'unknown'} quest</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4">
+                                <span class="px-3 py-1 rounded-full ${priorityClass} font-bold gaming-body text-sm">
+                                    +${ut.tasks?.points_reward || 0} XP
+                                </span>
+                            </td>
+                            <td class="px-4 py-4">
+                                ${ut.proof_url ? 
+                                    `<button onclick="viewProof('${ut.proof_url}', '${ut.tasks?.title || 'Quest'}')" class="text-neon-blue hover:text-neon-purple transition-colors flex items-center gap-1 text-sm gaming-body">
+                                        🔗 <span class="hidden sm:inline">View Proof</span>
+                                    </button>` : 
+                                    '<span class="text-gray-500 text-sm">No proof submitted</span>'
+                                }
+                                ${ut.submission_text ? 
+                                    `<div class="text-xs text-gray-400 mt-1 max-w-xs truncate" title="${ut.submission_text}">
+                                        💬 "${ut.submission_text}"
+                                    </div>` : ''
+                                }
+                            </td>
+                            <td class="px-4 py-4">
+                                <div class="text-gray-400 text-sm gaming-body">${submittedDate.toLocaleDateString()}</div>
+                                <div class="text-xs text-gray-500">${timeAgo}</div>
+                            </td>
+                            <td class="px-4 py-4">
+                                <div class="flex gap-2">
+                                    <button onclick="verifyTask('${ut.id}', true)" class="px-3 py-2 bg-green-900/30 hover:bg-green-900/50 border border-green-500/50 rounded-lg gaming-title text-xs text-green-400 transition-all hover:scale-105 flex items-center gap-1">
+                                        ✓ <span class="hidden sm:inline">APPROVE</span>
+                                    </button>
+                                    <button onclick="verifyWithReason('${ut.id}', false)" class="px-3 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-500/50 rounded-lg gaming-title text-xs text-red-400 transition-all hover:scale-105 flex items-center gap-1">
+                                        ✗ <span class="hidden sm:inline">REJECT</span>
+                                    </button>
+                                    <button onclick="viewTaskDetails('${ut.id}')" class="px-2 py-2 bg-blue-900/30 hover:bg-blue-900/50 border border-blue-500/50 rounded-lg text-blue-400 transition-all hover:scale-105">
+                                        👁️
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                // Load verification stats
+                loadVerificationStats();
+                
             } catch (error) {
                 console.error('Error loading verification:', error);
+                showNotification('❌ Loading Error', 'Failed to load verification queue', 'error');
             }
         }
+
+        // Helper functions for enhanced verification UI
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return `${diffDays}d ago`;
+        }
+
+        function getQuestTypeIcon(type) {
+            const icons = {
+                'telegram': '💬',
+                'twitter': '🐦',
+                'youtube': '📺',
+                'website': '🌐',
+                'social': '📱',
+                'manual': '✍️',
+                'unknown': '❓'
+            };
+            return icons[type] || icons.unknown;
+        }
+
+        function getPriorityClass(points) {
+            if (points >= 200) return 'bg-red-900/30 border border-red-500/50 text-red-400';
+            if (points >= 100) return 'bg-orange-900/30 border border-orange-500/50 text-orange-400';
+            if (points >= 50) return 'bg-yellow-900/30 border border-yellow-500/50 text-yellow-400';
+            return 'bg-green-900/30 border border-green-500/50 text-green-400';
+        }
+
+        // View proof in modal
+        function viewProof(proofUrl, questTitle) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4';
+            modal.onclick = (e) => e.target === modal && modal.remove();
+            
+            const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(proofUrl);
+            const isVideo = /\.(mp4|webm|ogg)$/i.test(proofUrl);
+            
+            modal.innerHTML = `
+                <div class="bg-gaming-dark border-2 border-neon-green/50 rounded-xl max-w-4xl max-h-[90vh] overflow-hidden">
+                    <div class="p-4 border-b border-gray-700 flex justify-between items-center">
+                        <h3 class="text-lg font-bold gaming-title text-neon-green">📸 Proof for: ${questTitle}</h3>
+                        <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-white text-xl">✕</button>
+                    </div>
+                    <div class="p-4 max-h-[70vh] overflow-auto">
+                        ${isImage ? 
+                            `<img src="${proofUrl}" alt="Quest Proof" class="max-w-full h-auto rounded-lg border border-gray-600">` :
+                            isVideo ?
+                            `<video src="${proofUrl}" controls class="max-w-full h-auto rounded-lg border border-gray-600"></video>` :
+                            `<div class="text-center p-8">
+                                <div class="text-4xl mb-4">📄</div>
+                                <p class="text-gray-300 mb-4">Cannot preview this file type</p>
+                                <a href="${proofUrl}" target="_blank" class="px-4 py-2 bg-neon-blue/20 border border-neon-blue/50 rounded-lg text-neon-blue hover:bg-neon-blue/30 transition-all">
+                                    🔗 Open in New Tab
+                                </a>
+                            </div>`
+                        }
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // View detailed task information
+        function viewTaskDetails(userTaskId) {
+            // Implementation for viewing detailed task info
+            showNotification('🔍 Task Details', 'Feature coming soon - detailed task analysis', 'info');
+        }
+
+        // Load verification statistics
+        async function loadVerificationStats() {
+            try {
+                // These would be real API calls in production
+                const today = new Date().toISOString().split('T')[0];
+                
+                // Mock stats for demo - replace with real API calls
+                document.getElementById('verifiedToday').textContent = '12';
+                document.getElementById('rejectedToday').textContent = '3';
+                document.getElementById('avgVerificationTime').textContent = '4.2m';
+                document.getElementById('totalXpAwarded').textContent = '2,450';
+                
+            } catch (error) {
+                console.error('Error loading verification stats:', error);
+            }
+        }
+
+        // Auto-refresh verification queue
+        setInterval(() => {
+            if (document.getElementById('verification').style.display !== 'none') {
+                loadVerification();
+            }
+        }, 30000); // Refresh every 30 seconds
 
         // Submit task
         async function submitTask(event) {
@@ -1384,20 +1653,220 @@
             }
         }
 
-        // Verify task
-        async function verifyTask(userTaskId, approved) {
+        // Enhanced verification system
+        async function verifyTask(userTaskId, approved, reason = '') {
             try {
+                // Show loading state
+                const approveBtn = document.querySelector(`button[onclick="verifyTask('${userTaskId}', true)"]`);
+                const rejectBtn = document.querySelector(`button[onclick="verifyTask('${userTaskId}', false)"]`);
+                
+                if (approveBtn) approveBtn.innerHTML = approved ? '⏳ Processing...' : '✓ APPROVE';
+                if (rejectBtn) rejectBtn.innerHTML = !approved ? '⏳ Processing...' : '✗ REJECT';
+                
                 const response = await fetch(`${API_URL}/admin/user-tasks/${userTaskId}/verify?approved=${approved}`, {
                     method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${authToken}` }
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reason: reason })
                 });
 
                 if (response.ok) {
-                    alert(`${approved ? '✅ Quest approved!' : '❌ Quest rejected!'}`);
-                    loadVerification();
+                    showNotification(
+                        approved ? '✅ Quest Approved!' : '❌ Quest Rejected!',
+                        approved ? 'Player has been awarded XP and notified.' : 'Player has been notified of rejection.',
+                        approved ? 'success' : 'warning'
+                    );
+                    
+                    // Remove row with animation
+                    const row = document.querySelector(`button[onclick="verifyTask('${userTaskId}', true)"]`).closest('tr');
+                    if (row) {
+                        row.style.opacity = '0.5';
+                        row.style.transform = 'translateX(-20px)';
+                        setTimeout(() => loadVerification(), 300);
+                    } else {
+                        loadVerification();
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
             } catch (error) {
                 console.error('Error verifying task:', error);
+                showNotification('❌ Verification Failed', `Error: ${error.message}`, 'error');
+                
+                // Reset button states
+                const approveBtn = document.querySelector(`button[onclick="verifyTask('${userTaskId}', true)"]`);
+                const rejectBtn = document.querySelector(`button[onclick="verifyTask('${userTaskId}', false)"]`);
+                if (approveBtn) approveBtn.innerHTML = '✓ APPROVE';
+                if (rejectBtn) rejectBtn.innerHTML = '✗ REJECT';
+            }
+        }
+
+        // Advanced verification with reason dialog
+        async function verifyWithReason(userTaskId, approved) {
+            const action = approved ? 'approve' : 'reject';
+            const reason = prompt(`${approved ? '✅ Approve' : '❌ Reject'} this quest submission?\n\nOptional reason for player:`);
+            
+            if (reason === null) return; // User cancelled
+            
+            await verifyTask(userTaskId, approved, reason);
+        }
+
+        // Bulk verification actions
+        async function bulkVerifyTasks(approved) {
+            const checkboxes = document.querySelectorAll('input[name="task-select"]:checked');
+            if (checkboxes.length === 0) {
+                showNotification('⚠️ No Tasks Selected', 'Please select at least one task to verify.', 'warning');
+                return;
+            }
+
+            const action = approved ? 'approve' : 'reject';
+            const confirmMsg = `${approved ? '✅ Approve' : '❌ Reject'} ${checkboxes.length} selected quest(s)?`;
+            
+            if (!confirm(confirmMsg)) return;
+
+            const results = { success: 0, failed: 0 };
+            
+            for (const checkbox of checkboxes) {
+                try {
+                    const userTaskId = checkbox.value;
+                    const response = await fetch(`${API_URL}/admin/user-tasks/${userTaskId}/verify?approved=${approved}`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${authToken}` }
+                    });
+                    
+                    if (response.ok) {
+                        results.success++;
+                    } else {
+                        results.failed++;
+                    }
+                } catch (error) {
+                    results.failed++;
+                    console.error(`Error verifying task ${checkbox.value}:`, error);
+                }
+            }
+
+            showNotification(
+                `📊 Bulk Verification Complete`,
+                `✅ ${results.success} successful, ❌ ${results.failed} failed`,
+                results.failed === 0 ? 'success' : 'warning'
+            );
+            
+            loadVerification();
+        }
+
+        // Filter verification queue
+        function filterVerifications(filterType) {
+            const rows = document.querySelectorAll('#verificationTable tr');
+            
+            rows.forEach(row => {
+                if (row.querySelector('td[colspan]')) return; // Skip "no data" row
+                
+                const questCell = row.children[1]?.textContent || '';
+                const playerCell = row.children[0]?.textContent || '';
+                
+                let show = true;
+                
+                switch (filterType) {
+                    case 'telegram':
+                        show = questCell.toLowerCase().includes('telegram') || questCell.toLowerCase().includes('chat');
+                        break;
+                    case 'twitter':
+                        show = questCell.toLowerCase().includes('twitter') || questCell.toLowerCase().includes('follow');
+                        break;
+                    case 'youtube':
+                        show = questCell.toLowerCase().includes('youtube') || questCell.toLowerCase().includes('watch');
+                        break;
+                    case 'social':
+                        show = questCell.toLowerCase().includes('social') || 
+                               questCell.toLowerCase().includes('discord') ||
+                               questCell.toLowerCase().includes('instagram');
+                        break;
+                    case 'high-xp':
+                        const xpCell = row.children[2]?.textContent || '';
+                        const xp = parseInt(xpCell.replace(/[^\d]/g, '')) || 0;
+                        show = xp >= 100;
+                        break;
+                    case 'all':
+                    default:
+                        show = true;
+                        break;
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+            
+            // Update filter button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active-filter');
+            });
+            document.querySelector(`[onclick="filterVerifications('${filterType}')"]`)?.classList.add('active-filter');
+        }
+
+        // Enhanced notification system
+        function showNotification(title, message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg border-2 shadow-lg transform transition-all duration-300 translate-x-full ${getNotificationClasses(type)}`;
+            
+            notification.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 text-xl">${getNotificationIcon(type)}</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold gaming-title">${title}</h4>
+                        <p class="text-sm gaming-body mt-1">${message}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="flex-shrink-0 text-gray-400 hover:text-white">✕</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => notification.classList.remove('translate-x-full'), 100);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000);
+        }
+
+        function getNotificationClasses(type) {
+            switch (type) {
+                case 'success': return 'bg-green-900/90 border-green-500 text-green-100';
+                case 'error': return 'bg-red-900/90 border-red-500 text-red-100';
+                case 'warning': return 'bg-yellow-900/90 border-yellow-500 text-yellow-100';
+                default: return 'bg-blue-900/90 border-blue-500 text-blue-100';
+            }
+        }
+
+        function getNotificationIcon(type) {
+            switch (type) {
+                case 'success': return '✅';
+                case 'error': return '❌';
+                case 'warning': return '⚠️';
+                default: return 'ℹ️';
+            }
+        }
+
+        // Toggle all checkboxes
+        function toggleAllTasks(selectAll) {
+            const checkboxes = document.querySelectorAll('input[name="task-select"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll;
+            });
+            updateBulkActions();
+        }
+
+        // Update bulk action button states
+        function updateBulkActions() {
+            const checkedCount = document.querySelectorAll('input[name="task-select"]:checked').length;
+            const bulkContainer = document.getElementById('bulkActions');
+            
+            if (bulkContainer) {
+                bulkContainer.style.opacity = checkedCount > 0 ? '1' : '0.5';
+                bulkContainer.style.pointerEvents = checkedCount > 0 ? 'auto' : 'none';
             }
         }
 
@@ -1478,6 +1947,9 @@
                     } else if (quest.task_type && (quest.task_type.includes('visit') || quest.task_type.includes('website')) || quest.platform === 'website') {
                         // Redirect to dedicated Website quest edit page
                         window.location.href = `edit-website-quest.html?id=${taskId}`;
+                    } else if (quest.task_type && (quest.task_type.includes('social') || quest.task_type.includes('manual')) || quest.platform === 'social') {
+                        // Redirect to dedicated Social Media quest edit page
+                        window.location.href = `edit-social-media-quest.html?id=${taskId}`;
                     } else {
                         // Redirect to general edit page for other quest types
                         window.location.href = `edit-quest.html?id=${taskId}`;

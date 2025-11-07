@@ -1,0 +1,34 @@
+services:
+  # FastAPI Backend on port 8080
+  api:
+    build:
+      context: .
+      args:
+        - REQUIREMENTS_FILE=requirements-backend.txt
+    container_name: brgy_tamago_api
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=${DATABASE_URL}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TWITTER_BEARER_TOKEN=${TWITTER_BEARER_TOKEN:-}
+      - TWITTER_API_KEY=${TWITTER_API_KEY:-}
+      - TWITTER_API_SECRET=${TWITTER_API_SECRET:-}
+      - TWITTER_CLIENT_ID=${TWITTER_CLIENT_ID:-}
+      - TWITTER_CLIENT_SECRET=${TWITTER_CLIENT_SECRET:-}
+      - TWITTER_ACCOUNT_ID=${TWITTER_ACCOUNT_ID:-}
+      - TWITTER_USERNAME=${TWITTER_USERNAME:-}
+    volumes:
+      - ./app:/app/app
+      - ./frontend:/app/frontend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

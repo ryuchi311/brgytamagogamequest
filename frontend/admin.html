@@ -136,6 +136,22 @@
             0%, 100% { background-color: rgba(59, 130, 246, 0.1); }
             50% { background-color: rgba(59, 130, 246, 0.3); }
         }
+
+        /* Professional notification animations */
+        @keyframes shrink {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        
+        .animate-shrink {
+            animation: shrink linear;
+        }
+
+        /* Enhanced notification styles */
+        .notification-backdrop {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
         
         .admin-bg {
             background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
@@ -839,6 +855,71 @@
         </div>
     </div>
 
+    <!-- Edit Reward Modal -->
+    <div id="editRewardModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gradient-to-br from-gaming-dark to-purple-900/40 border-2 border-neon-pink/50 rounded-2xl p-8 w-full max-w-2xl card-glow">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-black gaming-title gradient-text">✏️ EDIT LOOT</h2>
+                <button onclick="closeModal('editRewardModal')" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            
+            <form id="editRewardForm" onsubmit="updateReward(event)" class="space-y-4">
+                <input type="hidden" id="editRewardId">
+                
+                <div>
+                    <label class="block text-neon-pink gaming-title text-sm mb-2">LOOT TITLE</label>
+                    <input id="editRewardTitle" type="text" required class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                </div>
+                
+                <div>
+                    <label class="block text-neon-pink gaming-title text-sm mb-2">DESCRIPTION</label>
+                    <textarea id="editRewardDescription" rows="3" required class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple"></textarea>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-neon-pink gaming-title text-sm mb-2">TYPE</label>
+                        <select id="editRewardType" required class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <option value="digital">Digital</option>
+                            <option value="physical">Physical</option>
+                            <option value="voucher">Voucher</option>
+                            <option value="special">Special</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-neon-pink gaming-title text-sm mb-2">XP COST</label>
+                        <input id="editRewardCost" type="number" required min="1" class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-neon-pink gaming-title text-sm mb-2">STOCK (leave empty for unlimited)</label>
+                        <input id="editRewardQuantity" type="number" min="1" class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-neon-pink gaming-title text-sm mb-2">STATUS</label>
+                        <select id="editRewardStatus" required class="w-full bg-black/50 border-2 border-neon-pink/30 rounded-xl px-4 py-3 text-white gaming-body focus:outline-none focus:border-neon-purple">
+                            <option value="true">✓ ACTIVE</option>
+                            <option value="false">⏸ INACTIVE</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4">
+                    <button type="submit" class="flex-1 py-4 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-pink hover:to-neon-yellow rounded-xl gaming-title font-bold text-lg transition-all hover:scale-105">
+                        ✏️ UPDATE LOOT
+                    </button>
+                    <button type="button" onclick="deleteReward()" class="px-6 py-4 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 rounded-xl gaming-title font-bold text-lg transition-all hover:scale-105">
+                        � DEACTIVATE
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Configuration - API URL
         // Handle both localhost and GitHub Codespaces URLs
@@ -1194,7 +1275,7 @@
         // Load rewards
         async function loadRewards() {
             try {
-                const response = await fetch(`${API_URL}/rewards`, {
+                const response = await fetch(`${API_URL}/rewards?active_only=false`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 const rewards = await response.json();
@@ -1215,7 +1296,7 @@
                             </span>
                         </td>
                         <td class="px-4 py-4">
-                            <button class="px-4 py-2 bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/50 rounded-lg gaming-title text-sm transition-all hover:scale-105">
+                            <button onclick="editReward('${reward.id}')" class="px-4 py-2 bg-neon-purple/20 hover:bg-neon-purple/30 border border-neon-purple/50 rounded-lg gaming-title text-sm transition-all hover:scale-105">
                                 ✏ EDIT
                             </button>
                         </td>
@@ -1317,7 +1398,15 @@
                 
             } catch (error) {
                 console.error('Error loading verification:', error);
-                showNotification('❌ Loading Error', 'Failed to load verification queue', 'error');
+                showNotification(
+                    'Verification Queue Loading Failed', 
+                    'Unable to retrieve pending quest verifications. Please check your connection and try again.',
+                    'error',
+                    {
+                        actionText: 'Retry Loading',
+                        actionCallback: 'loadVerification()'
+                    }
+                );
             }
         }
 
@@ -1424,7 +1513,11 @@
             event.preventDefault();
 
             if (!selectedQuestType) {
-                alert('⚠️ Please select a quest type first!');
+                showNotification(
+                    'Quest Type Required',
+                    'Please select a quest type before submitting. Choose from the available quest categories above.',
+                    'warning'
+                );
                 return;
             }
 
@@ -1449,7 +1542,11 @@
                 const username = document.getElementById('twitterUsername').value.trim();
 
                 if (!username) {
-                    alert('⚠️ Please enter the target Twitter username!');
+                    showNotification(
+                        'Twitter Username Required',
+                        'Please enter the target Twitter username that players need to follow.',
+                        'warning'
+                    );
                     return;
                 }
 
@@ -1467,7 +1564,11 @@
                 if (actionType !== 'follow') {
                     const tweetUrl = document.getElementById('twitterTweetUrl').value.trim();
                     if (!tweetUrl) {
-                        alert('⚠️ Please enter the tweet URL!');
+                        showNotification(
+                            'Tweet URL Required',
+                            'Please enter the specific tweet URL for like/retweet/reply actions.',
+                            'warning'
+                        );
                         return;
                     }
                     base.url = tweetUrl;
@@ -1482,15 +1583,27 @@
                 const chatName = document.getElementById('telegramChatName').value.trim();
 
                 if (!telegramLink) {
-                    alert('⚠️ Please enter the Telegram link!');
+                    showNotification(
+                        'Telegram Link Required',
+                        'Please enter the Telegram group or channel invite link.',
+                        'warning'
+                    );
                     return;
                 }
                 if (!chatId) {
-                    alert('⚠️ Please enter the Group/Channel ID!');
+                    showNotification(
+                        'Telegram Chat ID Required',
+                        'Please enter the Group or Channel ID for verification purposes.',
+                        'warning'
+                    );
                     return;
                 }
                 if (!chatName) {
-                    alert('⚠️ Please enter the Group/Channel name!');
+                    showNotification(
+                        'Telegram Chat Name Required',
+                        'Please enter the Group or Channel name for display purposes.',
+                        'warning'
+                    );
                     return;
                 }
 
@@ -1513,8 +1626,22 @@
                 const youtubeUrl = document.getElementById('youtubeUrl').value.trim();
                 const secretCode = document.getElementById('youtubeSecretCode').value.trim();
 
-                if (!youtubeUrl) { alert('⚠️ Please enter the YouTube video URL!'); return; }
-                if (!secretCode) { alert('⚠️ Please enter a secret code for the video!'); return; }
+                if (!youtubeUrl) { 
+                    showNotification(
+                        'YouTube Video URL Required',
+                        'Please enter the YouTube video URL that players need to watch.',
+                        'warning'
+                    );
+                    return; 
+                }
+                if (!secretCode) { 
+                    showNotification(
+                        'Secret Code Required',
+                        'Please enter a secret code that will be revealed during the video for verification.',
+                        'warning'
+                    );
+                    return; 
+                }
 
                 task_type = 'youtube_watch';
                 base.url = youtubeUrl;
@@ -1592,7 +1719,16 @@
                     }[selectedQuestType] || '⚔️';
 
                     const action = isEditing ? 'updated' : 'created';
-                    alert(`${emoji} ${selectedQuestType.toUpperCase()} quest ${action} successfully!`);
+                    const actionPast = isEditing ? 'Updated' : 'Created';
+                    showNotification(
+                        `Quest ${actionPast} Successfully`,
+                        `The ${selectedQuestType} quest "${document.getElementById('taskTitle').value}" has been ${action} and is now ${isEditing ? 'updated' : 'available'} for players.`,
+                        'success',
+                        {
+                            actionText: 'View Quests',
+                            actionCallback: 'showSection("tasks")'
+                        }
+                    );
                     closeModal('taskModal');
                     loadTasks();
                     document.getElementById('taskForm').reset();
@@ -1603,12 +1739,24 @@
                     const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
                     const action = isEditing ? 'update' : 'create';
                     console.error(`Failed to ${action} quest:`, errorMessage, errorData);
-                    alert(`❌ Failed to ${action} quest!\n\nError: ${errorMessage}`);
+                    showNotification(
+                        `Failed to ${action.charAt(0).toUpperCase() + action.slice(1)} Quest`,
+                        `Unable to ${action} the ${selectedQuestType} quest. ${errorMessage}`,
+                        'error'
+                    );
                 }
             } catch (error) {
                 const action = editingTaskId ? 'updating' : 'creating';
                 console.error(`Error ${action} task:`, error);
-                alert(`❌ Network error: ${error.message}\n\nPlease check your connection and try again.`);
+                showNotification(
+                    'Network Connection Error',
+                    'Unable to connect to the server while processing your quest. Please check your internet connection and try again.',
+                    'error',
+                    {
+                        actionText: 'Retry',
+                        actionCallback: 'submitTask()'
+                    }
+                );
             }
         }
 
@@ -1636,7 +1784,15 @@
                 });
 
                 if (response.ok) {
-                    alert('💎 Loot added successfully!');
+                    showNotification(
+                        'Loot Created Successfully',
+                        `${rewardData.title} has been added to the reward catalog and is now available for players to claim.`,
+                        'loot',
+                        {
+                            actionText: 'View Catalog',
+                            actionCallback: 'showSection("loot")'
+                        }
+                    );
                     closeModal('rewardModal');
                     loadRewards();
                     document.getElementById('rewardForm').reset();
@@ -1645,11 +1801,159 @@
                     const errorData = await response.json().catch(() => ({}));
                     const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
                     console.error('Failed to create reward:', errorMessage, errorData);
-                    alert(`❌ Failed to add loot!\n\nError: ${errorMessage}`);
+                    showNotification(
+                        'Failed to Create Loot Item',
+                        `Unable to add "${rewardData.title}" to the reward catalog. ${errorMessage}`,
+                        'error'
+                    );
                 }
             } catch (error) {
                 console.error('Error creating reward:', error);
-                alert(`❌ Network error: ${error.message}\n\nPlease check your connection and try again.`);
+                showNotification(
+                    'Network Connection Error',
+                    'Unable to connect to the server. Please check your internet connection and try again.',
+                    'error',
+                    {
+                        actionText: 'Retry',
+                        actionCallback: 'submitReward()'
+                    }
+                );
+            }
+        }
+
+        // Edit reward function
+        async function editReward(rewardId) {
+            try {
+                // Fetch all rewards and find the one we need
+                const response = await fetch(`${API_URL}/rewards?active_only=false`, {
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch rewards: ${response.status}`);
+                }
+
+                const rewards = await response.json();
+                const reward = rewards.find(r => r.id === rewardId);
+                
+                if (!reward) {
+                    throw new Error('Reward not found');
+                }
+                
+                // Populate the edit form
+                document.getElementById('editRewardId').value = reward.id;
+                document.getElementById('editRewardTitle').value = reward.title;
+                document.getElementById('editRewardDescription').value = reward.description;
+                document.getElementById('editRewardType').value = reward.reward_type;
+                document.getElementById('editRewardCost').value = reward.points_cost;
+                document.getElementById('editRewardQuantity').value = reward.quantity_available || '';
+                document.getElementById('editRewardStatus').value = reward.is_active.toString();
+
+                // Show the edit modal
+                document.getElementById('editRewardModal').classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error loading reward for edit:', error);
+                showNotification('❌ Error', `Failed to load reward data: ${error.message}`, 'error');
+            }
+        }
+
+        // Update reward function
+        async function updateReward(event) {
+            event.preventDefault();
+
+            const rewardId = document.getElementById('editRewardId').value;
+            const rewardData = {
+                title: document.getElementById('editRewardTitle').value,
+                description: document.getElementById('editRewardDescription').value,
+                reward_type: document.getElementById('editRewardType').value,
+                points_cost: parseInt(document.getElementById('editRewardCost').value),
+                quantity_available: document.getElementById('editRewardQuantity').value ? 
+                                   parseInt(document.getElementById('editRewardQuantity').value) : null,
+                is_active: document.getElementById('editRewardStatus').value === 'true'
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/rewards/${rewardId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(rewardData)
+                });
+
+                if (response.ok) {
+                    showNotification(
+                        'Loot Item Updated Successfully', 
+                        `Changes to "${rewardData.title}" have been saved and are now live for players.`,
+                        'loot',
+                        {
+                            actionText: 'View Updated Item',
+                            actionCallback: 'showSection("loot")'
+                        }
+                    );
+                    closeModal('editRewardModal');
+                    loadRewards();
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+                    console.error('Failed to update reward:', errorMessage, errorData);
+                    showNotification(
+                        'Failed to Update Loot Item', 
+                        `Unable to save changes to "${rewardData.title}". ${errorMessage}`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                console.error('Error updating reward:', error);
+                showNotification('❌ Network Error', `Failed to update reward: ${error.message}`, 'error');
+            }
+        }
+
+        // Delete reward function (sets inactive instead of deleting)
+        async function deleteReward() {
+            const rewardId = document.getElementById('editRewardId').value;
+            const rewardTitle = document.getElementById('editRewardTitle').value;
+            
+            if (!confirm(`🗑️ Are you sure you want to deactivate "${rewardTitle}"?\n\nThis will hide it from players but preserve the data.`)) {
+                return;
+            }
+
+            try {
+                // Get current reward data and set as inactive
+                const currentData = {
+                    title: document.getElementById('editRewardTitle').value,
+                    description: document.getElementById('editRewardDescription').value,
+                    reward_type: document.getElementById('editRewardType').value,
+                    points_cost: parseInt(document.getElementById('editRewardCost').value),
+                    quantity_available: document.getElementById('editRewardQuantity').value ? 
+                                       parseInt(document.getElementById('editRewardQuantity').value) : null,
+                    is_active: false  // Set as inactive
+                };
+
+                const response = await fetch(`${API_URL}/rewards/${rewardId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(currentData)
+                });
+
+                if (response.ok) {
+                    showNotification('🗑️ Loot Deactivated', `"${rewardTitle}" has been hidden from the store.`, 'warning');
+                    closeModal('editRewardModal');
+                    loadRewards();
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMessage = errorData.detail || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+                    console.error('Failed to deactivate reward:', errorMessage, errorData);
+                    showNotification('❌ Deactivation Failed', `Error: ${errorMessage}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error deactivating reward:', error);
+                showNotification('❌ Network Error', `Failed to deactivate reward: ${error.message}`, 'error');
             }
         }
 
@@ -1673,11 +1977,26 @@
                 });
 
                 if (response.ok) {
-                    showNotification(
-                        approved ? '✅ Quest Approved!' : '❌ Quest Rejected!',
-                        approved ? 'Player has been awarded XP and notified.' : 'Player has been notified of rejection.',
-                        approved ? 'success' : 'warning'
-                    );
+                    if (approved) {
+                        showNotification(
+                            'Quest Verification Approved',
+                            'The player has been awarded experience points and notified of the successful completion.',
+                            'verification',
+                            {
+                                actionText: 'View Queue',
+                                actionCallback: 'showSection("verification")'
+                            }
+                        );
+                    } else {
+                        showNotification(
+                            'Quest Submission Rejected',
+                            `The submission has been declined${reason ? ` with feedback: "${reason}"` : ''}. The player has been notified.`,
+                            'warning',
+                            {
+                                duration: 6000
+                            }
+                        );
+                    }
                     
                     // Remove row with animation
                     const row = document.querySelector(`button[onclick="verifyTask('${userTaskId}', true)"]`).closest('tr');
@@ -1693,7 +2012,15 @@
                 }
             } catch (error) {
                 console.error('Error verifying task:', error);
-                showNotification('❌ Verification Failed', `Error: ${error.message}`, 'error');
+                showNotification(
+                    'Verification Process Failed',
+                    `Unable to process the quest verification. ${error.message}`,
+                    'error',
+                    {
+                        actionText: 'Try Again',
+                        actionCallback: `verifyTask('${userTaskId}', ${approved})`
+                    }
+                );
                 
                 // Reset button states
                 const approveBtn = document.querySelector(`button[onclick="verifyTask('${userTaskId}', true)"]`);
@@ -1717,7 +2044,11 @@
         async function bulkVerifyTasks(approved) {
             const checkboxes = document.querySelectorAll('input[name="task-select"]:checked');
             if (checkboxes.length === 0) {
-                showNotification('⚠️ No Tasks Selected', 'Please select at least one task to verify.', 'warning');
+                showNotification(
+                    'No Tasks Selected', 
+                    'Please select at least one quest submission before performing bulk actions.',
+                    'warning'
+                );
                 return;
             }
 
@@ -1748,9 +2079,14 @@
             }
 
             showNotification(
-                `📊 Bulk Verification Complete`,
-                `✅ ${results.success} successful, ❌ ${results.failed} failed`,
-                results.failed === 0 ? 'success' : 'warning'
+                'Bulk Verification Process Completed',
+                `Successfully processed ${results.success} quest submission(s)${results.failed > 0 ? `, ${results.failed} operation(s) failed` : ''}. All players have been notified of the results.`,
+                results.failed === 0 ? 'verification' : 'warning',
+                {
+                    duration: 7000,
+                    actionText: 'View Queue',
+                    actionCallback: 'showSection("verification")'
+                }
             );
             
             loadVerification();
@@ -1804,49 +2140,160 @@
             document.querySelector(`[onclick="filterVerifications('${filterType}')"]`)?.classList.add('active-filter');
         }
 
-        // Enhanced notification system
-        function showNotification(title, message, type = 'info') {
+        // Professional notification system
+        function showNotification(title, message, type = 'info', options = {}) {
+            const {
+                duration = 5000,
+                persistent = false,
+                actionText = null,
+                actionCallback = null,
+                position = 'top-right'
+            } = options;
+
             const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg border-2 shadow-lg transform transition-all duration-300 translate-x-full ${getNotificationClasses(type)}`;
+            const positionClass = getPositionClass(position);
+            notification.className = `fixed ${positionClass} z-50 max-w-md w-full sm:w-auto min-w-[320px] mx-4 sm:mx-0 transform transition-all duration-500 ease-out ${getSlideInClass(position)} ${getNotificationClasses(type)}`;
             
             notification.innerHTML = `
-                <div class="flex items-start gap-3">
-                    <div class="flex-shrink-0 text-xl">${getNotificationIcon(type)}</div>
-                    <div class="flex-1">
-                        <h4 class="font-bold gaming-title">${title}</h4>
-                        <p class="text-sm gaming-body mt-1">${message}</p>
+                <div class="relative backdrop-blur-sm rounded-xl border shadow-2xl overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 ${getProgressBarClass(type)}"></div>
+                    <div class="p-4">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${getIconBackgroundClass(type)}">
+                                <span class="text-sm font-bold">${getNotificationIcon(type)}</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-bold gaming-title text-sm ${getTextColorClass(type)} leading-tight">${title}</h4>
+                                <p class="text-sm gaming-body mt-1 text-gray-300 leading-relaxed">${message}</p>
+                                ${actionText ? `
+                                    <button onclick="${actionCallback || 'void(0)'}" class="mt-3 px-3 py-1 text-xs font-semibold gaming-title rounded-lg transition-all hover:scale-105 ${getActionButtonClass(type)}">
+                                        ${actionText}
+                                    </button>
+                                ` : ''}
+                            </div>
+                            ${!persistent ? `
+                                <button onclick="this.closest('.fixed').remove()" class="flex-shrink-0 p-1 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-white/10">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            ` : ''}
+                        </div>
                     </div>
-                    <button onclick="this.parentElement.parentElement.remove()" class="flex-shrink-0 text-gray-400 hover:text-white">✕</button>
+                    ${!persistent && duration > 0 ? `
+                        <div class="absolute bottom-0 left-0 h-1 ${getProgressBarClass(type)} animate-shrink" style="animation-duration: ${duration}ms;"></div>
+                    ` : ''}
                 </div>
             `;
             
             document.body.appendChild(notification);
             
             // Animate in
-            setTimeout(() => notification.classList.remove('translate-x-full'), 100);
-            
-            // Auto remove after 5 seconds
             setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => notification.remove(), 300);
-            }, 5000);
+                notification.classList.remove(getSlideInClass(position));
+                notification.classList.add('scale-100', 'opacity-100');
+            }, 50);
+            
+            // Auto remove
+            if (!persistent && duration > 0) {
+                setTimeout(() => {
+                    notification.classList.add(getSlideOutClass(position));
+                    setTimeout(() => notification.remove(), 500);
+                }, duration);
+            }
+            
+            return notification;
+        }
+
+        function getPositionClass(position) {
+            switch (position) {
+                case 'top-left': return 'top-4 left-4';
+                case 'top-center': return 'top-4 left-1/2 transform -translate-x-1/2';
+                case 'top-right': return 'top-4 right-4';
+                case 'bottom-left': return 'bottom-4 left-4';
+                case 'bottom-center': return 'bottom-4 left-1/2 transform -translate-x-1/2';
+                case 'bottom-right': return 'bottom-4 right-4';
+                default: return 'top-4 right-4';
+            }
+        }
+
+        function getSlideInClass(position) {
+            if (position.includes('left')) return 'translate-x-[-100%] opacity-0 scale-95';
+            if (position.includes('right')) return 'translate-x-full opacity-0 scale-95';
+            if (position.includes('top')) return 'translate-y-[-100%] opacity-0 scale-95';
+            return 'translate-y-full opacity-0 scale-95';
+        }
+
+        function getSlideOutClass(position) {
+            if (position.includes('left')) return 'translate-x-[-100%] opacity-0 scale-95';
+            if (position.includes('right')) return 'translate-x-full opacity-0 scale-95';
+            if (position.includes('top')) return 'translate-y-[-100%] opacity-0 scale-95';
+            return 'translate-y-full opacity-0 scale-95';
         }
 
         function getNotificationClasses(type) {
             switch (type) {
-                case 'success': return 'bg-green-900/90 border-green-500 text-green-100';
-                case 'error': return 'bg-red-900/90 border-red-500 text-red-100';
-                case 'warning': return 'bg-yellow-900/90 border-yellow-500 text-yellow-100';
-                default: return 'bg-blue-900/90 border-blue-500 text-blue-100';
+                case 'success': return 'bg-emerald-950/95 border-emerald-500/30';
+                case 'error': return 'bg-red-950/95 border-red-500/30';
+                case 'warning': return 'bg-amber-950/95 border-amber-500/30';
+                case 'loot': return 'bg-purple-950/95 border-purple-500/30';
+                case 'verification': return 'bg-cyan-950/95 border-cyan-500/30';
+                default: return 'bg-slate-950/95 border-slate-500/30';
+            }
+        }
+
+        function getIconBackgroundClass(type) {
+            switch (type) {
+                case 'success': return 'bg-emerald-500/20 text-emerald-400';
+                case 'error': return 'bg-red-500/20 text-red-400';
+                case 'warning': return 'bg-amber-500/20 text-amber-400';
+                case 'loot': return 'bg-purple-500/20 text-purple-400';
+                case 'verification': return 'bg-cyan-500/20 text-cyan-400';
+                default: return 'bg-slate-500/20 text-slate-400';
+            }
+        }
+
+        function getTextColorClass(type) {
+            switch (type) {
+                case 'success': return 'text-emerald-300';
+                case 'error': return 'text-red-300';
+                case 'warning': return 'text-amber-300';
+                case 'loot': return 'text-purple-300';
+                case 'verification': return 'text-cyan-300';
+                default: return 'text-slate-300';
+            }
+        }
+
+        function getProgressBarClass(type) {
+            switch (type) {
+                case 'success': return 'bg-gradient-to-r from-emerald-500 to-emerald-400';
+                case 'error': return 'bg-gradient-to-r from-red-500 to-red-400';
+                case 'warning': return 'bg-gradient-to-r from-amber-500 to-amber-400';
+                case 'loot': return 'bg-gradient-to-r from-purple-500 to-purple-400';
+                case 'verification': return 'bg-gradient-to-r from-cyan-500 to-cyan-400';
+                default: return 'bg-gradient-to-r from-slate-500 to-slate-400';
+            }
+        }
+
+        function getActionButtonClass(type) {
+            switch (type) {
+                case 'success': return 'bg-emerald-600/30 border border-emerald-500/50 text-emerald-300 hover:bg-emerald-600/50';
+                case 'error': return 'bg-red-600/30 border border-red-500/50 text-red-300 hover:bg-red-600/50';
+                case 'warning': return 'bg-amber-600/30 border border-amber-500/50 text-amber-300 hover:bg-amber-600/50';
+                case 'loot': return 'bg-purple-600/30 border border-purple-500/50 text-purple-300 hover:bg-purple-600/50';
+                case 'verification': return 'bg-cyan-600/30 border border-cyan-500/50 text-cyan-300 hover:bg-cyan-600/50';
+                default: return 'bg-slate-600/30 border border-slate-500/50 text-slate-300 hover:bg-slate-600/50';
             }
         }
 
         function getNotificationIcon(type) {
             switch (type) {
-                case 'success': return '✅';
-                case 'error': return '❌';
-                case 'warning': return '⚠️';
-                default: return 'ℹ️';
+                case 'success': return '✓';
+                case 'error': return '⚠';
+                case 'warning': return '!';
+                case 'loot': return '💎';
+                case 'verification': return '✓';
+                default: return 'ℹ';
             }
         }
 

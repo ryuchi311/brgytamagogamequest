@@ -17,12 +17,15 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 # Copy application code
 COPY . .
 
+# Make startup script executable
+RUN chmod +x start-server.sh
+
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
-EXPOSE 8000
+# Expose port (Cloud Run uses PORT env variable, defaults to 8080)
+EXPOSE 8080
 
-# Default command (can be overridden in docker-compose)
-CMD ["python", "-m", "uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]
+# Default command - uses startup script for Cloud Run compatibility
+CMD ["./start-server.sh"]

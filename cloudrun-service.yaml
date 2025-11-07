@@ -1,0 +1,72 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: brgy-tamago-quest-hub
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: '0'
+        autoscaling.knative.dev/maxScale: '10'
+        run.googleapis.com/startup-cpu-boost: 'true'
+        run.googleapis.com/cpu-throttling: 'false'
+    spec:
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      serviceAccountName: PROJECT_NUMBER-compute@developer.gserviceaccount.com
+      containers:
+      - image: gcr.io/PROJECT_ID/brgy-tamago-quest-hub:latest
+        ports:
+        - name: http1
+          containerPort: 8080
+        env:
+        - name: PORT
+          value: "8080"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-url
+              key: latest
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: supabase-url
+              key: latest
+        - name: SUPABASE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-key
+              key: latest
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: secret-key
+              key: latest
+        - name: TELEGRAM_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: telegram-bot-token
+              key: latest
+        resources:
+          limits:
+            cpu: '2'
+            memory: 2Gi
+          requests:
+            cpu: '1'
+            memory: 512Mi
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 0
+          timeoutSeconds: 240
+          periodSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10

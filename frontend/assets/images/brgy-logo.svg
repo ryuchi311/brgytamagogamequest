@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <!-- Black circular border -->
+  <circle cx="50" cy="50" r="48" fill="#2a2a2a" stroke="#000" stroke-width="4"/>
+  
+  <!-- Yellow/orange inner circle -->
+  <circle cx="50" cy="50" r="44" fill="#FFD700"/>
+  
+  <!-- Character body (egg-like shape) -->
+  <ellipse cx="50" cy="55" rx="20" ry="25" fill="#F5E6D3" stroke="#8B4513" stroke-width="1"/>
+  
+  <!-- Character head -->
+  <ellipse cx="50" cy="35" rx="12" ry="15" fill="#FF8C00"/>
+  
+  <!-- Character beak -->
+  <polygon points="58,35 62,38 58,41" fill="#FF4500"/>
+  
+  <!-- Character eye -->
+  <circle cx="52" cy="32" r="3" fill="#000"/>
+  <circle cx="53" cy="31" r="1" fill="#FFF"/>
+  
+  <!-- Red bandana/hat -->
+  <path d="M 38 28 Q 50 22 62 28 Q 60 25 50 23 Q 40 25 38 28" fill="#DC143C"/>
+  <path d="M 62 28 Q 65 30 68 35" stroke="#DC143C" stroke-width="2" fill="none"/>
+  
+  <!-- Sword handle (in character's hand) -->
+  <rect x="65" y="45" width="3" height="12" fill="#8B4513" transform="rotate(15 66.5 51)"/>
+  
+  <!-- Sword blade -->
+  <rect x="66" y="35" width="2" height="12" fill="#C0C0C0" transform="rotate(15 67 41)"/>
+  
+  <!-- Sword crossguard -->
+  <rect x="64" y="42" width="6" height="1.5" fill="#FFD700" transform="rotate(15 67 42.75)"/>
+  
+  <!-- Character arms/wings -->
+  <ellipse cx="40" cy="48" rx="6" ry="4" fill="#FF8C00" transform="rotate(-20 40 48)"/>
+  <ellipse cx="60" cy="48" rx="6" ry="4" fill="#FF8C00" transform="rotate(20 60 48)"/>
+  
+  <!-- Character feet -->
+  <ellipse cx="45" cy="75" rx="3" ry="2" fill="#FF8C00"/>
+  <ellipse cx="55" cy="75" rx="3" ry="2" fill="#FF8C00"/>
+  
+  <!-- BRGY text at bottom -->
+  <rect x="20" y="80" width="60" height="18" fill="#000" rx="3"/>
+  <text x="50" y="92" font-family="Arial Black, sans-serif" font-size="12" font-weight="900" fill="#FFD700" text-anchor="middle">BRGY</text>
+</svg>

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Black circular border -->
+  <circle cx="16" cy="16" r="15" fill="#2a2a2a" stroke="#000" stroke-width="1"/>
+  
+  <!-- Yellow/gold inner circle -->
+  <circle cx="16" cy="16" r="13" fill="#FFD700"/>
+  
+  <!-- Character body -->
+  <ellipse cx="16" cy="18" rx="6" ry="8" fill="#F5E6D3" stroke="#8B4513" stroke-width="0.5"/>
+  
+  <!-- Character head -->
+  <ellipse cx="16" cy="12" rx="4" ry="5" fill="#FF8C00"/>
+  
+  <!-- Character beak -->
+  <polygon points="18,12 20,13 18,14" fill="#FF4500"/>
+  
+  <!-- Character eye -->
+  <circle cx="17" cy="11" r="1" fill="#000"/>
+  
+  <!-- Red bandana -->
+  <path d="M 12 9 Q 16 7 20 9" fill="#DC143C"/>
+  
+  <!-- Small sword -->
+  <line x1="22" y1="15" x2="24" y2="13" stroke="#C0C0C0" stroke-width="1"/>
+  <rect x="21.5" y="14.5" width="2" height="0.8" fill="#FFD700"/>
+</svg>

@@ -28,6 +28,11 @@ A gamified quest platform built with Telegram Mini Apps, featuring multiple ques
 
 ## 🚀 Quick Start
 
+### 📦 Deployment
+
+- The project now ships as a Docker image. Follow [DOCKER_DEPLOYMENT.md](./DOCKER_DEPLOYMENT.md) to build and run locally.
+- For local development you can still use `./start.sh` which spins up backend + frontend with auto-recovery logic.
+
 ### Admin Features
 
 ### Prerequisites- 📊 **Dashboard Analytics** - View system statistics and user metrics

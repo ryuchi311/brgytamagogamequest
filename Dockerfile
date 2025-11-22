@@ -24,8 +24,15 @@ RUN chmod +x start-server.sh
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-# Expose port (Cloud Run uses PORT env variable, defaults to 8080)
-EXPOSE 8080
+# Default runtime configuration (can be overridden at runtime)
+ENV HOST=0.0.0.0 \
+    PORT=8080 \
+    API_PORT=8000 \
+    SERVE_FRONTEND=false \
+    FRONTEND_DIR=frontend
+
+# Expose primary (frontend) and API ports
+EXPOSE 8080 8000
 
 # Default command - uses startup script for Cloud Run compatibility
 CMD ["./start-server.sh"]

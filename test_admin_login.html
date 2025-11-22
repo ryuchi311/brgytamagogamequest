@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Test</title>
+</head>
+<body>
+    <h1>Admin Login Test</h1>
+    
+    <div>
+        <label>Username:</label>
+        <input type="text" id="username" value="admin">
+    </div>
+    
+    <div>
+        <label>Password:</label>
+        <input type="password" id="password" value="changeme123">
+    </div>
+    
+    <button onclick="testLogin()">Test Login</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        // Use same API URL as admin panel
+        const API_BASE = window.location.origin;
+        const API_URL = `${API_BASE}/api`;
+        
+        console.log('Test API_URL:', API_URL);
+        
+        async function testLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            resultDiv.innerHTML = 'Testing login...';
+            
+            try {
+                console.log('Making test login request...');
+                
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                    signal: AbortSignal.timeout(10000)
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers));
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Response data:', data);
+                    resultDiv.innerHTML = `✅ SUCCESS! Token: ${data.access_token.substring(0, 20)}...`;
+                } else {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    resultDiv.innerHTML = `❌ FAILED! Status: ${response.status}, Error: ${errorText}`;
+                }
+            } catch (error) {
+                console.error('Login test error:', error);
+                resultDiv.innerHTML = `❌ ERROR! ${error.message}`;
+            }
+        }
+        
+        // Auto-test on page load
+        window.onload = function() {
+            console.log('Test page loaded, API_URL:', API_URL);
+        };
+    </script>
+</body>
+</html>

@@ -8,7 +8,7 @@ CONTAINER_NAME="brgy-tamago-api"
 PORT=8080
 
 echo "🚀 Running BRGY TAMAGO Quest Hub with pure Docker on port ${PORT}..."
-echo "======================================================================"
+echo "====================================================================="
 echo ""
 
 # Load environment variables from .env if it exists

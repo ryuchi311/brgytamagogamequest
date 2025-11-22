@@ -2,6 +2,8 @@
 FastAPI Backend Application
 """
 import os
+import re
+import time
 import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional, List
@@ -11,12 +13,20 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from jose import JWTError, jwt
 from dotenv import load_dotenv
-from app.models import DatabaseService, supabase
+from app.models import DatabaseService, supabase, get_db_connection
 from postgrest.exceptions import APIError
+from psycopg2 import OperationalError
+from psycopg2.errors import UndefinedColumn
 
 load_dotenv()
 
-app = FastAPI(title="Telegram Bot Points System API", version="1.0.0")
+app = FastAPI(
+    title="Telegram Bot Points System API",
+    version="1.0.0",
+    openapi_url="/api/openapi.json",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc",
+)
 
 # CORS Configuration
 app.add_middleware(
@@ -33,6 +43,10 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
 security = HTTPBearer()
+
+# Feature detection flags
+ADMIN_PERMISSION_COLUMNS_SUPPORTED = True
+USER_TASK_SUBMISSION_TEXT_SUPPORTED = True
 
 
 # Pydantic Models for API
@@ -108,6 +122,22 @@ class RewardCreate(BaseModel):
     quantity_available: Optional[int]
 
 
+class AdminCreateRequest(BaseModel):
+    username: str
+    password: str
+    role: Optional[str] = None
+    is_super_admin: bool = False
+    permissions: Optional[List[str]] = None
+
+
+class AdminUpdateRequest(BaseModel):
+    password: Optional[str] = None
+    role: Optional[str] = None
+    is_super_admin: Optional[bool] = None
+    permissions: Optional[List[str]] = None
+    is_active: Optional[bool] = None
+
+
 class LoginRequest(BaseModel):
     username: str
     password: str
@@ -157,6 +187,253 @@ async def get_current_admin(credentials: HTTPAuthorizationCredentials = Depends(
         raise HTTPException(status_code=401, detail="User not found")
     
     return response.data[0]
+
+
+def parse_permissions(raw_permissions) -> List[str]:
+    """Convert stored permissions text into a cleaned list"""
+    if not raw_permissions:
+        return []
+    if isinstance(raw_permissions, list):
+        return [perm for perm in raw_permissions if perm]
+    return [perm.strip() for perm in str(raw_permissions).split(',') if perm.strip()]
+
+
+def serialize_permissions(permissions: Optional[List[str]]) -> str:
+    """Serialize permissions into a comma-delimited string"""
+    if not permissions:
+        return ""
+    cleaned = [perm.strip() for perm in permissions if perm and perm.strip()]
+    seen = set()
+    deduped = []
+    for perm in cleaned:
+        if perm not in seen:
+            seen.add(perm)
+            deduped.append(perm)
+    return ','.join(deduped)
+
+
+def derive_permissions_from_role(role: Optional[str]) -> List[str]:
+    """Provide default permission set for legacy role-only setups"""
+    if not role:
+        return []
+    role = role.lower()
+    if role == "super_admin":
+        return ["quests", "users", "verification", "loot", "server"]
+    if role in ("admin", "manager"):
+        return ["quests", "users", "verification"]
+    if role in ("moderator", "verifier"):
+        return ["verification"]
+    return []
+
+
+def format_admin_record(record: dict) -> dict:
+    """Standardize admin records for API responses"""
+    if not record:
+        return {}
+    is_super_admin = bool(record.get("is_super_admin") or record.get("role") == "super_admin")
+    permissions = parse_permissions(record.get("permissions"))
+    if not permissions:
+        permissions = derive_permissions_from_role(record.get("role"))
+    return {
+        "id": record.get("id"),
+        "username": record.get("username"),
+        "role": record.get("role") or ("super_admin" if is_super_admin else "admin"),
+        "is_super_admin": is_super_admin,
+        "is_active": record.get("is_active", True),
+        "permissions": permissions,
+        "created_at": record.get("created_at"),
+        "last_login": record.get("last_login"),
+    }
+
+
+def ensure_super_admin(admin_record: dict):
+    """Ensure that the caller has super admin privileges"""
+    if not admin_record:
+        raise HTTPException(status_code=403, detail="Invalid admin context")
+    if admin_record.get("is_super_admin") or admin_record.get("role") == "super_admin":
+        return
+    raise HTTPException(status_code=403, detail="Only super admins can manage admin accounts")
+
+
+def is_permission_column_error(error: Exception) -> bool:
+    if isinstance(error, UndefinedColumn):
+        return True
+    message = str(error).lower()
+    if "permissions" in message or "is_super_admin" in message:
+        return True
+    return False
+
+
+def sanitize_permission_payload(payload: dict) -> dict:
+    cleaned = payload.copy()
+    cleaned.pop("permissions", None)
+    cleaned.pop("is_super_admin", None)
+    return cleaned
+
+
+def insert_admin_record(payload: dict):
+    """Insert admin record with graceful fallback when columns are missing"""
+    global ADMIN_PERMISSION_COLUMNS_SUPPORTED
+    working_payload = payload.copy()
+    if not ADMIN_PERMISSION_COLUMNS_SUPPORTED:
+        working_payload = sanitize_permission_payload(working_payload)
+    try:
+        return supabase.table("admin_users").insert(working_payload).execute()
+    except Exception as exc:
+        if ADMIN_PERMISSION_COLUMNS_SUPPORTED and is_permission_column_error(exc):
+            ADMIN_PERMISSION_COLUMNS_SUPPORTED = False
+            working_payload = sanitize_permission_payload(payload)
+            return supabase.table("admin_users").insert(working_payload).execute()
+        raise
+
+
+def update_admin_record(admin_id: str, payload: dict):
+    """Update admin record with graceful fallback when columns are missing"""
+    global ADMIN_PERMISSION_COLUMNS_SUPPORTED
+    working_payload = payload.copy()
+    if not ADMIN_PERMISSION_COLUMNS_SUPPORTED:
+        working_payload = sanitize_permission_payload(working_payload)
+    try:
+        return supabase.table("admin_users").update(working_payload).eq("id", admin_id).execute()
+    except Exception as exc:
+        if ADMIN_PERMISSION_COLUMNS_SUPPORTED and is_permission_column_error(exc):
+            ADMIN_PERMISSION_COLUMNS_SUPPORTED = False
+            working_payload = sanitize_permission_payload(payload)
+            return supabase.table("admin_users").update(working_payload).eq("id", admin_id).execute()
+        raise
+
+
+def is_submission_text_error(error: Exception) -> bool:
+    return "submission_text" in str(error).lower()
+
+
+def safe_user_task_update(update_data: dict, user_task_id: str):
+    """Update user_tasks rows while handling optional submission_text column"""
+    global USER_TASK_SUBMISSION_TEXT_SUPPORTED
+    working_payload = update_data.copy()
+    if not USER_TASK_SUBMISSION_TEXT_SUPPORTED:
+        working_payload.pop("submission_text", None)
+    try:
+        return supabase.table("user_tasks").update(working_payload).eq("id", user_task_id).execute()
+    except Exception as exc:
+        if USER_TASK_SUBMISSION_TEXT_SUPPORTED and is_submission_text_error(exc):
+            USER_TASK_SUBMISSION_TEXT_SUPPORTED = False
+            working_payload.pop("submission_text", None)
+            return supabase.table("user_tasks").update(working_payload).eq("id", user_task_id).execute()
+        raise
+
+
+def safe_user_task_insert(insert_data: dict):
+    """Insert user_tasks rows while handling optional submission_text column"""
+    global USER_TASK_SUBMISSION_TEXT_SUPPORTED
+    working_payload = insert_data.copy()
+    if not USER_TASK_SUBMISSION_TEXT_SUPPORTED:
+        working_payload.pop("submission_text", None)
+    try:
+        return supabase.table("user_tasks").insert(working_payload).execute()
+    except Exception as exc:
+        if USER_TASK_SUBMISSION_TEXT_SUPPORTED and is_submission_text_error(exc):
+            USER_TASK_SUBMISSION_TEXT_SUPPORTED = False
+            working_payload.pop("submission_text", None)
+            return supabase.table("user_tasks").insert(working_payload).execute()
+        raise
+
+
+def enforce_manual_submission_rules(task_payload: dict):
+    """Ensure manual review quests always use text/link submissions"""
+    if task_payload.get("task_type") != "manual_review":
+        return
+    verification_data = task_payload.get("verification_data") or {}
+    instructions = verification_data.get("instructions", "")
+    verification_data.update({
+        "method": "manual_review",
+        "submission_type": "text",
+        "requires_approval": True,
+        "instructions": instructions.strip() if isinstance(instructions, str) else instructions
+    })
+    task_payload["verification_data"] = verification_data
+    task_payload["verification_required"] = True
+    if not task_payload.get("platform"):
+        task_payload["platform"] = "manual"
+
+
+URL_CAPTURE_PATTERN = re.compile(r"(https?://[^\s]+)", re.IGNORECASE)
+
+
+def extract_first_url(value: Optional[str]) -> Optional[str]:
+    """Return the first probable URL inside a submission text"""
+    if not value or not isinstance(value, str):
+        return None
+    match = URL_CAPTURE_PATTERN.search(value)
+    if not match:
+        return None
+        url = match.group(1).rstrip(").,]\"'\n")
+    return url
+
+
+@app.get("/api/status/servers")
+async def get_server_status():
+    """Detailed server + database status used by the dashboard cards"""
+    api_latency = 0.0
+    db_status = {
+        "status": "error",
+        "message": "OFFLINE",
+        "latency_ms": None,
+        "port_label": "PostgreSQL"
+    }
+
+    # Measure lightweight API latency (this endpoint already proves availability)
+    api_start = time.perf_counter()
+    api_latency = round((time.perf_counter() - api_start) * 1000, 2)
+
+    # Check database connectivity with a simple query
+    conn = None
+    try:
+        db_start = time.perf_counter()
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+        cursor.close()
+        conn.close()
+        conn = None
+        db_latency = round((time.perf_counter() - db_start) * 1000, 2)
+        db_status = {
+            "status": "connected",
+            "message": "CONNECTED",
+            "latency_ms": db_latency,
+            "port_label": "PostgreSQL"
+        }
+    except (OperationalError, Exception) as exc:
+        if conn:
+            conn.close()
+        db_status = {
+            "status": "error",
+            "message": "OFFLINE",
+            "latency_ms": None,
+            "port_label": "PostgreSQL",
+            "error": str(exc)
+        }
+
+    return {
+        "timestamp": datetime.utcnow().isoformat(),
+        "frontend": {
+            "status": "running",
+            "message": "RUNNING",
+            "port_label": "Port 8080",
+        },
+        "api": {
+            "status": "running",
+            "message": "RUNNING",
+            "latency_ms": api_latency,
+            "port_label": "Port 8080"
+        },
+        "database": db_status,
+        "performance": {
+            "status": "ok" if db_status["status"] != "error" else "degraded",
+            "message": "SYSTEM STABLE" if db_status["status"] != "error" else "CHECK DATABASE"
+        }
+    }
 
 
 # API Endpoints
@@ -427,10 +704,27 @@ async def verify_task_completion(request: dict):
     if existing.data:
         return {"success": False, "message": "Task already completed"}
     
+    # Persisted submission artifacts for manual verification
+    proof_url = request.get('proof_url')
+    submission_text = request.get('submission_text')
+
+    if isinstance(proof_url, str):
+        proof_url = proof_url.strip()
+        if not proof_url:
+            proof_url = None
+
+    if isinstance(submission_text, str):
+        submission_text = submission_text.strip()
+        if submission_text:
+            submission_text = submission_text[:2000]
+        else:
+            submission_text = None
+
     # Perform verification based on task_type
     verification_success = False
     verification_message = "Verification pending"
     needs_pending = False  # Initialize here - will be set to True only for tasks requiring review
+    pending_status = None
     
     task_type = task.get('task_type', '').lower()
     verification_data = task.get('verification_data') or {}
@@ -868,9 +1162,15 @@ async def verify_task_completion(request: dict):
     
     # Manual review tasks
     elif task_type == 'manual_review':
+        if not submission_text and not proof_url:
+            return {"success": False, "message": "Please include your link or short notes before submitting."}
+        if not proof_url:
+            proof_url = extract_first_url(submission_text or "")
         # Create pending user_task for admin review
         verification_success = True
         verification_message = "Task submitted for admin review"
+        needs_pending = True
+        pending_status = 'submitted'
     
     # Generic/other task types
     else:
@@ -888,36 +1188,47 @@ async def verify_task_completion(request: dict):
             needs_pending = not bool(submitted_code)  # Only pending if no code submitted
         elif task_type == 'manual_review':
             needs_pending = True
+            pending_status = pending_status or 'submitted'
         # For all other task types, needs_pending should already be set correctly above
         
         # Check if pending task exists
         pending_task = supabase.table("user_tasks").select("*").eq("user_id", user['id']).eq("task_id", task_id).execute()
         
+        status_value = pending_status if (needs_pending and pending_status) else ("pending" if needs_pending else "completed")
+
         if pending_task.data:
             # Update existing
             user_task_id = pending_task.data[0]['id']
             update_data = {
-                "status": "pending" if needs_pending else "completed",
+                "status": status_value,
                 "completed_at": None if needs_pending else datetime.now(timezone.utc).isoformat()
             }
             # Add points_earned for completed tasks
             if not needs_pending:
                 update_data["points_earned"] = task.get('points_reward', 0)
+            if proof_url:
+                update_data["proof_url"] = proof_url
+            if submission_text:
+                update_data["submission_text"] = submission_text
             
-            supabase.table("user_tasks").update(update_data).eq("id", user_task_id).execute()
+            safe_user_task_update(update_data, user_task_id)
         else:
             # Create new
             user_task_data = {
                 "user_id": user['id'],
                 "task_id": task_id,
-                "status": "pending" if needs_pending else "completed",
+                "status": status_value,
                 "completed_at": None if needs_pending else datetime.now(timezone.utc).isoformat()
             }
             # Add points_earned for completed tasks
             if not needs_pending:
                 user_task_data["points_earned"] = task.get('points_reward', 0)
+            if proof_url:
+                user_task_data["proof_url"] = proof_url
+            if submission_text:
+                user_task_data["submission_text"] = submission_text
             
-            supabase.table("user_tasks").insert(user_task_data).execute()
+            safe_user_task_insert(user_task_data)
         
         # Award points immediately for completed tasks (not YouTube or manual pending)
         if not needs_pending:
@@ -929,12 +1240,16 @@ async def verify_task_completion(request: dict):
                 "success": True,
                 "message": verification_message,
                 "points_earned": points_reward,
-                "new_total": new_points
+                "new_total": new_points,
+                "status": status_value,
+                "pending_review": False
             }
         else:
             return {
                 "success": True,
                 "message": verification_message,
+                "status": status_value,
+                "pending_review": True,
                 "requires_code": task_type == 'youtube_watch'
             }
     
@@ -1043,6 +1358,8 @@ async def create_task(task: TaskCreate, admin=Depends(get_current_admin)):
             print(f"verification_data value: {task.verification_data}")
             # Skip verification_data if it can't be serialized
             pass
+
+    enforce_manual_submission_rules(task_data)
     
     try:
         response = supabase.table("tasks").insert(task_data).execute()
@@ -1130,6 +1447,8 @@ async def update_task(task_id: str, task: TaskCreate, admin=Depends(get_current_
         else:
             # Ensure all values are JSON-serializable
             task_data['verification_data'] = json.loads(json.dumps(vd))
+
+    enforce_manual_submission_rules(task_data)
     
     try:
         response = supabase.table("tasks").update(task_data).eq("id", task_id).execute()
@@ -1337,13 +1656,14 @@ async def verify_user_task(user_task_id: str, approved: bool, admin=Depends(get_
     if approved:
         # Award points
         points = task['points_reward']
-        DatabaseService.update_user_points(user_task['user_id'], points, "earned")
+        update_result = DatabaseService.update_user_points(user_task['user_id'], points, "earned")
+        if update_result is None:
+            raise HTTPException(status_code=500, detail="Failed to update user points")
         
         # Update user task
         update_data = {
             "status": "completed",
-            "points_earned": points,
-            "verified_by": admin['id'],
+            "points_earned": update_result.get("awarded_points", points),
             "verified_at": datetime.utcnow().isoformat()
         }
         
@@ -1351,14 +1671,13 @@ async def verify_user_task(user_task_id: str, approved: bool, admin=Depends(get_
         DatabaseService.create_notification(
             user_task['user_id'],
             "Task Verified!",
-            f"Your task has been verified! You earned {points} points.",
+            f"Your task has been verified! You earned {update_result.get('awarded_points', points)} points.",
             "task_verified"
         )
     else:
         # Reject task
         update_data = {
             "status": "rejected",
-            "verified_by": admin['id'],
             "verified_at": datetime.utcnow().isoformat()
         }
         
@@ -1389,6 +1708,160 @@ async def ban_user(user_id: str, admin=Depends(get_current_admin)):
     supabase.table("users").update({"is_banned": new_status}).eq("id", user_id).execute()
     
     return {"message": f"User {'banned' if new_status else 'unbanned'} successfully"}
+
+
+# ============================================================================
+# ADMIN MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@app.get("/api/admin/users")
+async def get_admin_users(current_admin=Depends(get_current_admin)):
+    """Get the list of admin users"""
+    try:
+        response = supabase.table("admin_users").select("*").order("created_at", desc=False).execute()
+        admins = [format_admin_record(row) for row in (response.data or [])]
+        return admins
+    except APIError as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch admin users: {exc}")
+
+
+@app.post("/api/admin/create-admin", status_code=status.HTTP_201_CREATED)
+async def create_admin_user(
+    admin_data: AdminCreateRequest,
+    current_admin=Depends(get_current_admin)
+):
+    """Create a new admin user"""
+    ensure_super_admin(current_admin)
+    try:
+        username = admin_data.username.strip()
+        password = admin_data.password.strip()
+        if not username or not password:
+            raise HTTPException(status_code=400, detail="Username and password are required")
+
+        existing_user = supabase.table("admin_users").select("id").eq("username", username).execute()
+        if existing_user.data:
+            raise HTTPException(status_code=400, detail="Username already exists")
+
+        is_super_admin = admin_data.is_super_admin or (admin_data.role == "super_admin")
+        role = admin_data.role or ("super_admin" if is_super_admin else "admin")
+        permissions = admin_data.permissions
+        if is_super_admin and not permissions:
+            permissions = ["quests", "users", "verification", "loot", "server"]
+
+        new_admin = {
+            "username": username,
+            "password_hash": get_password_hash(password),
+            "role": role,
+            "permissions": serialize_permissions(permissions),
+            "is_super_admin": is_super_admin,
+            "is_active": True,
+            "created_at": datetime.utcnow().isoformat()
+        }
+
+        response = insert_admin_record(new_admin)
+        if not response.data:
+            raise HTTPException(status_code=500, detail="Failed to create admin user")
+
+        message = "Admin user created successfully"
+        if not ADMIN_PERMISSION_COLUMNS_SUPPORTED:
+            message += " (legacy role-only mode active)"
+
+        return {
+            "message": message,
+            "admin": format_admin_record(response.data[0])
+        }
+    except HTTPException:
+        raise
+    except APIError as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to create admin: {exc}")
+
+
+@app.delete("/api/admin/delete-admin/{admin_id}")
+async def delete_admin_user(
+    admin_id: str,
+    current_admin=Depends(get_current_admin)
+):
+    """Delete an admin user"""
+    ensure_super_admin(current_admin)
+    try:
+        if current_admin.get("id") == admin_id:
+            raise HTTPException(status_code=400, detail="You cannot delete your own account")
+
+        admin_to_delete = supabase.table("admin_users").select("*").eq("id", admin_id).execute()
+        if not admin_to_delete.data:
+            raise HTTPException(status_code=404, detail="Admin not found")
+
+        target_admin = admin_to_delete.data[0]
+        if target_admin.get("username") == "admin":
+            raise HTTPException(status_code=403, detail="Cannot delete the main admin account")
+
+        supabase.table("admin_users").delete().eq("id", admin_id).execute()
+        return {"message": "Admin user deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to delete admin: {exc}")
+
+
+@app.put("/api/admin/update-admin/{admin_id}")
+async def update_admin_user(
+    admin_id: str,
+    admin_data: AdminUpdateRequest,
+    current_admin=Depends(get_current_admin)
+):
+    """Update admin credentials, permissions, or status"""
+    try:
+        current_is_super = current_admin.get("is_super_admin") or current_admin.get("role") == "super_admin"
+        if not current_is_super and current_admin.get("id") != admin_id:
+            raise HTTPException(status_code=403, detail="You can only update your own account")
+
+        admin_to_update = supabase.table("admin_users").select("*").eq("id", admin_id).execute()
+        if not admin_to_update.data:
+            raise HTTPException(status_code=404, detail="Admin not found")
+
+        update_data = {}
+
+        if admin_data.password:
+            update_data["password_hash"] = get_password_hash(admin_data.password)
+
+        if admin_data.permissions is not None:
+            if not current_is_super:
+                raise HTTPException(status_code=403, detail="Only super admins can change permissions")
+            update_data["permissions"] = serialize_permissions(admin_data.permissions)
+
+        if admin_data.is_super_admin is not None:
+            if not current_is_super:
+                raise HTTPException(status_code=403, detail="Only super admins can change super admin access")
+            update_data["is_super_admin"] = admin_data.is_super_admin
+            if admin_data.is_super_admin:
+                update_data["role"] = "super_admin"
+
+        if admin_data.role:
+            if not current_is_super:
+                raise HTTPException(status_code=403, detail="Only super admins can change roles")
+            update_data["role"] = admin_data.role
+            update_data["is_super_admin"] = admin_data.role == "super_admin"
+
+        if admin_data.is_active is not None:
+            if not current_is_super:
+                raise HTTPException(status_code=403, detail="Only super admins can activate/deactivate admins")
+            update_data["is_active"] = admin_data.is_active
+
+        if not update_data:
+            return {"message": "No changes made"}
+        update_admin_record(admin_id, update_data)
+        refreshed = supabase.table("admin_users").select("*").eq("id", admin_id).execute()
+        message = "Admin user updated successfully"
+        if not ADMIN_PERMISSION_COLUMNS_SUPPORTED:
+            message += " (legacy role-only mode active)"
+        return {
+            "message": message,
+            "admin": format_admin_record(refreshed.data[0])
+        }
+    except HTTPException:
+        raise
+    except APIError as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to update admin: {exc}")
 
 
 # ============================================================================

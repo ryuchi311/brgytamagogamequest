@@ -124,6 +124,8 @@ CREATE TABLE admin_users (
     password_hash TEXT NOT NULL,
     email VARCHAR(255),
     role VARCHAR(50) DEFAULT 'admin', -- 'admin', 'super_admin', 'moderator'
+    permissions TEXT,
+    is_super_admin BOOLEAN DEFAULT false,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     last_login TIMESTAMP WITH TIME ZONE
@@ -185,8 +187,8 @@ CREATE TRIGGER update_rewards_updated_at BEFORE UPDATE ON rewards
 
 -- Insert sample admin user (password: changeme123)
 -- Note: You should change this password in production
-INSERT INTO admin_users (username, password_hash, email, role)
-VALUES ('admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5qlJ3U/pqWU7m', 'admin@example.com', 'super_admin');
+INSERT INTO admin_users (username, password_hash, email, role, permissions, is_super_admin)
+VALUES ('admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5qlJ3U/pqWU7m', 'admin@example.com', 'super_admin', 'quests,users,verification', true);
 
 -- Insert sample tasks
 INSERT INTO tasks (title, description, task_type, platform, url, points_reward, is_bonus)

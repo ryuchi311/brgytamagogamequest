@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instant Status Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: white; }
+        .status { margin: 10px 0; padding: 10px; border: 1px solid #333; border-radius: 5px; }
+        .ok { background: #1a3a1a; border-color: #4a4; }
+        .checking { background: #3a3a1a; border-color: #aa4; }
+        button { padding: 10px 20px; margin: 10px; background: #333; color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Instant Status Check Test</h1>
+    
+    <div id="frontend" class="status checking">🔄 Frontend: Checking...</div>
+    <div id="api" class="status checking">🔄 API Server: Checking...</div>
+    <div id="database" class="status checking">🔄 Database: Checking...</div>
+    
+    <button onclick="runInstantCheck()">⚡ Run Instant Check</button>
+    <button onclick="runSlowCheck()">🐌 Run Normal Check</button>
+    
+    <script>
+        const API_URL = window.location.origin + '/api';
+        
+        function updateStatus(id, status, text) {
+            const element = document.getElementById(id);
+            element.className = `status ${status}`;
+            element.innerHTML = status === 'ok' ? `✅ ${text}` : status === 'error' ? `❌ ${text}` : `🔄 ${text}`;
+        }
+        
+        async function runInstantCheck() {
+            console.log('🚀 Starting instant check...');
+            
+            // Set frontend immediately
+            updateStatus('frontend', 'ok', 'Frontend: RUNNING (Port 8080)');
+            
+            // API check with 100ms timeout
+            try {
+                const start = Date.now();
+                const response = await fetch(`${API_URL}/health`, { 
+                    signal: AbortSignal.timeout(100) 
+                });
+                const time = Date.now() - start;
+                
+                if (response.ok) {
+                    updateStatus('api', 'ok', `API Server: RUNNING (${time}ms)`);
+                    updateStatus('database', 'ok', 'Database: CONNECTED');
+                } else {
+                    updateStatus('api', 'error', 'API Server: OFFLINE');
+                    updateStatus('database', 'error', 'Database: OFFLINE');
+                }
+            } catch (error) {
+                updateStatus('api', 'error', `API Server: ERROR (${error.message})`);
+                updateStatus('database', 'error', 'Database: N/A');
+            }
+        }
+        
+        async function runSlowCheck() {
+            console.log('🐌 Starting normal check...');
+            
+            updateStatus('frontend', 'checking', 'Frontend: Checking...');
+            updateStatus('api', 'checking', 'API Server: Checking...');
+            updateStatus('database', 'checking', 'Database: Checking...');
+            
+            // Simulate the old way
+            setTimeout(async () => {
+                updateStatus('frontend', 'ok', 'Frontend: RUNNING');
+                
+                try {
+                    const response = await fetch(`${API_URL}/health`);
+                    if (response.ok) {
+                        updateStatus('api', 'ok', 'API Server: RUNNING');
+                        updateStatus('database', 'ok', 'Database: CONNECTED');
+                    }
+                } catch (error) {
+                    updateStatus('api', 'error', 'API Server: ERROR');
+                    updateStatus('database', 'error', 'Database: ERROR');
+                }
+            }, 1000);
+        }
+        
+        // Auto-run instant check on page load
+        window.onload = runInstantCheck;
+    </script>
+</body>
+</html>

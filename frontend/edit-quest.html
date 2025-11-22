@@ -520,13 +520,11 @@
 
                         <div>
                             <label class="block text-purple-400 gaming-title text-sm mb-2">SUBMISSION TYPE</label>
-                            <select id="manualSubmission"
-                                class="w-full bg-black/50 border-2 border-purple-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500">
-                                <option value="none">No Submission Needed</option>
-                                <option value="text">Text/Link Submission</option>
-                                <option value="screenshot">Screenshot Upload</option>
-                                <option value="code">Enter Code</option>
-                            </select>
+                            <div class="w-full bg-black/50 border-2 border-purple-500/30 rounded-xl px-4 py-3 text-white/80 text-sm">
+                                Text / Link submission (fixed)
+                            </div>
+                            <input type="hidden" id="manualSubmission" value="text">
+                            <p class="text-xs text-gray-400 mt-1">Users provide a short note and optional link. Other submission types are disabled.</p>
                         </div>
 
                         <div>
@@ -757,7 +755,7 @@
                     
                 } else if (selectedQuestType === 'manual') {
                     document.getElementById('manualUrl').value = loadedQuest.url || '';
-                    document.getElementById('manualSubmission').value = verif.submission_type || 'none';
+                    document.getElementById('manualSubmission').value = 'text';
                     document.getElementById('manualInstructions').value = verif.instructions || '';
                     
                 } else if (selectedQuestType === 'social') {
@@ -990,7 +988,7 @@
                 questData.url = url || null;
                 questData.verification_data = {
                     method: 'manual_review',
-                    submission_type: document.getElementById('manualSubmission').value,
+                    submission_type: 'text',
                     instructions: document.getElementById('manualInstructions').value.trim(),
                     requires_approval: true
                 };

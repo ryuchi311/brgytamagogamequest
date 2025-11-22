@@ -359,24 +359,44 @@ class DatabaseService:
             return None
         
         user = user_response.data[0]
-        new_points = user["points"] + points_change
+
+        # Normalize numeric values to avoid type errors from Supabase responses
+        try:
+            current_points = int(user.get("points", 0) or 0)
+        except (TypeError, ValueError):
+            current_points = 0
+
+        try:
+            delta_points = int(points_change or 0)
+        except (TypeError, ValueError):
+            delta_points = 0
+
+        new_points = current_points + delta_points
         
         # Update user points
         update_data = {"points": new_points}
-        if points_change > 0:
-            update_data["total_earned_points"] = user["total_earned_points"] + points_change
+        if delta_points > 0:
+            try:
+                total_earned = int(user.get("total_earned_points", 0) or 0)
+            except (TypeError, ValueError):
+                total_earned = 0
+            update_data["total_earned_points"] = total_earned + delta_points
         
         supabase.table("users").update(update_data).eq("id", user_id).execute()
         
         # Create transaction log
         transaction_data = {
             "user_id": user_id,
-            "amount": points_change,
+            "amount": delta_points,
             "transaction_type": transaction_type
         }
         supabase.table("points_transactions").insert(transaction_data).execute()
         
-        return {"points": new_points, "total_earned_points": update_data.get("total_earned_points", user["total_earned_points"])}
+        return {
+            "points": new_points,
+            "total_earned_points": update_data.get("total_earned_points", user.get("total_earned_points", 0)),
+            "awarded_points": delta_points
+        }
     
     @staticmethod
     def get_active_tasks() -> List[dict]:

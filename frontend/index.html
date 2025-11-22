@@ -310,25 +310,8 @@
                 </div>
             </header>
 
-            <!-- ON-SCREEN DEBUG PANEL (for Telegram Mini App) -->
-            <div id="debugPanel" class="fixed bottom-20 right-2 w-80 max-h-96 bg-black/95 border-2 border-yellow-400 rounded-lg overflow-hidden shadow-2xl z-50 hidden">
-                <div class="bg-yellow-400 text-black px-3 py-2 flex items-center justify-between">
-                    <span class="font-bold text-sm">🔍 Debug Log</span>
-                    <div class="flex gap-2">
-                        <button onclick="testCodeInput()" class="text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600" title="Test Code Input">Test</button>
-                        <button onclick="clearDebugLog()" class="text-xs bg-black/20 px-2 py-1 rounded hover:bg-black/40">Clear</button>
-                        <button onclick="toggleDebugPanel()" class="text-xs bg-black/20 px-2 py-1 rounded hover:bg-black/40">×</button>
-                    </div>
-                </div>
-                <div id="debugLog" class="p-2 overflow-y-auto max-h-80 text-xs font-mono">
-                    <div class="text-green-400">Debug panel ready...</div>
-                </div>
-            </div>
-            
-            <!-- Debug Toggle Button -->
-            <button onclick="toggleDebugPanel()" class="fixed bottom-24 right-2 w-12 h-12 bg-yellow-400 text-black rounded-full shadow-lg z-50 font-bold text-xl hover:bg-yellow-300 active:scale-95 transition-all">
-                🐛
-            </button>
+            <!-- ON-SCREEN DEBUG PANEL (DISABLED) -->
+            <!-- Debug panel and button disabled for production -->
 
             <main class="px-4 pb-4">
                 <!-- QUEST LIST VIEW -->
@@ -918,14 +901,12 @@
 
     <script>
         // Configuration - API URL
-        // Handle both localhost and GitHub Codespaces URLs
-        let API_BASE;
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            // Local development
-            API_BASE = window.location.origin.replace(':8080', ':8000');
-        } else {
-            // GitHub Codespaces - replace 8080 port in URL
-            API_BASE = window.location.origin.replace('-8080.', '-8000.');
+        // Auto-detect backend port for local dev and Codespaces
+        let API_BASE = window.location.origin;
+        if (API_BASE.includes('-8080.')) {
+            API_BASE = API_BASE.replace('-8080.', '-8000.');
+        } else if (API_BASE.includes(':8080')) {
+            API_BASE = API_BASE.replace(':8080', ':8000');
         }
         const API_URL = `${API_BASE}/api`;
         
@@ -955,89 +936,15 @@
         }
 
         // ============================================
-        // ON-SCREEN DEBUG PANEL (for Telegram Mini App)
+        // DEBUG PANEL DISABLED FOR PRODUCTION
         // ============================================
         
-        let debugLogs = [];
-        let isDebugPanelVisible = false;
-        
-        // Override console.log to capture all logs
-        const originalConsoleLog = console.log;
-        const originalConsoleError = console.error;
-        const originalConsoleWarn = console.warn;
-        
-        function addDebugLog(message, type = 'log') {
-            const timestamp = new Date().toLocaleTimeString();
-            const colors = {
-                log: '#00ff00',
-                error: '#ff0000',
-                warn: '#ffaa00',
-                info: '#00aaff'
-            };
-            
-            debugLogs.push({
-                time: timestamp,
-                message: String(message),
-                type: type,
-                color: colors[type]
-            });
-            
-            // Keep only last 100 logs
-            if (debugLogs.length > 100) {
-                debugLogs.shift();
-            }
-            
-            // Update debug panel if it exists
-            updateDebugPanel();
-        }
-        
-        function updateDebugPanel() {
-            const debugLog = document.getElementById('debugLog');
-            if (!debugLog) return;
-            
-            debugLog.innerHTML = debugLogs.map(log => 
-                `<div style="color: ${log.color}; margin-bottom: 4px;">
-                    <span style="color: #666;">[${log.time}]</span> ${log.message}
-                </div>`
-            ).join('');
-            
-            // Auto-scroll to bottom
-            debugLog.scrollTop = debugLog.scrollHeight;
-        }
-        
-        function toggleDebugPanel() {
-            const panel = document.getElementById('debugPanel');
-            if (panel) {
-                isDebugPanelVisible = !isDebugPanelVisible;
-                panel.classList.toggle('hidden', !isDebugPanelVisible);
-            }
-        }
-        
-        function clearDebugLog() {
-            debugLogs = [];
-            updateDebugPanel();
-            addDebugLog('Debug log cleared', 'info');
-        }
-        
-        // Override console methods
-        console.log = function(...args) {
-            originalConsoleLog.apply(console, args);
-            addDebugLog(args.join(' '), 'log');
-        };
-        
-        console.error = function(...args) {
-            originalConsoleError.apply(console, args);
-            addDebugLog('❌ ' + args.join(' '), 'error');
-        };
-        
-        console.warn = function(...args) {
-            originalConsoleWarn.apply(console, args);
-            addDebugLog('⚠️ ' + args.join(' '), 'warn');
-        };
-        
-        // Add initial log
-        addDebugLog('🐛 Debug system initialized', 'info');
-        addDebugLog('Click 🐛 button to toggle debug panel', 'info');
+        // Debug functionality disabled
+        function addDebugLog() { /* disabled */ }
+        function updateDebugPanel() { /* disabled */ }
+        function toggleDebugPanel() { /* disabled */ }
+        function clearDebugLog() { /* disabled */ }
+        function testCodeInput() { /* disabled */ }
         
         // ============================================
         // TEST MODE - Set to true for 5 second timer
@@ -1045,43 +952,13 @@
         const TEST_MODE = true; // Set to false for production (30 second timer)
         
         if (TEST_MODE) {
-            addDebugLog('⚡ TEST MODE ACTIVE - Timer is 5 seconds!', 'warn');
+            console.warn('TEST MODE ACTIVE - Timer is 5 seconds!');
         }
         
-        // Test function for code input
+        // Test function for code input (DISABLED)
         function testCodeInput() {
-            addDebugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
-            addDebugLog('🧪 TESTING CODE INPUT', 'info');
-            
-            const el = document.getElementById('codeInputSection');
-            addDebugLog('Element: ' + (el ? 'FOUND ✅' : 'NOT FOUND ❌'), el ? 'log' : 'error');
-            
-            if (el) {
-                addDebugLog('Parent: ' + (el.parentElement ? el.parentElement.id || 'no ID' : 'none'), 'log');
-                addDebugLog('Classes: ' + el.className, 'log');
-                addDebugLog('Display: ' + window.getComputedStyle(el).display, 'log');
-                
-                addDebugLog('Attempting to show...', 'info');
-                el.classList.remove('hidden');
-                el.style.display = 'block';
-                el.style.visibility = 'visible';
-                el.style.border = '3px solid red';
-                
-                setTimeout(() => {
-                    const newDisplay = window.getComputedStyle(el).display;
-                    addDebugLog('New display: ' + newDisplay, newDisplay === 'block' ? 'log' : 'error');
-                    addDebugLog(newDisplay === 'block' ? '✅ Should be visible now with RED BORDER' : '❌ Still hidden!', newDisplay === 'block' ? 'log' : 'error');
-                }, 100);
-            } else {
-                addDebugLog('Searching for similar elements...', 'warn');
-                const similar = document.querySelectorAll('[id*="codeInput"]');
-                addDebugLog('Found ' + similar.length + ' elements with "codeInput"', 'info');
-                similar.forEach((elem, i) => {
-                    addDebugLog(`  ${i+1}. id="${elem.id}"`, 'log');
-                });
-            }
-            
-            addDebugLog('━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+            // Debug functionality disabled in production
+            console.log('Debug testing disabled');
         }
         
         // ============================================
@@ -1356,19 +1233,59 @@
 
         // Get quest status based on state
         function getQuestStatus(task) {
-            // Check if completed
-            if (completedTaskIds.has(task.id)) {
-                return { status: 'completed', emoji: '✅', label: 'Completed' };
+            const cachedStatus = taskStatusMap[task.id];
+            const normalized = cachedStatus ? cachedStatus.toLowerCase() : null;
+            
+            if (normalized === 'rejected') {
+                return {
+                    status: 'rejected',
+                    emoji: '❌',
+                    label: 'Failed',
+                    indicatorIcon: '✖',
+                    indicatorClass: 'text-red-400 text-2xl font-black',
+                    badgeHtml: '<span class="bg-red-500/20 text-red-300 text-[10px] font-black px-2 py-0.5 rounded-full">FAILED</span>'
+                };
             }
             
-            // Check if in progress (has start time in localStorage)
+            if (normalized === 'pending' || normalized === 'submitted') {
+                return {
+                    status: 'pending',
+                    emoji: '⏳',
+                    label: 'Pending Review',
+                    indicatorIcon: '⏳',
+                    indicatorClass: 'text-yellow-300 text-2xl font-black',
+                    badgeHtml: '<span class="bg-yellow-500/20 text-yellow-200 text-[10px] font-black px-2 py-0.5 rounded-full">PENDING</span>'
+                };
+            }
+            
+            if (completedTaskIds.has(task.id) || normalized === 'completed') {
+                return {
+                    status: 'completed',
+                    emoji: '✅',
+                    label: 'Completed',
+                    indicatorIcon: '✓',
+                    indicatorClass: 'text-neon-green text-2xl font-black'
+                };
+            }
+            
             const startTime = localStorage.getItem(`quest_start_${task.id}`);
             if (startTime) {
-                return { status: 'in-progress', emoji: '🟡', label: 'In Progress' };
+                return {
+                    status: 'in-progress',
+                    emoji: '🟡',
+                    label: 'In Progress',
+                    indicatorIcon: '⏳',
+                    indicatorClass: 'text-yellow-300 text-2xl font-black'
+                };
             }
             
-            // Default: available
-            return { status: 'available', emoji: '🟢', label: 'Available' };
+            return {
+                status: 'available',
+                emoji: '🟢',
+                label: 'Available',
+                indicatorIcon: '›',
+                indicatorClass: 'text-neon-blue text-2xl font-bold'
+            };
         }
 
         // Get quest category
@@ -1447,17 +1364,9 @@
                 // Determine if quest is clickable and get indicator icon
                 const isCompleted = statusInfo.status === 'completed';
                 const isClickable = !isCompleted;
-                
-                // TapSwap-style indicator: Green checkmark for completed, Arrow for available
-                let indicatorIcon = '';
-                let indicatorClass = '';
-                if (isCompleted) {
-                    indicatorIcon = '✓';
-                    indicatorClass = 'text-neon-green text-2xl font-bold';
-                } else {
-                    indicatorIcon = '›';
-                    indicatorClass = 'text-neon-blue text-2xl font-bold';
-                }
+                const indicatorIcon = statusInfo.indicatorIcon || (isCompleted ? '✓' : '›');
+                const indicatorClass = statusInfo.indicatorClass || (isCompleted ? 'text-neon-green text-2xl font-bold' : 'text-neon-blue text-2xl font-bold');
+                const statusBadge = statusInfo.badgeHtml || '';
                 
                 const cursorClass = isClickable ? 'cursor-pointer' : 'cursor-default';
                 const opacityClass = isCompleted ? 'opacity-70' : '';
@@ -1476,6 +1385,7 @@
                                     <span class="text-sm font-black text-neon-green flex items-center">
                                         <span class="text-yellow-400 mr-1">●</span> ${points}
                                     </span>
+                                    ${statusBadge}
                                 </div>
                             </div>
                             <div class="flex-shrink-0 ${indicatorClass}">
@@ -1492,24 +1402,18 @@
                 const response = await fetch(`${API_URL}/tasks`);
                 const allTasks = await response.json();
                 
-                // Get user's completed tasks
+                let userTasks = [];
                 completedTaskIds = new Set();
                 if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
                     try {
                         const telegramId = window.Telegram.WebApp.initDataUnsafe.user.id;
                         const userTasksResponse = await fetch(`${API_URL}/users/${telegramId}/tasks`);
-                        const userTasks = await userTasksResponse.json();
-                        
-                        // Get IDs of completed tasks
-                        completedTaskIds = new Set(
-                            userTasks
-                                .filter(ut => ut.status === 'completed')
-                                .map(ut => ut.task_id)
-                        );
+                        userTasks = await userTasksResponse.json();
                     } catch (e) {
                         console.log('Could not fetch user tasks:', e);
                     }
                 }
+                updateTaskStatusCache(userTasks);
                 
                 // DON'T filter out completed tasks - show ALL tasks
                 // Completed tasks will show with checkmark, available tasks with arrow
@@ -1645,11 +1549,68 @@
         // Store user activities globally
         let userActivities = [];
         let currentActivityFilter = 'all';
+        let taskStatusMap = {};
+        let pendingTaskIds = new Set();
+        let rejectedTaskIds = new Set();
+        let rejectionNoticeCache = new Set();
         
         // Cache leaderboard data to avoid repeated API calls
         let leaderboardCache = null;
         let leaderboardCacheTime = 0;
         const LEADERBOARD_CACHE_DURATION = 30000; // 30 seconds
+
+        function setTaskStatusLocal(taskId, status) {
+            if (!taskId) return;
+            if (!status) {
+                delete taskStatusMap[taskId];
+                completedTaskIds.delete(taskId);
+                pendingTaskIds.delete(taskId);
+                rejectedTaskIds.delete(taskId);
+                return;
+            }
+            const normalized = status.toLowerCase();
+            taskStatusMap[taskId] = normalized;
+            if (normalized === 'completed') {
+                completedTaskIds.add(taskId);
+                pendingTaskIds.delete(taskId);
+                rejectedTaskIds.delete(taskId);
+            } else if (normalized === 'rejected') {
+                rejectedTaskIds.add(taskId);
+                completedTaskIds.delete(taskId);
+                pendingTaskIds.delete(taskId);
+            } else if (normalized === 'pending' || normalized === 'submitted') {
+                pendingTaskIds.add(taskId);
+                completedTaskIds.delete(taskId);
+                rejectedTaskIds.delete(taskId);
+            } else {
+                completedTaskIds.delete(taskId);
+                pendingTaskIds.delete(taskId);
+                rejectedTaskIds.delete(taskId);
+            }
+        }
+
+        function updateTaskStatusCache(userTasks = []) {
+            const previousStatuses = { ...taskStatusMap };
+            const cloned = Array.isArray(userTasks) ? [...userTasks] : [];
+            cloned.sort((a, b) => {
+                const aDate = new Date(a?.updated_at || a?.completed_at || a?.created_at || 0);
+                const bDate = new Date(b?.updated_at || b?.completed_at || b?.created_at || 0);
+                return aDate - bDate;
+            });
+            taskStatusMap = {};
+            pendingTaskIds = new Set();
+            rejectedTaskIds = new Set();
+            completedTaskIds = new Set();
+            cloned.forEach(task => {
+                if (!task || !task.task_id || !task.status) return;
+                const normalizedStatus = (task.status || '').toLowerCase();
+                setTaskStatusLocal(task.task_id, normalizedStatus);
+                const previously = (previousStatuses[task.task_id] || '').toLowerCase();
+                if (normalizedStatus === 'rejected' && previously !== 'rejected') {
+                    notifyQuestRejection(task.task_id);
+                }
+            });
+        }
 
         async function loadProfile() {
             try {
@@ -1709,6 +1670,7 @@
                 
                 // Store activities
                 userActivities = userTasks || [];
+                updateTaskStatusCache(userActivities);
                 
                 // Calculate stats
                 const successCount = userActivities.filter(t => t.status === 'completed').length;
@@ -1794,6 +1756,44 @@
             }).join('');
         }
 
+        function showQuestStatusModal(title, message, emoji = 'ℹ️') {
+            document.querySelectorAll('.quest-status-modal').forEach(el => el.remove());
+            const modal = document.createElement('div');
+            modal.className = 'quest-status-modal fixed inset-0 bg-black/70 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-gaming-darker/95 border border-white/10 rounded-2xl p-6 text-center max-w-sm mx-4 shadow-2xl">
+                    <div class="text-4xl mb-2">${emoji}</div>
+                    <div class="text-lg font-bold mb-1">${title}</div>
+                    <div class="text-sm text-gray-300">${message}</div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            setTimeout(() => {
+                modal.style.opacity = '0';
+                modal.style.transition = 'opacity 0.2s ease-in-out';
+                setTimeout(() => modal.remove(), 200);
+            }, 2200);
+        }
+
+        function notifyQuestRejection(taskId) {
+            if (!taskId || rejectionNoticeCache.has(taskId)) return;
+            const storageKey = `quest_rejection_notified_${taskId}`;
+            try {
+                if (window.sessionStorage?.getItem(storageKey)) {
+                    return;
+                }
+            } catch (error) {
+                // sessionStorage might be unavailable; ignore
+            }
+            showQuestStatusModal('Submission Rejected', 'One of your manual quests was rejected. Open it to resubmit your link.', '❌');
+            rejectionNoticeCache.add(taskId);
+            try {
+                window.sessionStorage?.setItem(storageKey, '1');
+            } catch (error) {
+                // Ignore storage failures
+            }
+        }
+
         function filterActivity(filter) {
             currentActivityFilter = filter;
             
@@ -1834,6 +1834,7 @@
         let currentTaskId = null;
         let currentTaskUrl = null;
         let currentTask = null;
+        let currentQuestStatus = null;
         let videoWatchTimer = null;
         let watchTimerInterval = null;
         let videoStartTime = null;
@@ -1863,6 +1864,7 @@
             currentTask = null;
             currentTaskId = null;
             currentTaskUrl = null;
+            currentQuestStatus = null;
             
             // Scroll to top
             window.scrollTo(0, 0);
@@ -1877,6 +1879,7 @@
             
             // Check if quest is already completed - prevent reopening
             const statusInfo = getQuestStatus(task);
+            currentQuestStatus = statusInfo;
             if (statusInfo.status === 'completed') {
                 console.log('⚠️ Quest already completed - cannot reopen');
                 
@@ -1892,6 +1895,12 @@
                 setTimeout(() => toast.remove(), 2000);
                 
                 return; // Don't open the quest
+            }
+            
+            if (statusInfo.status === 'rejected') {
+                showQuestStatusModal('Submission Rejected', 'Your last proof did not pass review. Update your link and try again.', '❌');
+            } else if (statusInfo.status === 'pending') {
+                showQuestStatusModal('Pending Review', 'Sit tight! An admin is reviewing your submission.', '⏳');
             }
             
             currentTask = task;
@@ -1916,14 +1925,31 @@
             const points = task.points_reward || 0;
             const taskType = task.task_type || '';
             const verificationData = task.verification_data || {};
+            const normalizedTaskType = (taskType || '').toLowerCase();
+            const platform = (task.platform || '').toLowerCase();
+            const isManualQuest = normalizedTaskType === 'manual_review'
+                || verificationData.method === 'manual_review'
+                || platform === 'manual';
             
             console.log('   Points:', points);
             console.log('   Task type:', taskType);
             console.log('   Verification data:', verificationData);
             
             // Set basic quest info
-            document.getElementById('questTitle').textContent = task.title;
-            document.getElementById('questDescription').textContent = task.description || 'Complete this quest to earn rewards';
+            const displayTitle = (task.title && task.title.trim())
+                || (verificationData.display_title && verificationData.display_title.trim())
+                || (verificationData.title && verificationData.title.trim())
+                || 'Quest Mission';
+            const descriptionCandidates = [
+                task.description,
+                verificationData.description,
+                isManualQuest ? verificationData.instructions : null
+            ];
+            const displayDescription = descriptionCandidates.find(value => value && value.trim())
+                || 'Complete this quest to earn rewards';
+
+            document.getElementById('questTitle').textContent = displayTitle;
+            document.getElementById('questDescription').textContent = displayDescription.trim();
             
             // Format points with space (TapSwap style)
             const formattedPoints = points.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
@@ -1969,11 +1995,77 @@
             }
         }
 
+        function escapeHtml(value) {
+            if (value === undefined || value === null) {
+                return '';
+            }
+            return String(value).replace(/[&<>"']/g, (char) => {
+                switch (char) {
+                    case '&':
+                        return '&amp;';
+                    case '<':
+                        return '&lt;';
+                    case '>':
+                        return '&gt;';
+                    case '"':
+                        return '&quot;';
+                    case '\'':
+                        return '&#39;';
+                    default:
+                        return char;
+                }
+            });
+        }
+
         function generateInstructions(task, taskType, verificationData) {
             let instructions = '';
+            const normalizedTaskType = (taskType || '').toLowerCase();
+            const platform = task.platform?.toLowerCase() || '';
+
+            if (normalizedTaskType === 'manual_review' || verificationData.method === 'manual_review' || platform === 'manual') {
+                const manualTitle = verificationData.instructions_title?.trim() || 'Manual Quest Steps';
+                const rawInstructions = (verificationData.instructions || task.description || '').trim();
+                const lines = rawInstructions.split(/\n+/).map(line => line.trim()).filter(Boolean);
+                let instructionBody = '';
+
+                if (lines.length > 1) {
+                    instructionBody = `
+                        <ol class="space-y-1.5 text-xs text-gray-300">${lines.map((line, idx) => `
+                            <li class="flex gap-1.5">
+                                <span class="text-purple-300 font-bold">${idx + 1}.</span>
+                                <span>${escapeHtml(line)}</span>
+                            </li>
+                        `).join('')}</ol>
+                    `;
+                } else if (lines.length === 1) {
+                    instructionBody = `<p class="text-xs text-gray-300 leading-relaxed">${escapeHtml(lines[0])}</p>`;
+                } else {
+                    instructionBody = `<p class="text-xs text-gray-400">Follow the quest instructions provided by the admins.</p>`;
+                }
+
+                const manualLink = task.url ? `<a href="${escapeHtml(encodeURI(task.url))}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-semibold text-purple-300 hover:text-purple-200 transition-colors mt-3">
+                        <span>🔗</span>
+                        <span>Open quest instructions</span>
+                    </a>` : '';
+
+                instructions = `
+                    <div class="bg-purple-500/10 border border-purple-500/30 rounded-2xl p-4">
+                        <div class="flex items-start gap-3 mb-3">
+                            <div class="text-2xl">✍️</div>
+                            <div>
+                                <h4 class="font-bold text-purple-200 text-sm mb-1.5">${escapeHtml(manualTitle)}</h4>
+                                ${instructionBody}
+                            </div>
+                        </div>
+                        ${manualLink}
+                    </div>
+                `;
+
+                return instructions;
+            }
             
             // YouTube Watch Quest - Compact
-            if (taskType === 'youtube' || taskType === 'youtube_watch') {
+            if (normalizedTaskType === 'youtube' || normalizedTaskType === 'youtube_watch') {
                 instructions = `
                     <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-3">
                         <div class="flex items-start gap-2">
@@ -1992,7 +2084,7 @@
             }
             
             // Twitter Follow
-            else if (taskType === 'twitter_follow') {
+            else if (normalizedTaskType === 'twitter_follow') {
                 instructions = `
                     <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 mb-3">
                         <div class="flex items-start gap-2">
@@ -2010,7 +2102,7 @@
             }
             
             // Twitter Like
-            else if (taskType === 'twitter_like') {
+            else if (normalizedTaskType === 'twitter_like') {
                 instructions = `
                     <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 mb-3">
                         <div class="flex items-start gap-2">
@@ -2028,7 +2120,7 @@
             }
             
             // Twitter Retweet
-            else if (taskType === 'twitter_retweet') {
+            else if (normalizedTaskType === 'twitter_retweet') {
                 instructions = `
                     <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 mb-3">
                         <div class="flex items-start gap-2">
@@ -2046,7 +2138,7 @@
             }
             
             // Telegram Join
-            else if (taskType.startsWith('telegram_') || taskType === 'telegram' || task.platform === 'telegram') {
+            else if (normalizedTaskType.startsWith('telegram_') || normalizedTaskType === 'telegram' || platform === 'telegram') {
                 instructions = `
                     <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-3 mb-3">
                         <div class="flex items-start gap-2">
@@ -2064,7 +2156,7 @@
             }
             
             // Instagram Follow
-            else if (task.platform === 'instagram' || taskType.includes('instagram')) {
+            else if (platform === 'instagram' || normalizedTaskType.includes('instagram')) {
                 instructions = `
                     <div class="bg-pink-500/10 border border-pink-500/30 rounded-xl p-3 mb-3">
                         <div class="flex items-start gap-2">
@@ -2082,7 +2174,7 @@
             }
             
             // Discord Join
-            else if (task.platform === 'discord' || taskType.includes('discord')) {
+            else if (platform === 'discord' || normalizedTaskType.includes('discord')) {
                 instructions = `
                     <div class="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-3 mb-3">
                         <div class="flex items-start gap-2">
@@ -2101,7 +2193,7 @@
             }
             
             // Daily Check-in
-            else if (taskType === 'daily_checkin') {
+            else if (normalizedTaskType === 'daily_checkin') {
                 instructions = `
                     <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-3 mb-3">
                         <div class="flex items-start gap-2">
@@ -2239,7 +2331,7 @@
             submitTaskCompletion(currentTaskId, submitData);
         }
 
-        async function submitTaskCompletion(taskId, data) {
+        async function submitTaskCompletion(taskId, data, options = {}) {
             try {
                 console.log('🚀 Submitting task completion...');
                 console.log('   Task ID:', taskId);
@@ -2276,10 +2368,15 @@
                 console.log('📦 Response data:', result);
                 
                 if (result.success) {
+                    if (result.pending_review) {
+                        handlePendingSubmission(result, options);
+                        return;
+                    }
                     console.log('✅ Task completed successfully!', result);
                     
                     // Add to completed tasks immediately
                     completedTaskIds.add(taskId);
+                    setTaskStatusLocal(taskId, 'completed');
                     console.log('📝 Added task to completedTaskIds:', taskId);
                     
                     // Show success animation
@@ -2303,6 +2400,7 @@
                         actionBtn.disabled = false;
                         actionBtn.textContent = 'Claim';
                     }
+                    resetManualSubmissionButton();
                 }
             } catch (error) {
                 console.error('❌ ❌ Error submitting task:', error);
@@ -2330,7 +2428,22 @@
                     actionBtn.disabled = false;
                     actionBtn.textContent = 'Claim';
                 }
+                resetManualSubmissionButton();
             }
+        }
+
+        function handlePendingSubmission(result, options = {}) {
+            const pendingStatus = result.status || 'submitted';
+            setTaskStatusLocal(currentTaskId, pendingStatus);
+            currentQuestStatus = { status: pendingStatus };
+            const message = result.message || 'Submission sent for admin review.';
+            showQuestStatusModal('Pending Review', message, '⏳');
+            setManualSubmissionState('pending');
+            setTimeout(async () => {
+                backToQuestList();
+                await loadTasks();
+                await loadUserActivity();
+            }, 1800);
         }
 
         function showSuccessAnimation(result) {
@@ -2386,7 +2499,52 @@
             console.log('   Task type:', taskType);
             console.log('   Verification data:', verificationData);
             
+            taskType = (taskType || '').toLowerCase();
             const platform = task.platform?.toLowerCase() || '';
+            const isManualQuest = taskType === 'manual_review' || verificationData.method === 'manual_review' || platform === 'manual';
+            
+            if (isManualQuest) {
+                const awaitingReview = currentQuestStatus?.status === 'pending';
+                const previouslyRejected = currentQuestStatus?.status === 'rejected';
+                const disabledAttr = awaitingReview ? 'disabled' : '';
+                const manualInstructions = (verificationData.instructions || task.description || '').trim();
+                const helperText = awaitingReview
+                    ? '⏳ Your submission is with the admin team. We will notify you once it is approved.'
+                    : manualInstructions
+                        ? 'Paste your proof link once you have completed the steps above.'
+                        : 'Paste your link (Google Drive, Twitter, YouTube, etc.) so admins can review it.';
+                const rejectionBanner = previouslyRejected ? `
+                    <div class="bg-red-500/10 border border-red-500/30 text-red-200 text-xs rounded-xl p-3 mb-4">
+                        Your last submission was rejected. Update your proof link and try again.
+                    </div>
+                ` : '';
+                return {
+                    html: `
+                        ${rejectionBanner}
+                        <div id="manualSubmissionForm" class="bg-gaming-darker/60 rounded-2xl p-4 border border-purple-400/20 ${awaitingReview ? 'opacity-60 pointer-events-none' : ''}">
+                            <label for="manualLinkInput" class="block text-xs font-semibold text-gray-300 mb-2">Proof Link</label>
+                            <input ${disabledAttr} type="url" id="manualLinkInput" inputmode="url" spellcheck="false" autocomplete="off" placeholder="https://example.com/your-proof"
+                                class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30 text-gray-100 mb-3" />
+                            <label for="manualNotesInput" class="block text-xs font-semibold text-gray-300 mb-2">Notes (optional)</label>
+                            <textarea ${disabledAttr} id="manualNotesInput" rows="3" placeholder="Add short context for the reviewer" class="w-full bg-black/30 border border-purple-500/30 rounded-xl px-4 py-3 text-sm text-gray-100 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"></textarea>
+                            <button ${disabledAttr} id="manualSubmitBtn" onclick="submitManualQuest()" class="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 rounded-2xl p-4 font-bold text-base active:scale-95 transition-all shadow-lg disabled:opacity-60 disabled:cursor-not-allowed">
+                                <span class="text-2xl mr-2">✍️</span> Submit for Review
+                            </button>
+                            <p id="manualSubmissionStatus" class="text-xs mt-2 text-gray-400">${helperText}</p>
+                        </div>
+                    `,
+                    onRender: () => {
+                        if (awaitingReview) {
+                            setManualSubmissionState('pending');
+                        } else {
+                            setManualSubmissionState('ready');
+                            if (previouslyRejected) {
+                                showManualSubmissionMessage('Your last submission was rejected. Update your proof link and resubmit.', 'error');
+                            }
+                        }
+                    }
+                };
+            }
             
             // YouTube Watch Quest (with timer and code)
             if (taskType === 'youtube' || taskType === 'youtube_watch') {
@@ -2897,8 +3055,7 @@
                     clearInterval(watchTimerInterval);
                     watchTimerInterval = null;
                     
-                    // Add visual alert
-                    addDebugLog('⏱️ TIMER COMPLETE - Starting unlock sequence', 'warn');
+                    console.log('Timer complete - triggering unlock sequence');
                     
                     // Trigger completion animations
                     triggerTimerCompleteAnimation();
@@ -2979,12 +3136,7 @@
         }
 
         function unlockCodeInput() {
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('🔓 UNLOCK CODE INPUT CALLED');
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            
-            // Add visual debug notification
-            addDebugLog('🔓 Timer complete - unlocking submit button', 'info');
+            console.log('Unlocking code input after timer completion');
             
             // Mark watch task as complete
             const watchTask = document.querySelector('[data-task-id="watch"]');
@@ -3849,129 +4001,55 @@
             initTwitterDebugLog();
         }
         
-        // Debug Log Functions
-        function initTwitterDebugLog() {
-            const debugPanel = document.getElementById('twitterDebugPanel');
-            if (debugPanel) {
-                debugPanel.classList.remove('hidden');
-                clearTwitterDebugLog();
-                addTwitterDebugLog('🔍 Debug log initialized', 'info');
-            }
-        }
-        
-        function toggleTwitterDebugLog() {
-            const content = document.getElementById('twitterDebugLogContent');
-            const toggle = document.getElementById('twitterDebugToggle');
-            
-            if (content && toggle) {
-                if (content.classList.contains('hidden')) {
-                    content.classList.remove('hidden');
-                    toggle.textContent = '▲';
-                } else {
-                    content.classList.add('hidden');
-                    toggle.textContent = '▼';
-                }
-            }
-        }
-        
-        function addTwitterDebugLog(message, type = 'info') {
-            const logLines = document.getElementById('twitterDebugLogLines');
-            if (!logLines) return;
-            
-            const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false });
-            const line = document.createElement('div');
-            
-            // Color coding based on type
-            const colors = {
-                'info': 'text-cyan-400',
-                'success': 'text-green-400',
-                'error': 'text-red-400',
-                'warning': 'text-yellow-400',
-                'step': 'text-blue-400'
-            };
-            
-            const color = colors[type] || 'text-gray-300';
-            
-            line.className = `${color}`;
-            line.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> ${message}`;
-            
-            logLines.appendChild(line);
-            
-            // Auto-scroll to bottom
-            const logContent = document.getElementById('twitterDebugLogContent');
-            if (logContent) {
-                logContent.scrollTop = logContent.scrollHeight;
-            }
-            
-            // Also log to console
-            console.log(message);
-        }
-        
-        function clearTwitterDebugLog() {
-            const logLines = document.getElementById('twitterDebugLogLines');
-            if (logLines) {
-                logLines.innerHTML = '';
-            }
-        }
+        // Debug Log Functions (DISABLED)
+        function initTwitterDebugLog() { /* disabled */ }
+        function toggleTwitterDebugLog() { /* disabled */ }
+        function addTwitterDebugLog() { /* disabled */ }
+        function clearTwitterDebugLog() { /* disabled */ }
         
         function verifyTwitterAction() {
-            addTwitterDebugLog('═══════════════════════════════════', 'step');
-            addTwitterDebugLog('🔍 STARTING VERIFICATION PROCESS', 'step');
-            addTwitterDebugLog('═══════════════════════════════════', 'step');
+            // Debug logging disabled
+            console.log('🔍 Starting Twitter verification process');
             
             const statusDiv = document.getElementById('twitterVerificationStatus');
             const verifyBtn = document.getElementById('twitterVerifyBtn');
             const claimBtn = document.getElementById('twitterClaimBtn');
             const usernameInput = document.getElementById('twitterUsernameInput');
             
-            addTwitterDebugLog('📋 Step 1: Getting DOM elements', 'step');
-            addTwitterDebugLog('   • Status Div: ' + (statusDiv ? '✅ Found' : '❌ Not found'), 'info');
-            addTwitterDebugLog('   • Verify Button: ' + (verifyBtn ? '✅ Found' : '❌ Not found'), 'info');
-            addTwitterDebugLog('   • Claim Button: ' + (claimBtn ? '✅ Found' : '❌ Not found'), 'info');
-            addTwitterDebugLog('   • Username Input: ' + (usernameInput ? '✅ Found' : '❌ Not found'), 'info');
+            console.log('Getting DOM elements...');
             
             // Get and validate Twitter username
             let twitterUsername = usernameInput?.value?.trim() || '';
-            addTwitterDebugLog('📋 Step 2: Getting Twitter username', 'step');
-            addTwitterDebugLog('   • Raw value: ' + usernameInput?.value, 'info');
-            addTwitterDebugLog('   • Trimmed value: ' + twitterUsername, 'info');
+            console.log('Getting Twitter username:', twitterUsername);
             
             // Remove @ symbol if present
             if (twitterUsername.startsWith('@')) {
-                addTwitterDebugLog('   • Removing @ symbol from: ' + twitterUsername, 'info');
                 twitterUsername = twitterUsername.substring(1);
-                addTwitterDebugLog('   • After removing @: ' + twitterUsername, 'info');
             }
             
             // Validate username
-            addTwitterDebugLog('📋 Step 3: Validating username', 'step');
+            console.log('Validating username format...');
             if (!twitterUsername) {
-                addTwitterDebugLog('❌ Validation failed: Username is empty', 'error');
+                console.error('Username validation failed: empty username');
                 showTwitterVerificationError('Please enter your Twitter username.');
                 return;
             }
             
             // Validate format (alphanumeric and underscore only)
             const isValidFormat = /^[a-zA-Z0-9_]{1,15}$/.test(twitterUsername);
-            addTwitterDebugLog('   • Username: ' + twitterUsername, 'info');
-            addTwitterDebugLog('   • Length: ' + twitterUsername.length, 'info');
-            addTwitterDebugLog('   • Valid format: ' + (isValidFormat ? '✅ Yes' : '❌ No'), isValidFormat ? 'success' : 'error');
             
             if (!isValidFormat) {
-                addTwitterDebugLog('❌ Validation failed: Invalid format', 'error');
+                console.error('Username validation failed: invalid format');
                 showTwitterVerificationError('Invalid Twitter username format. Use only letters, numbers, and underscores (max 15 characters).');
                 return;
             }
             
-            addTwitterDebugLog('✅ Username validation passed: ' + twitterUsername, 'success');
+            console.log('Username validation passed:', twitterUsername);
             
             // Save username to localStorage for future use
-            addTwitterDebugLog('📋 Step 4: Saving to localStorage', 'step');
             localStorage.setItem('twitter_username', twitterUsername);
-            addTwitterDebugLog('   • Saved to localStorage: ' + twitterUsername, 'success');
             
             // Show loading state
-            addTwitterDebugLog('📋 Step 5: Updating UI (loading)', 'step');
             if (statusDiv) {
                 statusDiv.innerHTML = `
                     <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
@@ -3989,40 +4067,28 @@
                         </div>
                     </div>
                 `;
-                addTwitterDebugLog('   • Loading animation displayed', 'info');
             }
             
             if (verifyBtn) {
                 verifyBtn.disabled = true;
                 verifyBtn.innerHTML = '⏳ Checking...';
-                addTwitterDebugLog('   • Verify button disabled', 'info');
             }
             
             // Disable username input during verification
             if (usernameInput) {
                 usernameInput.disabled = true;
-                addTwitterDebugLog('   • Username input disabled', 'info');
             }
             
             // Get Telegram user ID (we use this as the user identifier)
-            addTwitterDebugLog('📋 Step 6: Getting Telegram user ID', 'step');
             const telegramId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id || localStorage.getItem('telegram_id');
-            addTwitterDebugLog('   • Telegram WebApp: ' + (window.Telegram?.WebApp ? '✅ Available' : '❌ Not available'), 'info');
-            addTwitterDebugLog('   • Telegram ID: ' + telegramId, 'info');
+            console.log('Getting Telegram user ID for verification...');
             
             if (!telegramId) {
-                addTwitterDebugLog('❌ No Telegram ID found', 'error');
+                console.error('No Telegram ID found');
                 showTwitterVerificationError('Could not get your user ID. Please reload the app.');
                 if (usernameInput) usernameInput.disabled = false;
                 return;
             }
-            
-            // Get current task info
-            addTwitterDebugLog('📋 Step 7: Getting task information', 'step');
-            addTwitterDebugLog('   • Task ID: ' + currentTaskId, 'info');
-            addTwitterDebugLog('   • Task URL: ' + currentTaskUrl, 'info');
-            addTwitterDebugLog('   • Action Type: ' + (currentTask?.verification_data?.action_type || 'N/A'), 'info');
-            addTwitterDebugLog('   • Target Handle: ' + (currentTask?.verification_data?.twitter_handle || 'N/A'), 'info');
             
             // Prepare API request
             const apiUrl = `${API_URL}/tasks/${currentTaskId}/complete`;
@@ -4031,14 +4097,7 @@
                 twitter_username: twitterUsername
             };
             
-            addTwitterDebugLog('📋 Step 8: Preparing API request', 'step');
-            addTwitterDebugLog('   • API URL: ' + apiUrl, 'info');
-            addTwitterDebugLog('   • Method: POST', 'info');
-            addTwitterDebugLog('   • Body: ' + JSON.stringify(requestBody), 'info');
-            
-            addTwitterDebugLog('📋 Step 9: Sending to backend...', 'step');
-            addTwitterDebugLog('   ⏳ Waiting for Twitter API response...', 'info');
-            
+            console.log('Sending Twitter verification request...');
             const startTime = Date.now();
             
             // Call backend to verify Twitter action via Twitter API
@@ -4052,42 +4111,25 @@
             .then(response => {
                 const endTime = Date.now();
                 const duration = endTime - startTime;
-                
-                addTwitterDebugLog('📋 Step 10: Received response', 'step');
-                addTwitterDebugLog('   • Status: ' + response.status, response.ok ? 'success' : 'error');
-                addTwitterDebugLog('   • Duration: ' + duration + 'ms', 'info');
-                addTwitterDebugLog('   • Parsing JSON...', 'info');
+                console.log(`Twitter API response: ${response.status} (${duration}ms)`);
                 
                 return response.json();
             })
             .then(result => {
-                addTwitterDebugLog('📋 Step 11: Processing result', 'step');
-                addTwitterDebugLog('   • Success: ' + result.success, result.success ? 'success' : 'error');
-                console.log('   - Success:', result.success);
-                console.log('   - Message:', result.message);
-                addTwitterDebugLog('   • Message: ' + (result.message || 'N/A'), 'info');
-                addTwitterDebugLog('   • Error: ' + (result.error || 'N/A'), 'info');
-                addTwitterDebugLog('   • Points Earned: ' + (result.points_earned || 'N/A'), 'info');
+                console.log('Twitter verification result:', result.success);
                 
                 if (result.success) {
-                    addTwitterDebugLog('═══════════════════════════════════', 'success');
-                    addTwitterDebugLog('✅ VERIFICATION SUCCESSFUL!', 'success');
-                    addTwitterDebugLog('═══════════════════════════════════', 'success');
-                    addTwitterDebugLog('   • @' + twitterUsername + ' completed the action', 'success');
+                    console.log('✅ Twitter verification successful');
                     
                     const points = result.points_earned || result.new_total || currentTask?.points_reward;
-                    addTwitterDebugLog('   • Points to award: ' + points, 'success');
                     
                     // Store result for claim function
                     window.twitterVerificationResult = result;
-                    addTwitterDebugLog('   • Result stored in memory', 'info');
                     
                     // Save Twitter username to user profile in backend
-                    addTwitterDebugLog('📋 Step 12: Saving to user profile', 'step');
                     saveTwitterUsernameToProfile(twitterUsername, telegramId);
                     
                     // Show success and enable claim button
-                    addTwitterDebugLog('📋 Step 13: Updating UI (success)', 'step');
                     if (statusDiv) {
                         statusDiv.innerHTML = `
                             <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
@@ -4100,41 +4142,30 @@
                                 </div>
                             </div>
                         `;
-                        addTwitterDebugLog('   • Success message displayed', 'success');
                     }
                     
                     // Hide username input container and verify button
                     const usernameContainer = document.getElementById('twitterUsernameContainer');
                     if (usernameContainer) {
                         usernameContainer.style.display = 'none';
-                        addTwitterDebugLog('   • Username container hidden', 'info');
                     }
                     
                     if (verifyBtn) {
                         verifyBtn.style.display = 'none';
-                        addTwitterDebugLog('   • Verify button hidden', 'info');
                     }
                     
                     // Show claim button
                     if (claimBtn) {
                         claimBtn.classList.remove('hidden');
                         claimBtn.style.display = 'block';
-                        addTwitterDebugLog('   • Claim button displayed', 'success');
                     }
                     
-                    addTwitterDebugLog('✅ Verification complete! Ready to claim reward.', 'success');
-                    
                 } else {
-                    addTwitterDebugLog('═══════════════════════════════════', 'error');
-                    addTwitterDebugLog('❌ VERIFICATION FAILED', 'error');
-                    addTwitterDebugLog('═══════════════════════════════════', 'error');
+                    console.log('❌ Twitter verification failed:', result.message);
                     
                     // Show error - user hasn't completed the action
                     const errorMessage = result.message || result.error || 'Action not completed yet. Please complete the action on Twitter and try again.';
-                    addTwitterDebugLog('   • Error: ' + errorMessage, 'error');
-                    addTwitterDebugLog('   • @' + twitterUsername + ' has not completed the action', 'error');
                     
-                    addTwitterDebugLog('📋 Step 12: Updating UI (error)', 'step');
                     if (statusDiv) {
                         statusDiv.innerHTML = `
                             <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
@@ -4147,62 +4178,36 @@
                                 </div>
                             </div>
                         `;
-                        addTwitterDebugLog('   • Error message displayed', 'error');
                     }
                     
                     // Re-enable username input and verify button for retry
-                    addTwitterDebugLog('📋 Step 13: Re-enabling for retry', 'step');
                     if (usernameInput) {
                         usernameInput.disabled = false;
-                        addTwitterDebugLog('   • Username input re-enabled', 'info');
                     }
                     
                     if (verifyBtn) {
                         verifyBtn.disabled = false;
                         verifyBtn.innerHTML = '🔍 Verify Again';
-                        addTwitterDebugLog('   • Verify button re-enabled', 'info');
                     }
-                    
-                    addTwitterDebugLog('❌ User can retry after completing action', 'warning');
                 }
-                
-                addTwitterDebugLog('═══════════════════════════════════', 'info');
-                addTwitterDebugLog('🔍 VERIFICATION PROCESS ENDED', 'info');
-                addTwitterDebugLog('═══════════════════════════════════', 'info');
             })
             .catch(error => {
-                addTwitterDebugLog('═══════════════════════════════════', 'error');
-                addTwitterDebugLog('❌ NETWORK ERROR', 'error');
-                addTwitterDebugLog('═══════════════════════════════════', 'error');
-                addTwitterDebugLog('   • Error Type: ' + error.name, 'error');
-                addTwitterDebugLog('   • Error Message: ' + error.message, 'error');
-                addTwitterDebugLog('   • Possible causes:', 'warning');
-                addTwitterDebugLog('     1. Backend server not running', 'warning');
-                addTwitterDebugLog('     2. Network connection issue', 'warning');
-                addTwitterDebugLog('     3. CORS error', 'warning');
-                addTwitterDebugLog('     4. API endpoint not found (404)', 'warning');
-                addTwitterDebugLog('     5. Invalid JSON response', 'warning');
+                console.error('Twitter verification error:', error);
                 
                 // Re-enable input on error
                 if (usernameInput) {
                     usernameInput.disabled = false;
-                    addTwitterDebugLog('   • Username input re-enabled', 'info');
                 }
                 
                 showTwitterVerificationError('Connection error. Please try again.');
-                addTwitterDebugLog('❌ Verification failed at network level', 'error');
             });
         }
         
         // Helper function to save Twitter username to user profile
         function saveTwitterUsernameToProfile(twitterUsername, telegramId) {
-            addTwitterDebugLog('💾 Saving username to profile...', 'step');
-            addTwitterDebugLog('   • Username: ' + twitterUsername, 'info');
-            addTwitterDebugLog('   • Telegram ID: ' + telegramId, 'info');
-            addTwitterDebugLog('   • API: PATCH /users/' + telegramId + '/profile', 'info');
+            console.log('Saving Twitter username to profile:', twitterUsername);
             
             const requestBody = { twitter_username: twitterUsername };
-            addTwitterDebugLog('   • Sending PATCH request...', 'info');
             
             // Update backend user profile
             fetch(`${API_URL}/users/${telegramId}/profile`, {
@@ -4213,30 +4218,23 @@
                 body: JSON.stringify(requestBody)
             })
             .then(response => {
-                addTwitterDebugLog('   • Response: ' + response.status + ' ' + (response.ok ? 'OK' : 'ERROR'), response.ok ? 'info' : 'error');
+                console.log('Profile update response:', response.status);
                 return response.json();
             })
             .then(result => {
                 if (result.success) {
-                    addTwitterDebugLog('✅ Username saved to database!', 'success');
-                    addTwitterDebugLog('   • Database updated: ' + twitterUsername, 'success');
+                    console.log('✅ Username saved to database');
                     
                     // Update currentUser if exists
                     if (window.currentUser) {
                         window.currentUser.twitter_username = twitterUsername;
-                        addTwitterDebugLog('   • window.currentUser updated', 'success');
                     }
                 } else {
-                    addTwitterDebugLog('⚠️ Failed to save username to database', 'warning');
-                    addTwitterDebugLog('   • Reason: ' + (result.message || 'Unknown error'), 'warning');
-                    addTwitterDebugLog('   • Note: Username still saved in localStorage', 'info');
+                    console.warn('Failed to save username to database:', result.message);
                 }
             })
             .catch(error => {
-                addTwitterDebugLog('❌ Error saving username to database', 'error');
-                addTwitterDebugLog('   • Error: ' + error.message, 'error');
-                addTwitterDebugLog('   • Note: Username still in localStorage', 'info');
-                addTwitterDebugLog('   • Profile may not sync across devices', 'warning');
+                console.error('Error saving username to database:', error);
             });
         }
         
@@ -4327,6 +4325,78 @@
             setTimeout(() => {
                 submitTaskCompletion(currentTaskId, {});
             }, 2000);
+        }
+
+        function submitManualQuest() {
+            const btn = document.getElementById('manualSubmitBtn');
+            if (!btn || btn.disabled) return;
+            const linkInput = document.getElementById('manualLinkInput');
+            const notesInput = document.getElementById('manualNotesInput');
+            const proofLink = (linkInput?.value || '').trim();
+            const notes = (notesInput?.value || '').trim();
+            if (!proofLink && !notes) {
+                showManualSubmissionMessage('Please paste your link or add short notes before submitting.', 'error');
+                linkInput?.focus();
+                return;
+            }
+            btn.disabled = true;
+            btn.innerHTML = '<span class="animate-spin inline-block mr-2">⏳</span> Sending...';
+            showManualSubmissionMessage('Submitting for admin review...', 'info');
+            const combinedText = [proofLink, notes].filter(Boolean).join('\n').trim();
+            const payload = { submission_text: combinedText };
+            if (proofLink) {
+                payload.proof_url = proofLink;
+            }
+            submitTaskCompletion(currentTaskId, payload, { submissionType: 'manual' });
+        }
+
+        function showManualSubmissionMessage(message, type = 'info') {
+            const el = document.getElementById('manualSubmissionStatus');
+            if (!el) return;
+            const colors = {
+                error: 'text-red-400',
+                success: 'text-green-400',
+                info: 'text-gray-400'
+            };
+            el.className = `text-xs mt-2 ${colors[type] || colors.info}`;
+            el.textContent = message;
+        }
+
+        function setManualSubmissionState(state) {
+            const form = document.getElementById('manualSubmissionForm');
+            const btn = document.getElementById('manualSubmitBtn');
+            const linkInput = document.getElementById('manualLinkInput');
+            const notesInput = document.getElementById('manualNotesInput');
+            if (!form) return;
+            if (state === 'pending') {
+                form.classList.add('opacity-60', 'pointer-events-none');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="text-2xl mr-2">⏳</span> Waiting for Review';
+                }
+                if (linkInput) linkInput.disabled = true;
+                if (notesInput) notesInput.disabled = true;
+                showManualSubmissionMessage('⏳ Awaiting admin review. We will notify you once it is approved.', 'info');
+            } else {
+                form.classList.remove('opacity-60', 'pointer-events-none');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="text-2xl mr-2">✍️</span> Submit for Review';
+                }
+                if (linkInput) linkInput.disabled = false;
+                if (notesInput) notesInput.disabled = false;
+            }
+        }
+
+        function resetManualSubmissionButton() {
+            if (currentQuestStatus?.status === 'pending') return;
+            setManualSubmissionState('ready');
+        }
+
+        function openManualQuestLink() {
+            if (currentTaskUrl) {
+                window.open(currentTaskUrl, '_blank');
+            }
         }
 
         function showYouTubeQuestPage(task, platformEmoji, platformName, points, verificationData) {

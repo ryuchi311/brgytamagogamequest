@@ -24,10 +24,19 @@ spec:
         env:
         - name: PORT
           value: "8080"
+        - name: ALGORITHM
+          value: HS256
+        - name: ACCESS_TOKEN_EXPIRE_MINUTES
+          value: "600"
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
               name: database-url
+              key: latest
+        - name: SUPABASE_SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-service-key
               key: latest
         - name: SUPABASE_URL
           valueFrom:
@@ -44,10 +53,65 @@ spec:
             secretKeyRef:
               name: secret-key
               key: latest
+        - name: TELEGRAM_API_ID
+          valueFrom:
+            secretKeyRef:
+              name: telegram-api-id
+              key: latest
+        - name: TELEGRAM_API_HASH
+          valueFrom:
+            secretKeyRef:
+              name: telegram-api-hash
+              key: latest
         - name: TELEGRAM_BOT_TOKEN
           valueFrom:
             secretKeyRef:
               name: telegram-bot-token
+              key: latest
+        - name: BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: telegram-secondary-bot-token
+              key: latest
+        - name: TWITTER_BEARER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: twitter-bearer-token
+              key: latest
+        - name: TWITTER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: twitter-api-key
+              key: latest
+        - name: TWITTER_API_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: twitter-api-secret
+              key: latest
+        - name: TWITTER_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: twitter-client-id
+              key: latest
+        - name: TWITTER_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: twitter-client-secret
+              key: latest
+        - name: TWITTER_ACCOUNT_ID
+          valueFrom:
+            secretKeyRef:
+              name: twitter-account-id
+              key: latest
+        - name: TWITTER_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: twitter-username
+              key: latest
+        - name: YOUTUBE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: youtube-api-key
               key: latest
         resources:
           limits:

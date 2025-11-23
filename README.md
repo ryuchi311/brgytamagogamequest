@@ -4,6 +4,48 @@
 
 A gamified quest platform built with Telegram Mini Apps, featuring multiple quest types including Telegram group verification, Twitter follows, YouTube engagement, and website visits.A comprehensive web application for a Telegram bot that enables users to earn points through completing various tasks. Built with Python, FastAPI, and Supabase PostgreSQL.
 
+## 🛳️ Single-Port Docker & Cloud Run Workflow
+
+Cloud Run exposes only one inbound port, so the backend now serves both the REST API (`/api/*`) and the built frontend (`/`) over the same listener. The Docker image bundles the SPA build artifacts next to the FastAPI app and starts Uvicorn on `$PORT` (defaults to `8080`).
+
+### Local build & verification
+
+```bash
+docker build -t quest-hub-single-port .
+docker run --rm -p 8080:8080 -e PORT=8080 quest-hub-single-port
+# Verify both surfaces are available:
+curl http://localhost:8080/api/health
+xdg-open http://localhost:8080  # or visit manually in a browser
+```
+
+### Deploying to Cloud Run
+
+```bash
+PROJECT_ID=<your-project>
+REGION=us-central1
+docker tag quest-hub-single-port gcr.io/$PROJECT_ID/quest-hub-single-port:latest
+docker push gcr.io/$PROJECT_ID/quest-hub-single-port:latest
+gcloud run deploy quest-hub \
+   --image gcr.io/$PROJECT_ID/quest-hub-single-port:latest \
+   --platform managed \
+   --region $REGION \
+   --allow-unauthenticated \
+   --port 8080
+```
+
+### Wireframe (API + Frontend on one port)
+
+```
++-----------+        HTTPS :443         +-------------------------------+
+| End User  |  ──────────────────────>  | Cloud Run Service (8080/$PORT)|
+| Browser   |                           |  - FastAPI + Uvicorn          |
++-----------+                           |  - Serves SPA assets + /api   |
+                                                             +---------------+-------------+
+                                                                                     |
+                                                                     Supabase/Postgres
+                                                                                     |
+```
+
 
 
 ## ✨ Features## 🌟 Features
